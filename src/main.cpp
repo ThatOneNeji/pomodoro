@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "config.h"
 #include <ESP32Encoder.h>
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
@@ -83,8 +84,8 @@ Timer timer(display);
 
 void setup()
 {
-  pinMode(2, OUTPUT);
-  digitalWrite(2, HIGH);
+  pinMode(EPD_PWR_PIN, OUTPUT);
+  digitalWrite(EPD_PWR_PIN, HIGH);
 
   Button::instance = new Button(ENCODER_SW);
   ledSetupEncoder(&debouncedCount);
