@@ -1,5 +1,6 @@
 #include "../timer.h"
 #include "../strings.h"
+#include <stdint.h>
 
 void Timer::handleRunningBreak(volatile int *encoderCount)
 {
@@ -101,7 +102,7 @@ void Timer::drawRunningBreak()
     {
         const uint16_t w = 420;
         const uint16_t h = 340;
-        Bounds boxBounds = {display.width() / 2 - w / 2, display.height() - h - 64, w, h};
+        Bounds boxBounds = {static_cast<int16_t>(display.width() / 2 - w / 2, display.height() - h - 64, w, h)};
         const uint16_t innerPadding = 8;
         uint16_t yOffset = boxBounds.y + innerPadding;
         Bounds statistics = getBounds(display, messageCache.getMessage(Messages::Statistics), &MAIN_FONT);
