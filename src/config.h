@@ -5,3 +5,6 @@
 #define EPD_DC_PIN   17
 #define EPD_BUSY_PIN 4
 #define EPD_PWR_PIN 22
+
+// #define LANG_AF // Uncomment for Afrikaans text messages
+// #define LANG_DE // Uncomment for German text messages

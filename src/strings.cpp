@@ -14,16 +14,16 @@ static const char *randomMessage(const std::vector<const char *> &messages)
     return messages[random(0, messages.size())];
 }
 
-static const std::vector<const char *> genericPresetMessages = {
-    "Okaaay, let's go!",
-    "Heute schon auf Reddit gewesen?",
-    "Bist du hydriert?",
-    "Vielleicht eine kleine Kaffeepause?",
-    "Langsam ist aber auch Zeit fuer\nFeierabend, oder nicht?",
-    "Schoen hier, aber warst du heute\nschon auf Reddit?",
-    "Du schaffst das (hoffen wir)",
-    "Schauen wir mal was wird\n\n                              was wird",
-};
+#if defined(LANG_AF)
+    // Uncomment in config.h for Afrikaans
+    #include "i18n/af.h"
+#elif defined(LANG_DE)
+    // Uncomment in config.h for German
+    #include "i18n/de.h"
+#else
+    // Using the default language
+    #include "i18n/en.h"
+#endif
 
 static const std::vector<const char *> chatGptFacts = {
     "Das Gehirn eines Elefanten\nenthaelt ueber 257 Mrd. Neuronen\nund zeigt starke Emotionen.",
