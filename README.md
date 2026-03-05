@@ -120,7 +120,7 @@ In order to prepare images, icons, and fonts, you will need to run the `generate
 # install dependencies with uv or a different package manager
 uv sync
 
-uv run scripts/generate_assets.py
+uv run scripts/gen_assets.py
 ```
 
 ### Customizing Presets
