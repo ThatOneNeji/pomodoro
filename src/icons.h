@@ -15,4 +15,4 @@ extern Icon icon_lpethink;
 extern Icon icon_lpesip;
 extern Icon icon_coding;
 
-#endif // ICONS_H
+#endif  // ICONS_H

@@ -8,23 +8,9 @@
 
 #include "defs.h"
 
-enum class ProgressBarStyle
-{
-    Bordered,
-    Borderless
-};
+enum class ProgressBarStyle { Bordered, Borderless };
 
-enum class Pattern
-{
-    Solid,
-    Stripes,
-    Dots,
-    Checkerboard,
-    DiagonalStripes,
-    CrossHatch,
-    SparseDots,
-    VerySparseDots
-};
+enum class Pattern { Solid, Stripes, Dots, Checkerboard, DiagonalStripes, CrossHatch, SparseDots, VerySparseDots };
 
 // define 8x8 patterns
 const uint8_t pattern_solid[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -44,60 +30,35 @@ const uint8_t pattern_diagonal_stripes[8] = {0xC0, 0x30, 0x0C, 0x03, 0xC0, 0x30,
 const uint8_t pattern_crosshatch[8] = {0xFF, 0x92, 0x92, 0x92, 0xFF, 0x92, 0x92, 0xFF};
 
 // put all patterns in an array
-const std::vector<const uint8_t *> patterns = {
-    pattern_solid,
-    pattern_stripes,
-    pattern_dots,
-    pattern_checkerboard,
-    pattern_diagonal_stripes,
-    pattern_crosshatch,
-    pattern_sparse_dots,
-    pattern_very_sparse_dots};
+const std::vector<const uint8_t *> patterns = {pattern_solid,        pattern_stripes,          pattern_dots,
+                                               pattern_checkerboard, pattern_diagonal_stripes, pattern_crosshatch,
+                                               pattern_sparse_dots,  pattern_very_sparse_dots};
 
 void drawDebugCrosshair(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t length = 8, uint16_t color = GxEPD_BLACK);
 
 void drawPattern(DISPLAY_CLASS &display, Pattern pattern, int16_t x, int16_t y, int16_t w, int16_t h);
 
-void drawPatternInRoundedArea(
-    DISPLAY_CLASS &display,
-    int16_t startX, int16_t startY,
-    int16_t areaWidth, int16_t areaHeight,
-    int16_t radius,
-    Pattern patternNo);
+void drawPatternInRoundedArea(DISPLAY_CLASS &display, int16_t startX, int16_t startY, int16_t areaWidth,
+                              int16_t areaHeight, int16_t radius, Pattern patternNo);
 
-void drawProgressBar(
-    DISPLAY_CLASS &display,
-    ProgressBarStyle style,
-    int16_t x,
-    int16_t y,
-    int16_t width,
-    int16_t height,
-    int16_t radius,
-    int16_t progress);
+void drawProgressBar(DISPLAY_CLASS &display, ProgressBarStyle style, int16_t x, int16_t y, int16_t width,
+                     int16_t height, int16_t radius, int16_t progress);
 
-struct Bounds
-{
+struct Bounds {
     int16_t x;
     int16_t y;
     uint16_t w;
     uint16_t h;
 };
 
-Bounds getBounds(
-    DISPLAY_CLASS &display,
-    const char *text,
-    const GFXfont *font);
+Bounds getBounds(DISPLAY_CLASS &display, const char *text, const GFXfont *font);
 
-Bounds drawText(
-    DISPLAY_CLASS &display,
-    const char *text,
-    int16_t x,
-    int16_t y,
-    const GFXfont *font,
-    uint16_t color);
+Bounds drawText(DISPLAY_CLASS &display, const char *text, int16_t x, int16_t y, const GFXfont *font, uint16_t color);
 
-Bounds drawBottomAlignedText(DISPLAY_CLASS &display, const char *text, int16_t x, int16_t y, const GFXfont *font, uint16_t color);
+Bounds drawBottomAlignedText(DISPLAY_CLASS &display, const char *text, int16_t x, int16_t y, const GFXfont *font,
+                             uint16_t color);
 
-Bounds drawCenteredText(DISPLAY_CLASS &display, const char *text, int16_t x, int16_t y, const GFXfont *font, uint16_t color);
+Bounds drawCenteredText(DISPLAY_CLASS &display, const char *text, int16_t x, int16_t y, const GFXfont *font,
+                        uint16_t color);
 
 #endif

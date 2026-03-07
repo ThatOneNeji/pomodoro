@@ -13,9 +13,8 @@
 #include "button.h"
 #include <vector>
 
-class Anniversary
-{
-private:
+class Anniversary {
+   private:
     DISPLAY_CLASS &display;
 
     Menu buttons = Menu(display, new MenuItem[1]{MenuItem("Weiter")}, 1);
@@ -26,7 +25,7 @@ private:
 
     void drawPage(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
-public:
+   public:
     Anniversary(DISPLAY_CLASS &display);
     ~Anniversary();
     void draw();

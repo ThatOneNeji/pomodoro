@@ -2,15 +2,12 @@
 #include "../strings.h"
 #include <sstream>
 
-void Timer::handleRunning(volatile int *encoderCount)
-{
-    if (state == TimerState::Running)
-    {
+void Timer::handleRunning(volatile int *encoderCount) {
+    if (state == TimerState::Running) {
         elapsed = millis() - startTime - totalPausedTime;
     }
 
-    if (state == TimerState::Running && millis() - lastMessageUpdate >= RUNNING_MESSAGE_REFRESH_INTERVAL)
-    {
+    if (state == TimerState::Running && millis() - lastMessageUpdate >= RUNNING_MESSAGE_REFRESH_INTERVAL) {
         lastMessageUpdate = millis();
         messageCache.clearCache(Messages::Preset_Email_Message);
         messageCache.clearCache(Messages::Preset_Coding_Message);
@@ -19,56 +16,44 @@ void Timer::handleRunning(volatile int *encoderCount)
         needsRedraw = true;
     }
 
-    if (state == TimerState::Running && elapsed >= currentPreset->getDuration())
-    {
-
+    if (state == TimerState::Running && elapsed >= currentPreset->getDuration()) {
         longestEarnedPauseInShortCycles = max(currentPreset->getLongPauseDuration(), longestEarnedPauseInShortCycles);
 
         setLedMode(LedMode::ConfirmationFlash);
         state = TimerState::WaitingConfirmStartOfBreak;
 
-        this->confirmationMenu = new Menu(display, new MenuItem[1]{MenuItem(messageCache.getMessage(Messages::MenuItem_StartBreak))}, 1);
-        this->confirmationMenu->setEncoderCount(*encoderCount); // Sync the encoder count
+        this->confirmationMenu =
+            new Menu(display, new MenuItem[1]{MenuItem(messageCache.getMessage(Messages::MenuItem_StartBreak))}, 1);
+        this->confirmationMenu->setEncoderCount(*encoderCount);  // Sync the encoder count
         needsFullRedraw = true;
         return;
     }
 
     // Only trigger redraw once per second to avoid unnecessary updates
-    if (millis() - lastRedrawTime >= redrawInterval)
-    {
+    if (millis() - lastRedrawTime >= redrawInterval) {
         needsRedraw = true;
     }
 
     // Handle menu input
-    if (topMenu)
-    {
-        if (Button::instance->checkAndClearButtonPress())
-        {
+    if (topMenu) {
+        if (Button::instance->checkAndClearButtonPress()) {
             // Handle menu selection
-            if (topMenu->getSelectedIndex() == 0)
-            {
-                if (state == TimerState::Running)
-                {
+            if (topMenu->getSelectedIndex() == 0) {
+                if (state == TimerState::Running) {
                     // Pause
                     pause();
                     topMenu->getSelected()->setText(messageCache.getMessage(Messages::MenuItem_Resume));
-                }
-                else
-                {
+                } else {
                     // Resume
                     resume();
                     topMenu->getSelected()->setText(messageCache.getMessage(Messages::MenuItem_Pause));
                 }
 
                 needsRedraw = true;
-            }
-            else if (topMenu->getSelectedIndex() == 1)
-            {
+            } else if (topMenu->getSelectedIndex() == 1) {
                 // Break now
                 startBreak();
-            }
-            else if (topMenu->getSelectedIndex() == 2)
-            {
+            } else if (topMenu->getSelectedIndex() == 2) {
                 // Cancel
                 incrementTotalTime(elapsed);
                 minutesWorked += elapsed / 1000 / 60;
@@ -79,40 +64,33 @@ void Timer::handleRunning(volatile int *encoderCount)
             }
         }
 
-        if (topMenu->loop(encoderCount))
-        {
+        if (topMenu->loop(encoderCount)) {
             menuNeedsRedraw = true;
         }
     }
 }
 
-void Timer::drawRunning()
-{
+void Timer::drawRunning() {
     display.fillScreen(GxEPD_WHITE);
 
-    if (showSpeechBubble)
-    {
+    if (showSpeechBubble) {
         display.drawBitmap(0, 0, currentPreset->getBackground(), display.width(), display.height(), GxEPD_BLACK);
     }
 
     drawMenuBar();
 
     unsigned int remainingUnit = 0;
-    char buffer[32]; // Increased buffer size to be safe
+    char buffer[32];  // Increased buffer size to be safe
 
     const unsigned int remainingMillis = currentPreset->getDuration() - elapsed;
     const unsigned int seconds = remainingMillis / 1000;
     const unsigned int minutes = max(seconds / 60, 1u);
     uint16_t roundedSeconds = (seconds + 9) / 10 * 10;
 
-    if (roundedSeconds >= 60)
-    {
+    if (roundedSeconds >= 60) {
         sprintf(buffer, "%d %s", minutes, messageCache.getMessage(Messages::TimeFormat_Minutes));
-    }
-    else
-    {
-        if (redrawInterval != REDRAW_INTERVAL_FAST)
-        {
+    } else {
+        if (redrawInterval != REDRAW_INTERVAL_FAST) {
             redrawInterval = REDRAW_INTERVAL_FAST;
             needsRedraw = true;
         }
@@ -125,19 +103,22 @@ void Timer::drawRunning()
 
     Bounds boundsMin = getBounds(display, buffer, &LARGE_FONT);
 
-    if (!showSpeechBubble)
-    {
+    if (!showSpeechBubble) {
         // Draw text in the center
-        drawText(display, buffer, display.width() / 2 - boundsMin.w / 2, display.height() / 2 + boundsMin.h / 2, &LARGE_FONT, GxEPD_BLACK);
+        drawText(display, buffer, display.width() / 2 - boundsMin.w / 2, display.height() / 2 + boundsMin.h / 2,
+                 &LARGE_FONT, GxEPD_BLACK);
         return;
     }
 
-    drawText(display, buffer, display.width() / 2 - boundsMin.w / 2, display.height() / 3 + boundsMin.h / 2, &LARGE_FONT, GxEPD_BLACK);
+    drawText(display, buffer, display.width() / 2 - boundsMin.w / 2, display.height() / 3 + boundsMin.h / 2,
+             &LARGE_FONT, GxEPD_BLACK);
 
     const unsigned int progress = (elapsed * 100) / currentPreset->getDuration();
     const uint16_t progressBarWidth = display.width() / 2;
 
-    drawProgressBar(display, ProgressBarStyle::Bordered, display.width() / 2 - progressBarWidth / 2, display.height() / 3 + boundsMin.h / 2 + 16, progressBarWidth, progressBarHeight, progressBarHeight / 2, progress);
+    drawProgressBar(display, ProgressBarStyle::Bordered, display.width() / 2 - progressBarWidth / 2,
+                    display.height() / 3 + boundsMin.h / 2 + 16, progressBarWidth, progressBarHeight,
+                    progressBarHeight / 2, progress);
 
     drawDebugCrosshair(display, display.width() / 2, display.height() / 2, 48);
 
@@ -156,36 +137,27 @@ void Timer::drawRunning()
     std::istringstream iss(messageStr);
     std::string line;
     int lineIndex = 0;
-    while (std::getline(iss, line, '\n'))
-    {
-        int yPos = messageMinY + lineIndex * 18 + 18 + lineIndex * 2; // + 18 because of the first line
+    while (std::getline(iss, line, '\n')) {
+        int yPos = messageMinY + lineIndex * 18 + 18 + lineIndex * 2;  // + 18 because of the first line
         drawText(display, line.c_str(), messageMinX, yPos, &SMALL_FONT, GxEPD_BLACK);
         ++lineIndex;
     }
 }
 
-const char *Timer::getRunningMessage()
-{
-    if (currentPreset == nullptr)
-    {
+const char *Timer::getRunningMessage() {
+    if (currentPreset == nullptr) {
         return "No preset selected";
     }
 
-    if (currentPreset->getName() == nullptr)
-    {
+    if (currentPreset->getName() == nullptr) {
         return "No name";
     }
 
-    if (strcmp(currentPreset->getName(), "Emails") == 0)
-    {
+    if (strcmp(currentPreset->getName(), "Emails") == 0) {
         return messageCache.getMessage(Messages::Preset_Email_Message);
-    }
-    else if (strcmp(currentPreset->getName(), "Coding") == 0)
-    {
+    } else if (strcmp(currentPreset->getName(), "Coding") == 0) {
         return messageCache.getMessage(Messages::Preset_Coding_Message);
-    }
-    else if (strcmp(currentPreset->getName(), "Focus") == 0)
-    {
+    } else if (strcmp(currentPreset->getName(), "Focus") == 0) {
         return messageCache.getMessage(Messages::Preset_Focus_Message);
     }
 

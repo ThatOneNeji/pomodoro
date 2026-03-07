@@ -1,66 +1,36 @@
 #include "menu.h"
 
-Menu::Menu(DISPLAY_CLASS &display, MenuItem *items, int itemCount) : display(display) // Update constructor
+Menu::Menu(DISPLAY_CLASS &display, MenuItem *items, int itemCount)
+    : display(display)  // Update constructor
 {
     this->items = items;
     this->itemCount = itemCount;
     this->selectedIndex = 0;
 }
 
-Menu::~Menu()
-{
-}
+Menu::~Menu() {}
 
-MenuItem *Menu::getSelected()
-{
-    return &items[selectedIndex];
-}
+MenuItem *Menu::getSelected() { return &items[selectedIndex]; }
 
-MenuItem *Menu::getItems()
-{
-    return items;
-}
+MenuItem *Menu::getItems() { return items; }
 
-int Menu::getSelectedIndex()
-{
-    return selectedIndex;
-}
+int Menu::getSelectedIndex() { return selectedIndex; }
 
-int Menu::getItemCount()
-{
-    return itemCount;
-}
+int Menu::getItemCount() { return itemCount; }
 
-void Menu::setSelectedIndex(int index)
-{
-    selectedIndex = index;
-}
+void Menu::setSelectedIndex(int index) { selectedIndex = index; }
 
-void Menu::setEncoderCount(int encoderCount)
-{
-    lastEncoderCount = encoderCount;
-}
+void Menu::setEncoderCount(int encoderCount) { lastEncoderCount = encoderCount; }
 
-void Menu::next()
-{
-    selectedIndex = (selectedIndex + 1) % itemCount;
-}
+void Menu::next() { selectedIndex = (selectedIndex + 1) % itemCount; }
 
-void Menu::previous()
-{
-    selectedIndex = (selectedIndex - 1 + itemCount) % itemCount;
-}
+void Menu::previous() { selectedIndex = (selectedIndex - 1 + itemCount) % itemCount; }
 
-bool Menu::loop(volatile int *encoderCount)
-{
-    if (*encoderCount != lastEncoderCount)
-    {
-        if (*encoderCount < lastEncoderCount)
-        {
+bool Menu::loop(volatile int *encoderCount) {
+    if (*encoderCount != lastEncoderCount) {
+        if (*encoderCount < lastEncoderCount) {
             previous();
-        }
-        else
-        {
+        } else {
             next();
         }
 
@@ -71,25 +41,12 @@ bool Menu::loop(volatile int *encoderCount)
     return false;
 }
 
-MenuItem::MenuItem(const char *text, Icon *icon) : text(text), icon(icon)
-{
-}
+MenuItem::MenuItem(const char *text, Icon *icon) : text(text), icon(icon) {}
 
-MenuItem::~MenuItem()
-{
-}
+MenuItem::~MenuItem() {}
 
-const char *MenuItem::getText()
-{
-    return text;
-}
+const char *MenuItem::getText() { return text; }
 
-void MenuItem::setText(const char *text)
-{
-    this->text = text;
-}
+void MenuItem::setText(const char *text) { this->text = text; }
 
-Icon *MenuItem::getIcon()
-{
-    return icon;
-}
+Icon *MenuItem::getIcon() { return icon; }

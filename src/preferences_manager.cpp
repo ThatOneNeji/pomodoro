@@ -2,13 +2,11 @@
 
 Preferences preferences;
 
-void initPreferences()
-{
+void initPreferences() {
     // preferences.begin(PREFS_NAMESPACE, false);
 }
 
-bool pref_getCheckbox(const char *key, bool defaultValue)
-{
+bool pref_getCheckbox(const char *key, bool defaultValue) {
     preferences.begin(PREFS_NAMESPACE, true);
     char prefKey[32];
     snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_CHECKBOX, key);
@@ -20,8 +18,7 @@ bool pref_getCheckbox(const char *key, bool defaultValue)
     return v;
 }
 
-void pref_putCheckbox(const char *key, bool value)
-{
+void pref_putCheckbox(const char *key, bool value) {
     preferences.begin(PREFS_NAMESPACE, false);
     char prefKey[32];
     snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_CHECKBOX, key);
@@ -29,8 +26,7 @@ void pref_putCheckbox(const char *key, bool value)
     preferences.end();
 }
 
-unsigned int pref_getStatistic(const char *key, unsigned int defaultValue)
-{
+unsigned int pref_getStatistic(const char *key, unsigned int defaultValue) {
     preferences.begin(PREFS_NAMESPACE, true);
     char prefKey[32];
     snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_STATISTICS, key);
@@ -41,8 +37,7 @@ unsigned int pref_getStatistic(const char *key, unsigned int defaultValue)
     return v;
 }
 
-void pref_putStatistic(const char *key, unsigned int value)
-{
+void pref_putStatistic(const char *key, unsigned int value) {
     preferences.begin(PREFS_NAMESPACE, false);
     char prefKey[32];
     snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_STATISTICS, key);
@@ -50,8 +45,7 @@ void pref_putStatistic(const char *key, unsigned int value)
     preferences.end();
 }
 
-unsigned long pref_getStatistic(const char *key, unsigned long defaultValue)
-{
+unsigned long pref_getStatistic(const char *key, unsigned long defaultValue) {
     preferences.begin(PREFS_NAMESPACE, true);
     char prefKey[32];
     snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_STATISTICS, key);
@@ -62,8 +56,7 @@ unsigned long pref_getStatistic(const char *key, unsigned long defaultValue)
     return v;
 }
 
-void pref_putStatistic(const char *key, unsigned long value)
-{
+void pref_putStatistic(const char *key, unsigned long value) {
     preferences.begin(PREFS_NAMESPACE, false);
     char prefKey[32];
     snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_STATISTICS, key);

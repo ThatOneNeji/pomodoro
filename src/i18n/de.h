@@ -1,11 +1,11 @@
 #pragma once
 
 struct Msgs {
-    static constexpr const char* OPEN  = "Open";
-    static constexpr const char* CLOSE = "Close";
-    static constexpr const char* STOP  = "Stop";
-    static constexpr const char* STATISTICS = "Statistics";
- static constexpr const char *INTOTAL = "In total";
+    static constexpr const char *OPEN = "Open";
+    static constexpr const char *CLOSE = "Close";
+    static constexpr const char *STOP = "Stop";
+    static constexpr const char *STATISTICS = "Statistics";
+    static constexpr const char *INTOTAL = "In total";
     static constexpr const char *DONE = "Done";
     static constexpr const char *BREAKOVER = "Break Over";
     static constexpr const char *RESUME = "Resume";
@@ -13,7 +13,8 @@ struct Msgs {
     static constexpr const char *SKIPBREAK = "Skip Break";
     static constexpr const char *TOSELECT = "To Select";
 
-    static constexpr std::array<const char *, 4> BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax", "Well done!"};
+    static constexpr std::array<const char *, 4> BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax",
+                                                                   "Well done!"};
 };
 
 static const std::vector<const char *> genericPresetMessages = {

@@ -3,13 +3,12 @@
 
 #include <Arduino.h>
 
-class Button
-{
-private:
+class Button {
+   private:
     int pin;
     static bool instanceExists;
 
-public:
+   public:
     volatile bool pressed = false;
     volatile unsigned long lastPressTime = 0;
 

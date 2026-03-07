@@ -8,19 +8,14 @@
 #include "icon.h"
 #include "debug.h"
 
-enum class DrawStyle
-{
-    Vertical,
-    Horizontal
-};
+enum class DrawStyle { Vertical, Horizontal };
 
-class MenuItem
-{
-private:
+class MenuItem {
+   private:
     const char *text;
     Icon *icon;
 
-public:
+   public:
     MenuItem(const char *text, Icon *icon = nullptr);
     ~MenuItem();
 
@@ -29,18 +24,17 @@ public:
     Icon *getIcon();
 };
 
-class Menu
-{
-private:
-    DISPLAY_CLASS &display; // Update display type
+class Menu {
+   private:
+    DISPLAY_CLASS &display;  // Update display type
     MenuItem *items;
     int itemCount;
     int selectedIndex;
 
     int lastEncoderCount = 0;
 
-public:
-    Menu(DISPLAY_CLASS &display, MenuItem *items, int itemCount); // Update constructor
+   public:
+    Menu(DISPLAY_CLASS &display, MenuItem *items, int itemCount);  // Update constructor
     ~Menu();
 
     MenuItem *getSelected();
@@ -57,4 +51,4 @@ public:
     bool loop(volatile int *encoderCount);
 };
 
-#endif // MENU_H
+#endif  // MENU_H

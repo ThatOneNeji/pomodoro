@@ -2,27 +2,21 @@
 
 #define THRESHOLD 5
 
-void Timer::handleSelectingPreset(volatile int *encoderCount)
-{
-    if (Button::instance->checkAndClearButtonPress())
-    {
+void Timer::handleSelectingPreset(volatile int *encoderCount) {
+    if (Button::instance->checkAndClearButtonPress()) {
         Serial.printf("Timer::handleSelectingPreset: starting with preset %d\n", presetIndex);
         start();
         topMenu->setEncoderCount(*encoderCount);
         needsFullRedraw = true;
     }
 
-    if (*encoderCount != lastEncoderCount)
-    {
+    if (*encoderCount != lastEncoderCount) {
         int change = *encoderCount - lastEncoderCount;
         Serial.printf("Timer::handleSelectingPreset: encoder delta %d\n", change);
 
-        if (change < 0)
-        {
+        if (change < 0) {
             previousPreset();
-        }
-        else
-        {
+        } else {
             nextPreset();
         }
 
@@ -32,8 +26,7 @@ void Timer::handleSelectingPreset(volatile int *encoderCount)
     }
 }
 
-void Timer::drawPresetSelection()
-{
+void Timer::drawPresetSelection() {
     const unsigned int padding = 12;
     const unsigned int paddingBetweenBoxes = 18;
     const unsigned int paddingInsideBox = 10;
@@ -44,8 +37,7 @@ void Timer::drawPresetSelection()
 
     display.fillScreen(GxEPD_WHITE);
 
-    for (int i = 0; i < presets.size(); i++)
-    {
+    for (int i = 0; i < presets.size(); i++) {
         auto &preset = presets[i];
         const unsigned int xOffset = padding + (i * (boxWidth + paddingBetweenBoxes));
         const unsigned int hCenter = xOffset + (boxWidth / 2);
@@ -61,10 +53,11 @@ void Timer::drawPresetSelection()
 
         display.drawRoundRect(xOffset, padding, boxWidth, display.height() - (padding * 2), 10, GxEPD_BLACK);
 
-        if (currentPreset == &preset)
-        {
-            display.drawRoundRect(xOffset + 1, padding + 1, boxWidth - 2, display.height() - (padding * 2) - 2, 10, GxEPD_BLACK);
-            drawPatternInRoundedArea(display, xOffset + 2, padding + 2, boxWidth - 4, display.height() - (padding * 2) - 4, 10, Pattern::VerySparseDots);
+        if (currentPreset == &preset) {
+            display.drawRoundRect(xOffset + 1, padding + 1, boxWidth - 2, display.height() - (padding * 2) - 2, 10,
+                                  GxEPD_BLACK);
+            drawPatternInRoundedArea(display, xOffset + 2, padding + 2, boxWidth - 4,
+                                     display.height() - (padding * 2) - 4, 10, Pattern::VerySparseDots);
         }
 
         yOffset += paddingInsideBox;
@@ -93,13 +86,16 @@ void Timer::drawPresetSelection()
 
             yOffset += 24;
 
-            drawText(display, buffer, endOfBoxContent - bounds.w - paddingBetweenText - boundsMin.w, yOffset, &SECONDARY_FONT, GxEPD_BLACK);
+            drawText(display, buffer, endOfBoxContent - bounds.w - paddingBetweenText - boundsMin.w, yOffset,
+                     &SECONDARY_FONT, GxEPD_BLACK);
             drawText(display, "min", endOfBoxContent - boundsMin.w, yOffset, &SUB_FONT, GxEPD_BLACK);
 
             yOffset += (max(bounds.h, boundsMin.h) / 2) + 4;
 
-            // display.drawFastHLine(xOffset + paddingInsideBox, yOffset, boxWidth - paddingBetweenBoxes - paddingInsideBox * 2, GxEPD_BLACK);
-            drawPattern(display, Pattern::Dots, xOffset + paddingInsideBox + 4, yOffset, boxWidth - paddingBetweenBoxes - paddingInsideBox * 2 - 8, 2);
+            // display.drawFastHLine(xOffset + paddingInsideBox, yOffset, boxWidth - paddingBetweenBoxes -
+            // paddingInsideBox * 2, GxEPD_BLACK);
+            drawPattern(display, Pattern::Dots, xOffset + paddingInsideBox + 4, yOffset,
+                        boxWidth - paddingBetweenBoxes - paddingInsideBox * 2 - 8, 2);
 
             yOffset += 8;
 
@@ -116,8 +112,10 @@ void Timer::drawPresetSelection()
 
             display.drawBitmap(pauseIconX, yOffset, breakIcon.data, pauseIconSize, pauseIconSize, GxEPD_BLACK);
 
-            drawText(display, pauseBuffer, endOfBoxContent - pauseBounds.w - paddingBetweenText - pauseBoundsMin.w, yOffset + pauseIconSize - 8, &SECONDARY_FONT, GxEPD_BLACK);
-            drawText(display, "min", endOfBoxContent - pauseBoundsMin.w, yOffset + pauseIconSize - 8, &SUB_FONT, GxEPD_BLACK);
+            drawText(display, pauseBuffer, endOfBoxContent - pauseBounds.w - paddingBetweenText - pauseBoundsMin.w,
+                     yOffset + pauseIconSize - 8, &SECONDARY_FONT, GxEPD_BLACK);
+            drawText(display, "min", endOfBoxContent - pauseBoundsMin.w, yOffset + pauseIconSize - 8, &SUB_FONT,
+                     GxEPD_BLACK);
         }
     }
 }

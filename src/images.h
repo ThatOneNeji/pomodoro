@@ -9,4 +9,4 @@
 #include "images/image_bg_what_a_week.h"
 #include "images/image_bg_bubble.h"
 
-#endif // IMAGES_H
+#endif  // IMAGES_H

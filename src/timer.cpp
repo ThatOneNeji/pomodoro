@@ -6,8 +6,8 @@
 
 extern Preferences preferences;
 
-Preset::Preset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration, unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter)
-{
+Preset::Preset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration,
+               unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter) {
     this->icon = icon;
     this->background = background;
     this->name = name;
@@ -17,56 +17,38 @@ Preset::Preset(Icon *icon, const unsigned char *background, const char *name, un
     this->longPauseDuration = longPauseDuration;
 }
 
-Preset::~Preset()
-{
-}
+Preset::~Preset() {}
 
-Icon *Preset::getIcon()
-{
-    return icon;
-}
+Icon *Preset::getIcon() { return icon; }
 
-const unsigned char *Preset::getBackground()
-{
-    return background;
-}
+const unsigned char *Preset::getBackground() { return background; }
 
-unsigned long Preset::getDuration()
-{
+unsigned long Preset::getDuration() {
 #ifdef DEBUG
     return duration / 60;
 #endif
     return duration;
 }
 
-unsigned long Preset::getPauseDuration()
-{
+unsigned long Preset::getPauseDuration() {
 #ifdef DEBUG
     return pauseDuration / 60;
 #endif
     return pauseDuration;
 }
 
-const char *Preset::getName()
-{
-    return name;
-}
+const char *Preset::getName() { return name; }
 
-unsigned long Preset::getLongPauseDuration()
-{
+unsigned long Preset::getLongPauseDuration() {
 #ifdef DEBUG
     return longPauseDuration / 60;
 #endif
     return longPauseDuration;
 }
 
-unsigned int Preset::getLongPauseAfter()
-{
-    return longPauseAfter;
-}
+unsigned int Preset::getLongPauseAfter() { return longPauseAfter; }
 
-Timer::Timer(DISPLAY_CLASS &display) : display(display)
-{
+Timer::Timer(DISPLAY_CLASS &display) : display(display) {
     this->state = TimerState::SelectingPreset;
     this->currentPreset = nullptr;
     this->presetIndex = 0;
@@ -76,75 +58,62 @@ Timer::Timer(DISPLAY_CLASS &display) : display(display)
     this->pauseStartTime = 0;
     this->totalPausedTime = 0;
 
-    MenuItem *items = new MenuItem[3]{
-        MenuItem(messageCache.getMessage(Messages::MenuItem_Pause)),
-        MenuItem(messageCache.getMessage(Messages::MenuItem_BreakNow)),
-        MenuItem(messageCache.getMessage(Messages::MenuItem_Cancel))};
+    MenuItem *items = new MenuItem[3]{MenuItem(messageCache.getMessage(Messages::MenuItem_Pause)),
+                                      MenuItem(messageCache.getMessage(Messages::MenuItem_BreakNow)),
+                                      MenuItem(messageCache.getMessage(Messages::MenuItem_Cancel))};
     this->topMenu = new Menu(display, items, 3);
     this->topMenu->setSelectedIndex(1);
     lastEncoderCount = 0;
 
-    MenuItem *confirmationItems = new MenuItem[2]{
-        MenuItem(messageCache.getMessage(Messages::MenuItem_StartBreak)),
-        MenuItem(messageCache.getMessage(Messages::MenuItem_BackToPresets))};
+    MenuItem *confirmationItems = new MenuItem[2]{MenuItem(messageCache.getMessage(Messages::MenuItem_StartBreak)),
+                                                  MenuItem(messageCache.getMessage(Messages::MenuItem_BackToPresets))};
     this->confirmationMenu = new Menu(display, confirmationItems, 2);
-    this->confirmationMenu->setEncoderCount(0); // Initialize encoder count
+    this->confirmationMenu->setEncoderCount(0);  // Initialize encoder count
 }
 
-Timer::~Timer()
-{
-    if (topMenu)
-    {
+Timer::~Timer() {
+    if (topMenu) {
         delete[] topMenu->getItems();
         delete topMenu;
     }
 }
 
-void Timer::addPreset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration, unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter)
-{
+void Timer::addPreset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration,
+                      unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter) {
     presets.push_back(Preset(icon, background, name, duration, pauseDuration, longPauseDuration, longPauseAfter));
 }
 
-void Timer::selectPreset(int index)
-{
+void Timer::selectPreset(int index) {
     currentPreset = &presets[index];
     presetIndex = index;
 }
 
-void Timer::nextPreset()
-{
+void Timer::nextPreset() {
     presetIndex++;
-    if (presetIndex >= presets.size())
-    {
+    if (presetIndex >= presets.size()) {
         presetIndex = 0;
     }
 
     currentPreset = &presets[presetIndex];
 }
 
-void Timer::previousPreset()
-{
-    if (presetIndex <= 0)
-    {
+void Timer::previousPreset() {
+    if (presetIndex <= 0) {
         presetIndex = presets.size() - 1;
-    }
-    else
-    {
+    } else {
         presetIndex--;
     }
 
     currentPreset = &presets[presetIndex];
 }
 
-void Timer::enterPresetSelection()
-{
+void Timer::enterPresetSelection() {
     state = TimerState::SelectingPreset;
     selectPreset(1);
     needsRedraw = true;
 }
 
-void Timer::reset()
-{
+void Timer::reset() {
     setLedMode(LedMode::Off);
     redrawInterval = REDRAW_INTERVAL_DEFAULT;
     startTime = millis();
@@ -157,18 +126,15 @@ void Timer::reset()
     topMenu->setSelectedIndex(1);
 }
 
-void Timer::start()
-{
-    if (currentPreset != nullptr)
-    {
-
+void Timer::start() {
+    if (currentPreset != nullptr) {
         showSpeechBubble = pref_getCheckbox("msgs", true);
 
         // remember selected preset
         auto presetIndex = this->presetIndex;
 
         reset();
-        topMenu->setEncoderCount(lastEncoderCount); // Sync encoder count
+        topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
 
         Serial.printf("Timer::start with preset %d\n", presetIndex);
         state = TimerState::Running;
@@ -176,56 +142,47 @@ void Timer::start()
     }
 }
 
-void Timer::pause()
-{
-    if (state == TimerState::Running)
-    {
+void Timer::pause() {
+    if (state == TimerState::Running) {
         state = TimerState::UserInitiatedPause;
         pauseStartTime = millis();
         setLedMode(LedMode::TimerPaused);
         topMenu->getItems()[0].setText(messageCache.getMessage(Messages::MenuItem_Resume));
-        topMenu->setEncoderCount(lastEncoderCount); // Sync encoder count
-    }
-    else if (state == TimerState::RunningBreak)
-    {
+        topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
+    } else if (state == TimerState::RunningBreak) {
         state = TimerState::UserInitiatedBreakPause;
         pauseStartTime = millis();
         setLedMode(LedMode::TimerPaused);
         topMenu->getItems()[0].setText(messageCache.getMessage(Messages::MenuItem_Resume));
-        topMenu->setEncoderCount(lastEncoderCount); // Sync encoder count
+        topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
     }
 }
 
-void Timer::resume()
-{
-    if (state == TimerState::UserInitiatedPause)
-    {
+void Timer::resume() {
+    if (state == TimerState::UserInitiatedPause) {
         totalPausedTime += millis() - pauseStartTime;
         state = TimerState::Running;
         setLedMode(LedMode::Off);
         topMenu->getItems()[0].setText(messageCache.getMessage(Messages::MenuItem_Pause));
-        topMenu->setEncoderCount(lastEncoderCount); // Sync encoder count
-    }
-    else if (state == TimerState::UserInitiatedBreakPause)
-    {
+        topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
+    } else if (state == TimerState::UserInitiatedBreakPause) {
         totalPausedTime += millis() - pauseStartTime;
         state = TimerState::RunningBreak;
         setLedMode(LedMode::Off);
         topMenu->getItems()[0].setText(messageCache.getMessage(Messages::MenuItem_Pause));
-        topMenu->setEncoderCount(lastEncoderCount); // Sync encoder count
+        topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
     }
 }
 
-void Timer::startBreak()
-{
+void Timer::startBreak() {
     cycles += 1;
     incrementTotalCycles();
     minutesWorked += elapsed / 1000 / 60;
     incrementTotalTime(elapsed);
 
-    Serial.printf("Timer::startBreak: cycles %d with long break after %d\n", cycles, currentPreset->getLongPauseAfter());
-    if (cycles % (currentPreset->getLongPauseAfter()) == 0)
-    {
+    Serial.printf("Timer::startBreak: cycles %d with long break after %d\n", cycles,
+                  currentPreset->getLongPauseAfter());
+    if (cycles % (currentPreset->getLongPauseAfter()) == 0) {
         Serial.println("Timer::startBreak: long break");
         currentBreakDuration = currentPreset->getLongPauseDuration();
         isLongBreak = true;
@@ -243,9 +200,7 @@ void Timer::startBreak()
         // HACK: The display doesn't like drawing images in one go
         drawRunningBreak();
         display.display(true);
-    }
-    else
-    {
+    } else {
         Serial.println("Timer::startBreak: short break");
         currentBreakDuration = currentPreset->getPauseDuration();
         isLongBreak = false;
@@ -262,16 +217,14 @@ void Timer::startBreak()
     needsRedraw = true;
 }
 
-void Timer::stop()
-{
+void Timer::stop() {
     setLedMode(LedMode::Off);
     reset();
 
     enterPresetSelection();
 }
 
-int Timer::drawMenuBar()
-{
+int Timer::drawMenuBar() {
     const unsigned int padding = 8;
     const unsigned int innerPadding = 4;
     const unsigned int iconSize = 48;
@@ -289,12 +242,12 @@ int Timer::drawMenuBar()
     const uint16_t paddingBetweenBoxes = 10;
     const uint16_t totalPaddingWidth = paddingBetweenBoxes * (topMenu->getItemCount() - 1);
     const uint16_t rawMenuWidth = display.width() - menuX - padding;
-    const uint16_t menuItemWidth = (rawMenuWidth - (topMenu->getItemCount() - 1) * paddingBetweenBoxes) / topMenu->getItemCount();
-    const uint16_t menuHeight = innerPadding + 48; // iconSize;
+    const uint16_t menuItemWidth =
+        (rawMenuWidth - (topMenu->getItemCount() - 1) * paddingBetweenBoxes) / topMenu->getItemCount();
+    const uint16_t menuHeight = innerPadding + 48;  // iconSize;
 
     // Draw the menu
-    for (int i = 0; i < topMenu->getItemCount(); i++)
-    {
+    for (int i = 0; i < topMenu->getItemCount(); i++) {
         const bool selected = i == topMenu->getSelectedIndex();
         const auto foreground = GxEPD_BLACK;
         const auto background = GxEPD_WHITE;
@@ -303,18 +256,16 @@ int Timer::drawMenuBar()
 
         auto item = topMenu->getItems()[i];
 
-        if (selected)
-        {
+        if (selected) {
             display.fillRoundRect(xOffset, menuY, menuItemWidth, menuHeight, 10, GxEPD_WHITE);
             drawPatternInRoundedArea(display, xOffset, menuY, menuItemWidth, menuHeight, 10, Pattern::SparseDots);
-        }
-        else
-        {
+        } else {
             display.fillRoundRect(xOffset, menuY, menuItemWidth, menuHeight, 10, GxEPD_WHITE);
         }
         display.drawRoundRect(xOffset, menuY, menuItemWidth, menuHeight, 10, GxEPD_BLACK);
 
-        drawCenteredText(display, item.getText(), xOffset + menuItemWidth / 2, menuY + menuHeight / 2, &SUB_FONT, foreground);
+        drawCenteredText(display, item.getText(), xOffset + menuItemWidth / 2, menuY + menuHeight / 2, &SUB_FONT,
+                         foreground);
 
 #ifdef DEBUG
         display.drawFastVLine(xOffset + menuItemWidth / 2, menuY, menuHeight, GxEPD_BLACK);
@@ -326,34 +277,31 @@ int Timer::drawMenuBar()
     return menuY + menuHeight;
 }
 
-void Timer::loop(volatile int *encoderCount)
-{
+void Timer::loop(volatile int *encoderCount) {
     auto start = millis();
 
-    switch (state)
-    {
-    case TimerState::SelectingPreset:
-        handleSelectingPreset(encoderCount);
-        break;
-    case TimerState::UserInitiatedPause:
-    case TimerState::Running:
-        handleRunning(encoderCount);
-        break;
-    case TimerState::UserInitiatedBreakPause:
-    case TimerState::RunningBreak:
-        handleRunningBreak(encoderCount);
-        break;
-    case TimerState::WaitingConfirmEndOfBreak:
-    case TimerState::WaitingConfirmStartOfBreak:
-        handleWaitingForConfirmation(encoderCount);
-        break;
-    default:
-        Serial.printf("Timer::loop: unknown state %d\n", state);
-        break;
+    switch (state) {
+        case TimerState::SelectingPreset:
+            handleSelectingPreset(encoderCount);
+            break;
+        case TimerState::UserInitiatedPause:
+        case TimerState::Running:
+            handleRunning(encoderCount);
+            break;
+        case TimerState::UserInitiatedBreakPause:
+        case TimerState::RunningBreak:
+            handleRunningBreak(encoderCount);
+            break;
+        case TimerState::WaitingConfirmEndOfBreak:
+        case TimerState::WaitingConfirmStartOfBreak:
+            handleWaitingForConfirmation(encoderCount);
+            break;
+        default:
+            Serial.printf("Timer::loop: unknown state %d\n", state);
+            break;
     }
 
-    if (menuNeedsRedraw)
-    {
+    if (menuNeedsRedraw) {
         auto millisMenuStart = millis();
         drawMenuBar();
         display.displayWindow(0, 0, display.width(), 8 + 4 + 48 + 4);
@@ -361,57 +309,50 @@ void Timer::loop(volatile int *encoderCount)
 
         menuNeedsRedraw = false;
 
-        if (!needsRedraw && !needsFullRedraw)
-        {
+        if (!needsRedraw && !needsFullRedraw) {
             Serial.printf("Timer::loop: display update took %d ms\n", millis() - start);
         }
     }
 
-    if (needsRedraw || needsFullRedraw)
-    {
+    if (needsRedraw || needsFullRedraw) {
         Serial.printf("Timer::loop: needs redraw with state %d\n", state);
 
         display.firstPage();
 
-        if (needsFullRedraw)
-        {
+        if (needsFullRedraw) {
             // display.clearScreen();
             display.fillScreen(GxEPD_WHITE);
         }
 
-        switch (state)
-        {
-        case TimerState::SelectingPreset:
-            Serial.println("Timer::loop: drawPresetSelection");
-            drawPresetSelection();
-            break;
-        case TimerState::UserInitiatedPause:
-        case TimerState::Running:
-            Serial.println("Timer::loop: drawRunning");
-            drawRunning();
-            break;
-        case TimerState::UserInitiatedBreakPause:
-        case TimerState::RunningBreak:
-            Serial.println("Timer::loop: drawRunningBreak");
-            drawRunningBreak();
-            break;
-        case TimerState::WaitingConfirmEndOfBreak:
-        case TimerState::WaitingConfirmStartOfBreak:
-            Serial.println("Timer::loop: drawWaitingForConfirmation");
-            drawWaitingForConfirmation();
-            break;
-        default:
-            Serial.printf("Timer::loop: unknown state %d\n", state);
-            break;
+        switch (state) {
+            case TimerState::SelectingPreset:
+                Serial.println("Timer::loop: drawPresetSelection");
+                drawPresetSelection();
+                break;
+            case TimerState::UserInitiatedPause:
+            case TimerState::Running:
+                Serial.println("Timer::loop: drawRunning");
+                drawRunning();
+                break;
+            case TimerState::UserInitiatedBreakPause:
+            case TimerState::RunningBreak:
+                Serial.println("Timer::loop: drawRunningBreak");
+                drawRunningBreak();
+                break;
+            case TimerState::WaitingConfirmEndOfBreak:
+            case TimerState::WaitingConfirmStartOfBreak:
+                Serial.println("Timer::loop: drawWaitingForConfirmation");
+                drawWaitingForConfirmation();
+                break;
+            default:
+                Serial.printf("Timer::loop: unknown state %d\n", state);
+                break;
         }
 
-        if (needsFullRedraw)
-        {
+        if (needsFullRedraw) {
             Serial.println("Timer::loop: full display update");
             display.display(false);
-        }
-        else
-        {
+        } else {
             Serial.println("Timer::loop: partial display update");
             display.display(true);
         }
@@ -424,7 +365,4 @@ void Timer::loop(volatile int *encoderCount)
     }
 }
 
-TimerState Timer::getState()
-{
-    return state;
-}
+TimerState Timer::getState() { return state; }

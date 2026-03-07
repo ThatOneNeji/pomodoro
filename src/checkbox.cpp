@@ -7,73 +7,47 @@ extern Preferences preferences;
 #define TRUEVALUE -1
 #define FALSEVALUE 1
 
-Checkbox::Checkbox(Icon *icon, const char *name, const char *key, bool defaultValue) : icon(icon), name(name), key(key), defaultValue(defaultValue)
-{
+Checkbox::Checkbox(Icon *icon, const char *name, const char *key, bool defaultValue)
+    : icon(icon), name(name), key(key), defaultValue(defaultValue) {
     load();
 }
 
-Checkbox::~Checkbox()
-{
-    save();
-}
+Checkbox::~Checkbox() { save(); }
 
-Icon *Checkbox::getIcon()
-{
-    return icon;
-}
+Icon *Checkbox::getIcon() { return icon; }
 
-const char *Checkbox::getName()
-{
-    return name;
-}
+const char *Checkbox::getName() { return name; }
 
-bool Checkbox::isChecked()
-{
-    return checked;
-}
+bool Checkbox::isChecked() { return checked; }
 
-void Checkbox::toggle()
-{
-    checked = !checked;
-}
+void Checkbox::toggle() { checked = !checked; }
 
-void Checkbox::load()
-{
+void Checkbox::load() {
     checked = pref_getCheckbox(key, defaultValue);
 
     Serial.printf("Checkbox::load: key=%s, value=%s\n", key, checked ? "true" : "false");
 }
 
-void Checkbox::save()
-{
+void Checkbox::save() {
     pref_putCheckbox(key, checked);
 
     Serial.printf("Checkbox::save: key=%s, value=%s\n", key, checked ? "true" : "false");
 }
 
-void Checkbox::draw(
-    DISPLAY_CLASS &display,
-    uint16_t x,
-    uint16_t y,
-    uint16_t w,
-    uint16_t h,
-    bool selected)
-{
+void Checkbox::draw(DISPLAY_CLASS &display, uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool selected) {
     const uint16_t padding = 12;
 
     display.fillRect(x, y, w, h, GxEPD_WHITE);
     display.drawRoundRect(x, y, w, h, 10, GxEPD_BLACK);
 
-    if (selected)
-    {
+    if (selected) {
         drawPatternInRoundedArea(display, x, y, w, h, 10, Pattern::SparseDots);
     }
 
     ScaledIcon checkmark = icon_checkmark.scaled(48);
 
     const uint16_t iconSize = 64;
-    if (icon)
-    {
+    if (icon) {
         ScaledIcon scaledIcon = icon->scaled(iconSize);
         display.drawBitmap(x + padding, y + padding, scaledIcon.data, scaledIcon.size, scaledIcon.size, GxEPD_BLACK);
     }
@@ -86,8 +60,8 @@ void Checkbox::draw(
 
     display.drawRoundRect(x + w - padding - 64, y + h / 2 - 64 / 2, 64, 64, 10, GxEPD_BLACK);
 
-    if (checked)
-    {
-        display.drawBitmap(x + w - padding - 64 / 2 - checkmark.size / 2, y + h / 2 - checkmark.size / 2, checkmark.data, checkmark.size, checkmark.size, GxEPD_BLACK);
+    if (checked) {
+        display.drawBitmap(x + w - padding - 64 / 2 - checkmark.size / 2, y + h / 2 - checkmark.size / 2,
+                           checkmark.data, checkmark.size, checkmark.size, GxEPD_BLACK);
     }
 }

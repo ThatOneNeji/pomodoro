@@ -11,9 +11,8 @@
 #include "debug.h"
 #include "defs.h"
 
-class Checkbox
-{
-private:
+class Checkbox {
+   private:
     Icon *icon;
     const char *name;
     const char *key;
@@ -22,7 +21,7 @@ private:
 
     Preferences preferences;
 
-public:
+   public:
     Checkbox(Icon *icon, const char *name, const char *key, bool defaultValue = false);
     ~Checkbox();
     Icon *getIcon();
@@ -33,13 +32,7 @@ public:
     void load();
     void save();
 
-    void draw(
-        DISPLAY_CLASS &display,
-        uint16_t x,
-        uint16_t y,
-        uint16_t w,
-        uint16_t h,
-        bool selected);
+    void draw(DISPLAY_CLASS &display, uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool selected);
 };
 
 #endif

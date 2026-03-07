@@ -6,8 +6,7 @@
 #include <NeoPixelBrightnessBus.h>
 #include <NeoPixelAnimator.h>
 
-enum class LedMode
-{
+enum class LedMode {
     Off,
     Splashscreen,
     QuickAcknowledgementFlash,

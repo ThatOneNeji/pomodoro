@@ -8,7 +8,7 @@
 
 #include "defs.h"
 
-#define ENCODER_SW 14 // Optional push button pin
+#define ENCODER_SW 14  // Optional push button pin
 
 #include "gfx_utils.h"
 #include "icons.h"
@@ -18,9 +18,8 @@
 #include "button.h"
 #include "statistics.h"
 
-class Preset
-{
-private:
+class Preset {
+   private:
     Icon *icon;
     const unsigned char *background;
     const char *name;
@@ -29,8 +28,9 @@ private:
     unsigned int longPauseAfter;
     unsigned long longPauseDuration;
 
-public:
-    Preset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration, unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter);
+   public:
+    Preset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration,
+           unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter);
     ~Preset();
     Icon *getIcon();
     const unsigned char *getBackground();
@@ -42,8 +42,7 @@ public:
     const char *getName();
 };
 
-enum class TimerState
-{
+enum class TimerState {
     SelectingPreset,
     Running,
     WaitingConfirmStartOfBreak,
@@ -54,9 +53,8 @@ enum class TimerState
     Stopped
 };
 
-class Timer
-{
-private:
+class Timer {
+   private:
     DISPLAY_CLASS &display;
     std::vector<Preset> presets;
     Preset *currentPreset;
@@ -88,9 +86,9 @@ private:
     unsigned long lastRedrawTime;
     unsigned long lastPauseRedrawTime;
     bool lastPauseState;
-    static const unsigned long REDRAW_INTERVAL_DEFAULT = 5000;                   // ms
-    static const unsigned long REDRAW_INTERVAL_FAST = 1000;                      // ms
-    static const unsigned long RUNNING_MESSAGE_REFRESH_INTERVAL = 5 * 60 * 1000; // ms
+    static const unsigned long REDRAW_INTERVAL_DEFAULT = 5000;                    // ms
+    static const unsigned long REDRAW_INTERVAL_FAST = 1000;                       // ms
+    static const unsigned long RUNNING_MESSAGE_REFRESH_INTERVAL = 5 * 60 * 1000;  // ms
     unsigned long redrawInterval = REDRAW_INTERVAL_DEFAULT;
 
     bool showSpeechBubble = true;
@@ -111,10 +109,11 @@ private:
 
     void reset();
 
-public:
+   public:
     Timer(DISPLAY_CLASS &display);
     ~Timer();
-    void addPreset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration, unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter = 4);
+    void addPreset(Icon *icon, const unsigned char *background, const char *name, unsigned long duration,
+                   unsigned long pauseDuration, unsigned long longPauseDuration, unsigned int longPauseAfter = 4);
     void selectPreset(int index);
     void nextPreset();
     void previousPreset();

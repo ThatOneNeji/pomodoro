@@ -13,9 +13,8 @@
 #include "images.h"
 #include <vector>
 
-class SplashScreen
-{
-private:
+class SplashScreen {
+   private:
     DISPLAY_CLASS &display;
     Timer &timer;
 
@@ -31,7 +30,7 @@ private:
     int16_t selectedSettingsIndex = 0;
     int16_t lastEncoderCount = 0;
 
-public:
+   public:
     SplashScreen(DISPLAY_CLASS &display, Timer &timer);
     ~SplashScreen();
     void setLastEncoderCount(int16_t count);
