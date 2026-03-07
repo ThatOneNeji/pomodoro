@@ -2,15 +2,25 @@
 #define STRINGS_H
 
 #include <Arduino.h>
-#include <math.h>    // for float_t, double_t
-#include <WString.h> // for String
+#include <math.h>     // for float_t, double_t
+#include <WString.h>  // for String
 #include <Preferences.h>
 #include "preferences_manager.h"
 #include <vector>
 #include <map>
 
-enum class Messages
-{
+#if defined(LANG_AF)
+// Uncomment in config.h for Afrikaans
+#include "i18n/af.h"
+#elif defined(LANG_DE)
+// Uncomment in config.h for German
+#include "i18n/de.h"
+#else
+// Using the default language
+#include "i18n/en.h"
+#endif
+
+enum class Messages {
     TimerWaitingForConfirmationStartOfBreak_Header,
     TimerWaitingForConfirmationEndOfBreak_Header,
 
@@ -48,15 +58,12 @@ enum class Messages
     Statistics_TotalBreakTime,
 };
 
-class MessageCache
-{
-private:
+class MessageCache {
+   private:
     std::map<Messages, const char *> cache;
 
-public:
-    MessageCache()
-    {
-    }
+   public:
+    MessageCache() {}
 
     bool isLpeModeEnabled();
 

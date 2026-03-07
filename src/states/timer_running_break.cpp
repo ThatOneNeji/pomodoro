@@ -110,7 +110,7 @@ void Timer::drawRunningBreak()
         display.drawRoundRect(boxBounds.x, boxBounds.y, boxBounds.w, boxBounds.h, 10, GxEPD_BLACK);
 
         yOffset += statistics.h;
-        drawText(display, "Statistik", boxBounds.x + innerPadding, yOffset, &MAIN_FONT, GxEPD_BLACK);
+        drawText(display, Msgs::STATISTICS, boxBounds.x + innerPadding, yOffset, &MAIN_FONT, GxEPD_BLACK);
 
         yOffset += innerPadding;
         drawPattern(display, Pattern::SparseDots, boxBounds.x, boxBounds.y, boxBounds.w, yOffset - boxBounds.y);
@@ -149,7 +149,7 @@ void Timer::drawRunningBreak()
 
         yOffset += 2 * innerPadding;
 
-        textBounds = drawBottomAlignedText(display, "Gesamt", boxBounds.x + innerPadding, yOffset + innerPadding, &SUB_FONT, GxEPD_BLACK);
+        textBounds = drawBottomAlignedText(display, Msgs::INTOTAL, boxBounds.x + innerPadding, yOffset + innerPadding, &SUB_FONT, GxEPD_BLACK);
         drawPattern(display, Pattern::Dots, boxBounds.x, yOffset, boxBounds.w, textBounds.h + 2 * innerPadding);
 
         yOffset += textBounds.h + 2 * innerPadding + innerPadding;

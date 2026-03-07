@@ -10,3 +10,5 @@ assets/icons/*.png
 
 src/strings_private.cpp
 src/anniversary.cpp
+
+tmp/
