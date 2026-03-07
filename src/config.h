@@ -6,5 +6,11 @@
 #define EPD_BUSY_PIN 4
 #define EPD_PWR_PIN 22
 
+/**
+ * @brief Change this to 'true' to use the old style of displaying the remaining time
+ *
+ */
+const static bool timerStyleOld = false;
+
 // #define LANG_AF // Uncomment for Afrikaans text messages
 // #define LANG_DE // Uncomment for German text messages

@@ -1,5 +1,6 @@
 #include "../timer.h"
 #include "../strings.h"
+#include "../config.h"
 #include <sstream>
 
 void Timer::handleRunning(volatile int *encoderCount) {
@@ -84,19 +85,22 @@ void Timer::drawRunning() {
 
     const unsigned int remainingMillis = currentPreset->getDuration() - elapsed;
     const unsigned int seconds = remainingMillis / 1000;
+    const unsigned int secondsT = seconds % 60;
     const unsigned int minutes = max(seconds / 60, 1u);
     uint16_t roundedSeconds = (seconds + 9) / 10 * 10;
 
-    if (roundedSeconds >= 60) {
-        sprintf(buffer, "%d %s", minutes, messageCache.getMessage(Messages::TimeFormat_Minutes));
-    } else {
-        if (redrawInterval != REDRAW_INTERVAL_FAST) {
-            redrawInterval = REDRAW_INTERVAL_FAST;
-            needsRedraw = true;
+    if (timerStyleOld) {
+        if (roundedSeconds >= 60) {
+            sprintf(buffer, "%d %s", minutes, messageCache.getMessage(Messages::TimeFormat_Minutes));
+        } else {
+            if (redrawInterval != REDRAW_INTERVAL_FAST) {
+                redrawInterval = REDRAW_INTERVAL_FAST;
+                needsRedraw = true;
+            }
+            sprintf(buffer, "%d %s", roundedSeconds, messageCache.getMessage(Messages::TimeFormat_Seconds));
         }
-
-        // Round to nearest 10 seconds when below 1 minute
-        sprintf(buffer, "%d %s", roundedSeconds, messageCache.getMessage(Messages::TimeFormat_Seconds));
+    } else {
+        sprintf(buffer, "%02d:%02d", minutes, secondsT);
     }
 
     const uint16_t progressBarHeight = 32;
