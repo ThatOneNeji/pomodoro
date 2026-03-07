@@ -18,12 +18,12 @@ class SplashScreen {
     DISPLAY_CLASS &display;
     Timer &timer;
 
-    Menu buttons = Menu(display, new MenuItem[2]{MenuItem("Start"), MenuItem("Einstellungen")}, 2);
+    Menu buttons = Menu(display, new MenuItem[2]{MenuItem("Start"), MenuItem(Msgs::SETTINGS)}, 2);
 
     std::vector<Checkbox> checkboxes = {
-        Checkbox(&icon_lpehacker, "LPE Modus", "lpe", true),
-        Checkbox(&icon_lpenote, "Ablenkende Nachrichten", "msgs", true),
-        Checkbox(nullptr, "Reset Device", "reset"),
+        Checkbox(&icon_lpehacker, Msgs::MODE, "lpe", true),
+        Checkbox(&icon_lpenote, Msgs::MISCMSG, "msgs", true),
+        Checkbox(nullptr, Msgs::RSTDEVICE, "reset"),
     };
 
     Checkbox *selectedCheckbox;
