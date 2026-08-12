@@ -16,5 +16,6 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp"
-    }
+    },
+    "idf.currentSetup": "/home/neji/.espressif/v6.0/esp-idf"
 }

@@ -82,6 +82,7 @@ static const char *generateMessage(Messages message) {
             result = Msgs::TOSELECT;
             break;
         case Messages::MenuItem_RestartTimer:
+            // TODO: Convert these struct
             if (lpeModeEnabled) {
                 result = randomMessage({"Noch mal!", "AGAIN!", "Here we go again...", "Do it agane"});
             } else {
@@ -133,32 +134,26 @@ static const char *generateMessage(Messages message) {
             break;
 
         case Messages::Statistics_CurrentCycle:
-            // result = "Aktueller Zyklus";
             result = Msgs::CURRENTCYCLE;
             break;
 
         case Messages::Statistics_CurrentTime:
-            // result = "Arbeitszeit";
             result = Msgs::CURRENTTIME;
             break;
 
         case Messages::Statistics_CurrentBreakTime:
-            // result = "Pausenzeit";
             result = Msgs::CURRENTBREAKTIME;
             break;
 
         case Messages::Statistics_TotalCycles:
-            // result = "Zyklen";
             result = Msgs::TOTALCYCLES;
             break;
 
         case Messages::Statistics_TotalTime:
-            // result = "Arbeitszeit";
             result = Msgs::TOTALTIME;
             break;
 
         case Messages::Statistics_TotalBreakTime:
-            // result = "Pausenzeit";
             result = Msgs::TOTALBREAKTIME;
             break;
 

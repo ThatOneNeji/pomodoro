@@ -82,18 +82,15 @@ void Timer::drawRunningBreak() {
         display.drawBitmap(0, 8 + 48 + 4 + 8, breakImage, display.width(), display.height() - 8 - 48 - 4 - 8 - 64 - 4,
                            GxEPD_BLACK);
     } else {
-        const uint16_t w = 420;
-        const uint16_t h = 340;
+        const uint16_t w = 420;  // 800
+        const uint16_t h = 340;  // 480
         Bounds boxBounds = {static_cast<int16_t>(display.width() / 2 - w / 2, display.height() - h - 64, w, h)};
         const uint16_t innerPadding = 8;
         uint16_t yOffset = boxBounds.y + innerPadding;
         Bounds statistics = getBounds(display, messageCache.getMessage(Messages::Statistics), &MAIN_FONT);
-
         display.drawRoundRect(boxBounds.x, boxBounds.y, boxBounds.w, boxBounds.h, 10, GxEPD_BLACK);
-
         yOffset += statistics.h;
         drawText(display, Msgs::STATISTICS, boxBounds.x + innerPadding, yOffset, &MAIN_FONT, GxEPD_BLACK);
-
         yOffset += innerPadding;
         drawPattern(display, Pattern::SparseDots, boxBounds.x, boxBounds.y, boxBounds.w, yOffset - boxBounds.y);
         display.drawFastHLine(boxBounds.x, yOffset, boxBounds.w, GxEPD_BLACK);
@@ -102,82 +99,62 @@ void Timer::drawRunningBreak() {
         unsigned int totalCycles;
         unsigned long totalTime, totalBreakTime;
         getStatistics(&totalCycles, &totalTime, &totalBreakTime);
-
         yOffset += 1 + innerPadding;
-
         Bounds textBounds;
 
         /// Current session
-
         textBounds = drawBottomAlignedText(display, messageCache.getMessage(Messages::Statistics_CurrentCycle),
                                            boxBounds.x + innerPadding, yOffset, &SUB_FONT, GxEPD_BLACK);
         Bounds boundsCurrentCycles = getBounds(display, String(cycles).c_str(), &SUB_FONT);
         drawBottomAlignedText(display, String(cycles).c_str(),
                               boxBounds.x + boxBounds.w - innerPadding - boundsCurrentCycles.w, yOffset, &SUB_FONT,
                               GxEPD_BLACK);
-
         yOffset += textBounds.h + innerPadding;
-
         textBounds = drawBottomAlignedText(display, messageCache.getMessage(Messages::Statistics_CurrentTime),
                                            boxBounds.x + innerPadding, yOffset, &SUB_FONT, GxEPD_BLACK);
         Bounds boundsCurrentTime = getBounds(display, formatDuration(minutesWorked).c_str(), &SUB_FONT);
         drawBottomAlignedText(display, formatDuration(minutesWorked).c_str(),
                               boxBounds.x + boxBounds.w - innerPadding - boundsCurrentTime.w, yOffset, &SUB_FONT,
                               GxEPD_BLACK);
-
         yOffset += textBounds.h + innerPadding;
-
         textBounds = drawBottomAlignedText(display, messageCache.getMessage(Messages::Statistics_CurrentBreakTime),
                                            boxBounds.x + innerPadding, yOffset, &SUB_FONT, GxEPD_BLACK);
         Bounds boundsCurrentBreakTime = getBounds(display, formatDuration(minutesOnBreak).c_str(), &SUB_FONT);
         drawBottomAlignedText(display, formatDuration(minutesOnBreak).c_str(),
                               boxBounds.x + boxBounds.w - innerPadding - boundsCurrentBreakTime.w, yOffset, &SUB_FONT,
                               GxEPD_BLACK);
-
         yOffset += textBounds.h + innerPadding;
 
         // Divider
-
         yOffset += 2 * innerPadding;
-
         textBounds = drawBottomAlignedText(display, Msgs::INTOTAL, boxBounds.x + innerPadding, yOffset + innerPadding,
                                            &SUB_FONT, GxEPD_BLACK);
         drawPattern(display, Pattern::Dots, boxBounds.x, yOffset, boxBounds.w, textBounds.h + 2 * innerPadding);
-
         yOffset += textBounds.h + 2 * innerPadding + innerPadding;
 
         // All time stats
-
         textBounds = drawBottomAlignedText(display, messageCache.getMessage(Messages::Statistics_TotalCycles),
                                            boxBounds.x + innerPadding, yOffset, &SUB_FONT, GxEPD_BLACK);
-
         Bounds boundsTotalCycles = getBounds(display, String(totalCycles).c_str(), &SUB_FONT);
         drawBottomAlignedText(display, String(totalCycles).c_str(),
                               boxBounds.x + boxBounds.w - innerPadding - boundsTotalCycles.w, yOffset, &SUB_FONT,
                               GxEPD_BLACK);
-
         yOffset += textBounds.h + innerPadding;
-
         textBounds = drawBottomAlignedText(display, messageCache.getMessage(Messages::Statistics_TotalTime),
                                            boxBounds.x + innerPadding, yOffset, &SUB_FONT, GxEPD_BLACK);
-
         auto totalTimeStr = formatDuration(totalTime);
         Bounds boundsTotalTime = getBounds(display, String(totalTimeStr).c_str(), &SUB_FONT);
         drawBottomAlignedText(display, String(totalTimeStr).c_str(),
                               boxBounds.x + boxBounds.w - innerPadding - boundsTotalTime.w, yOffset, &SUB_FONT,
                               GxEPD_BLACK);
-
         yOffset += textBounds.h + innerPadding;
-
         textBounds = drawBottomAlignedText(display, messageCache.getMessage(Messages::Statistics_TotalBreakTime),
                                            boxBounds.x + innerPadding, yOffset, &SUB_FONT, GxEPD_BLACK);
-
         auto totalBreakTimeStr = formatDuration(totalBreakTime);
         Bounds boundsTotalBreakTime = getBounds(display, String(totalBreakTimeStr).c_str(), &SUB_FONT);
         drawBottomAlignedText(display, String(totalBreakTimeStr).c_str(),
                               boxBounds.x + boxBounds.w - innerPadding - boundsTotalBreakTime.w, yOffset, &SUB_FONT,
                               GxEPD_BLACK);
-
         yOffset += textBounds.h + innerPadding;
     }
 
