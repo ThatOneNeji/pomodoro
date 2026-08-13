@@ -1,8 +1,12 @@
+/**
+ * @file timer_selecting_preset.cpp
+ * @brief Timer::handleSelectingPreset() / Timer::drawPresetSelection(): the TimerState::SelectingPreset screen.
+ */
 #include "../timer.h"
 
-#define THRESHOLD 5
+#define THRESHOLD 5  ///< Unused.
 
-void Timer::handleSelectingPreset(volatile int *encoderCount) {
+void Timer::handleSelectingPreset(volatile const int *encoderCount) {
     if (Button::instance->checkAndClearButtonPress()) {
         Serial.printf("Timer::handleSelectingPreset: starting with preset %d\n", presetIndex);
         start();
@@ -33,7 +37,7 @@ void Timer::drawPresetSelection() {
     const unsigned int totalWidth = display.width() - (padding * 2);
     const unsigned int boxWidth = (totalWidth + paddingBetweenBoxes) / presets.size() - paddingBetweenBoxes;
 
-    unsigned int yOffset = padding;
+    // REMOVE if TESTING PASSES -> unsigned int yOffset = padding;
 
     display.fillScreen(GxEPD_WHITE);
 
@@ -77,20 +81,20 @@ void Timer::drawPresetSelection() {
 
         // put the text on the right side of the box, on top of the progress bar
         {
-            char buffer[3];
-            sprintf(buffer, "%d", minutes);
-            Bounds bounds = getBounds(display, buffer, &SECONDARY_FONT);
+            char buffer[12];  // max unsigned int digits (10) + null terminator, plus margin
+            snprintf(buffer, sizeof(buffer), "%u", minutes);
+            Bounds minutesBounds = getBounds(display, buffer, &SECONDARY_FONT);
             Bounds boundsMin = getBounds(display, "min", &SUB_FONT);
             const int16_t paddingBetweenText = 4;
             const int16_t endOfBoxContent = xOffset + boxWidth - paddingInsideBox;
 
             yOffset += 24;
 
-            drawText(display, buffer, endOfBoxContent - bounds.w - paddingBetweenText - boundsMin.w, yOffset,
+            drawText(display, buffer, endOfBoxContent - minutesBounds.w - paddingBetweenText - boundsMin.w, yOffset,
                      &SECONDARY_FONT, GxEPD_BLACK);
             drawText(display, "min", endOfBoxContent - boundsMin.w, yOffset, &SUB_FONT, GxEPD_BLACK);
 
-            yOffset += (max(bounds.h, boundsMin.h) / 2) + 4;
+            yOffset += (max(minutesBounds.h, boundsMin.h) / 2) + 4;
 
             // display.drawFastHLine(xOffset + paddingInsideBox, yOffset, boxWidth - paddingBetweenBoxes -
             // paddingInsideBox * 2, GxEPD_BLACK);
@@ -101,8 +105,8 @@ void Timer::drawPresetSelection() {
 
             // draw the pause duration
             const unsigned int pauseMinutes = preset.getPauseDuration() / 1000 / 60;
-            char pauseBuffer[3];
-            sprintf(pauseBuffer, "%d", pauseMinutes);
+            char pauseBuffer[12];  // max unsigned int digits (10) + null terminator, plus margin
+            snprintf(pauseBuffer, sizeof(pauseBuffer), "%u", pauseMinutes);
             Bounds pauseBounds = getBounds(display, pauseBuffer, &SECONDARY_FONT);
             Bounds pauseBoundsMin = getBounds(display, "min", &SUB_FONT);
 

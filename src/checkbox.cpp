@@ -1,11 +1,15 @@
+/// @file checkbox.cpp
 #include "checkbox.h"
 #include "preferences_manager.h"
 
+/// Redundant re-declaration of preferences_manager.h's ::preferences; unused here (Checkbox goes through
+/// pref_getCheckbox()/pref_putCheckbox() instead).
 extern Preferences preferences;
 
-#define NOVALUE 0
-#define TRUEVALUE -1
-#define FALSEVALUE 1
+// Unused; Checkbox stores its state as a plain bool via pref_getCheckbox()/pref_putCheckbox() instead.
+#define NOVALUE 0     ///< Unused.
+#define TRUEVALUE -1  ///< Unused.
+#define FALSEVALUE 1  ///< Unused.
 
 Checkbox::Checkbox(Icon *icon, const char *name, const char *key, bool defaultValue)
     : icon(icon), name(name), key(key), defaultValue(defaultValue) {

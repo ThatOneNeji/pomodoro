@@ -1,3 +1,4 @@
+/// @file strings.cpp
 #include "strings.h"
 #include <type_traits>
 
@@ -11,21 +12,26 @@ static const char *randomMessage(const std::vector<const char *> &messages) {
     return messages[random(0, messages.size())];
 }
 
+/*
 static const char *randomMessageV2(const std::array<const char *, 4> &messages) {
     if (messages.empty())
         return "???";
     return messages[random(0, messages.size())];
 }
+*/
 
+/// LPE-mode variant of genericStartBreakMessages. Currently empty; randomMessage() falls back to "???" until populated.
 extern const std::vector<const char *> lpeStartBreakMessages = {};
+/// LPE-mode additions layered onto Messages::Preset_Email_Message. Currently empty.
 static const std::vector<const char *> lpeEmailPresetMessages = {};
+/// LPE-mode additions layered onto Messages::Preset_Coding_Message. Currently empty.
 static const std::vector<const char *> lpeCodingPresetMessages = {};
 
 static const char *generateMessage(Messages message) {
     const char *result = "";
     std::vector<const char *> messages;
     messages.insert(messages.end(), chatGptFacts.begin(), chatGptFacts.end());
-    messages.insert(messages.end(), genericPresetMessages.begin(), genericPresetMessages.end());
+    messages.insert(messages.end(), Msgs::GENERIC_PRESET_MESSAGES.begin(), Msgs::GENERIC_PRESET_MESSAGES.end());
 
     bool lpeModeEnabled = messageCache.isLpeModeEnabled();
 

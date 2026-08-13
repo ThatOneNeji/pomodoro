@@ -1,3 +1,7 @@
+/**
+ * @file main.cpp
+ * @brief Arduino entry point: hardware bring-up (setup()) and the main event loop (loop()).
+ */
 #include <Arduino.h>
 
 #include "config.h"
@@ -22,30 +26,41 @@
 #include <sstream>
 #endif
 
-#define MINUTE 60 * 1000
+#define MINUTE 60 * 1000  ///< One minute, in milliseconds; used to size preset durations.
 
-#define ENCODER_CLK 32
-#define ENCODER_DT 21
+#define ENCODER_CLK 32  ///< Encoder clock (A) pin.
+#define ENCODER_DT 21   ///< Encoder data (B) pin.
 
-#define ENCODER_STABILITY_DELAY 50          // ms to wait for stable position
-#define ENCODER_LOCK_TIME_AFTER_BUTTON 200  // ms to ignore encoder changes after button press
+#define ENCODER_STABILITY_DELAY 50          ///< ms to wait after a button press before trusting encoder changes.
+#define ENCODER_LOCK_TIME_AFTER_BUTTON 200  ///< Unused; see ENCODER_STABILITY_DELAY, which is what's actually applied.
 
-ESP32Encoder encoder;
-volatile unsigned long lastEncoderUpdate = 0;
-const unsigned long encoderDebounceTime = 10;  // ms
-volatile int debouncedCount = 0;
-volatile int lastCount = 0;
-volatile int tempCount = 0;
-volatile unsigned long tempCountTime = 0;
-volatile bool positionStable = true;
-volatile bool buttonPressed = false;
-volatile unsigned long lastButtonPressTime = 0;
+ESP32Encoder encoder;                          ///< Rotary encoder hardware driver.
+volatile unsigned long lastEncoderUpdate = 0;  ///< millis() timestamp checkPosition() last accepted a count update.
+const unsigned long encoderDebounceTime = 10;  ///< Minimum ms between accepted encoder count updates.
+volatile int debouncedCount = 0;  ///< Debounced encoder count, shared with Timer::loop()/SplashScreen/Menu.
+volatile int lastCount = 0;       ///< debouncedCount as of the end of the previous loop() iteration.
+
+// Declared but unused: no code currently reads these.
+volatile int tempCount = 0;                      ///< Unused.
+volatile unsigned long tempCountTime = 0;        ///< Unused.
+volatile bool positionStable = true;             ///< Unused.
+volatile bool buttonPressed = false;             ///< Unused.
+volatile unsigned long lastButtonPressTime = 0;  ///< Unused.
 
 #if CHECKBOX_TEST
 Checkbox checkbox(&icon_lpehacker, "A test", "test");
 Checkbox checkbox2(&icon_lpetantrum, "Another test", "test2");
 #endif
 
+/**
+ * @brief Rotary encoder ISR: debounces the raw quadrature count into ::debouncedCount.
+ *
+ * Ignores changes immediately after a button press (see ENCODER_STABILITY_DELAY) since the
+ * button press can jostle the encoder, and only accepts an updated count once it settles for
+ * at least `encoderDebounceTime`. Placed in IRAM since ISRs on the ESP32 must not be paged out
+ * of flash.
+ * @param arg Unused (required by the ESP32Encoder callback signature).
+ */
 void IRAM_ATTR checkPosition(void *arg) {
     unsigned long currentTime = millis();
     int currentCount = encoder.getCount();
@@ -62,6 +77,7 @@ void IRAM_ATTR checkPosition(void *arg) {
     }
 }
 
+/// Configure the rotary encoder pins and attach checkPosition() as its half-quadrature callback.
 void setupEncoder() {
     pinMode(ENCODER_CLK, INPUT);
     pinMode(ENCODER_DT, INPUT);
@@ -77,8 +93,18 @@ void setupEncoder() {
     lastCount = 0;
 }
 
+/// The global Timer instance driving the whole UI, constructed against the display selected in
+/// GxEPD2_display_selection_new_style.h.
 Timer timer(display);
 
+/**
+ * @brief Arduino setup(): bring up hardware, run the splash screen, and register the timer presets.
+ *
+ * Order matters here: button/LED/encoder/preferences are initialized before the display, and
+ * the splash screen's blocking loop() (see SplashScreen::loop()) runs to completion — either
+ * starting the timer or falling into the settings screen and restarting the device — before
+ * this function returns and the main loop() begins driving Timer::loop().
+ */
 void setup() {
     Serial.begin(115200);
     pinMode(EPD_PWR_PIN, OUTPUT);
@@ -283,6 +309,7 @@ void setup() {
     timer.selectPreset(1);
 }
 
+/// Arduino loop(): drive the timer state machine each iteration with the current encoder count.
 void loop() {
     timer.loop(&debouncedCount);
     lastCount = debouncedCount;

@@ -12,3 +12,5 @@ src/strings_private.cpp
 src/anniversary.cpp
 
 tmp/
+package.json
+docs/api-docs

@@ -1,8 +1,13 @@
+/**
+ * @file timer_running_break.cpp
+ * @brief Timer::handleRunningBreak() / Timer::drawRunningBreak(): the TimerState::RunningBreak /
+ * UserInitiatedBreakPause screen.
+ */
 #include "../timer.h"
 #include "../strings.h"
 #include <stdint.h>
 
-void Timer::handleRunningBreak(volatile int *encoderCount) {
+void Timer::handleRunningBreak(volatile const int *encoderCount) {
     if (state == TimerState::RunningBreak) {
         elapsed = millis() - startTime - totalPausedTime;
     }
@@ -61,6 +66,11 @@ void Timer::handleRunningBreak(volatile int *encoderCount) {
     }
 }
 
+/**
+ * @brief Format a minute count as "Xh Ym" (or just "Ym" under an hour), for statistics display.
+ * @param minutes Duration in minutes.
+ * @return The formatted string.
+ */
 String formatDuration(unsigned long minutes) {
     unsigned long hours = minutes / 60;
     minutes = minutes % 60;
@@ -160,7 +170,7 @@ void Timer::drawRunningBreak() {
 
     drawMenuBar();
 
-    unsigned int remainingUnit = 0;
+    // REMOVE if TESTING PASSES -> unsigned int remainingUnit = 0;
     char buffer[64];  // Increased buffer size to be safe
 
     const unsigned int remainingMillis = currentBreakDuration - elapsed;
@@ -169,7 +179,7 @@ void Timer::drawRunningBreak() {
     uint16_t roundedSeconds = (seconds + 9) / 10 * 10;
 
     if (roundedSeconds >= 60) {
-        sprintf(buffer, "%s - %d %s",
+        sprintf(buffer, "%s - %u %s",
                 messageCache.getMessage(isLongBreak ? Messages::Break_LongPauseText : Messages::Break_PauseText),
                 minutes, messageCache.getMessage(Messages::TimeFormat_Minutes));
     } else {

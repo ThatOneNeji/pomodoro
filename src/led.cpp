@@ -1,11 +1,12 @@
+/// @file led.cpp
 #include "led.h"
 #include "button.h"
 #include "timer.h"
 
-#define WS2812_PIN 25
-#define LED_TASK_STACK_SIZE 2048
-#define LED_TASK_PRIORITY 2
-#define LED_CORE 0  // Run on core 0 since core 1 is used by Arduino loop
+#define WS2812_PIN 25             ///< Data pin the status LED is wired to.
+#define LED_TASK_STACK_SIZE 2048  ///< Stack size, in bytes, for ledTask()'s FreeRTOS task.
+#define LED_TASK_PRIORITY 2       ///< FreeRTOS priority for ledTask().
+#define LED_CORE 0                ///< FreeRTOS core to pin ledTask() to (0, since core 1 runs the Arduino loop()).
 
 TaskHandle_t ledTaskHandle = NULL;
 static NeoPixelBus<NeoRgbFeature, NeoWs2812Method> strip(1, WS2812_PIN);
@@ -63,6 +64,7 @@ static void handleConfirmationFlash() {
     }
 }
 
+/// Index into ::splashscreenColors of the fade currently animating/next to start.
 uint8_t splashscreenColorIndex = 0;
 
 static void handleQuickAcknowledgementFlash() {
@@ -98,6 +100,7 @@ static void handleQuickAcknowledgementFlash() {
     }
 }
 
+/// Sequence of colors the splash-screen ambient fade cycles through, off -> dim -> dimmer -> off.
 const RgbColor splashscreenColors[] = {RgbColor(0), RgbColor(48, 48, 48), RgbColor(32, 32, 32), RgbColor(0)};
 
 static void handleSplashscreen() {
@@ -144,8 +147,8 @@ static void handleSplashscreen() {
 // so that we dont trigger on the same button press multiple times
 static unsigned long lastQuickAcknowledgeFlashTime = 0;
 
-int lastEncoderCount = 0;
-volatile int *encoderCount;
+int lastEncoderCount = 0;    ///< Encoder count last observed by ledTask(), used to detect encoder movement.
+volatile int *encoderCount;  ///< Shared, debounced encoder count, set via ledSetupEncoder().
 
 void ledSetupEncoder(volatile int *encoder) {
     encoderCount = encoder;

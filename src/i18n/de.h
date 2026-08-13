@@ -1,22 +1,65 @@
+/**
+ * @file de.h
+ * @brief German strings for the ::Msgs API (see strings.h for how these are selected/consumed).
+ *
+ * @note Incomplete: unlike en.h, this file's `Msgs` struct does not define `GENERIC_PRESET_MESSAGES`
+ * or `CHAT_GPT_FACTS`, and the single-word entries below (OPEN, CLOSE, PAUSE, ...) are still the
+ * English text, not German translations — only the free-standing message lists further down in
+ * this file (genericPresetMessages, chatGptFacts, etc.) are actually translated. Selecting
+ * `LANG_DE` today would fail to compile anywhere `Msgs::GENERIC_PRESET_MESSAGES` or
+ * `Msgs::CHAT_GPT_FACTS` is referenced (see strings.cpp).
+ */
 #pragma once
+#include <vector>
+#include <array>
 
+/**
+ * @brief German localized strings and message lists (see the file-level @note: currently incomplete
+ * relative to en.h, and largely untranslated in the `Msgs` struct itself).
+ */
 struct Msgs {
-    static constexpr const char *OPEN = "Open";
-    static constexpr const char *CLOSE = "Close";
-    static constexpr const char *STOP = "Stop";
-    static constexpr const char *STATISTICS = "Statistics";
-    static constexpr const char *INTOTAL = "In total";
-    static constexpr const char *DONE = "Done";
-    static constexpr const char *BREAKOVER = "Break Over";
-    static constexpr const char *RESUME = "Resume";
-    static constexpr const char *BREAKNOW = "Break now";
-    static constexpr const char *SKIPBREAK = "Skip Break";
-    static constexpr const char *TOSELECT = "To Select";
+    /* Single words */
+    static constexpr const char *OPEN = "Open";              ///< Generic "open" label.
+    static constexpr const char *CLOSE = "Close";            ///< Generic "close" label.
+    static constexpr const char *STOP = "Stop";              ///< "Cancel timer" menu item.
+    static constexpr const char *PAUSE = "Pause";            ///< "Pause timer" menu item.
+    static constexpr const char *PAUSED = "- PAUSED -";      ///< Shown while the timer is paused.
+    static constexpr const char *STATISTICS = "Statistics";  ///< Statistics screen heading.
+    static constexpr const char *INTOTAL = "In total";       ///< Statistics section label.
+    static constexpr const char *DONE = "Done";              ///< Header shown once a work interval finishes.
+    static constexpr const char *BREAKOVER = "Break Over";   ///< Header shown once a break finishes.
+    static constexpr const char *RESUME = "Resume";          ///< "Resume timer" menu item.
+    static constexpr const char *BREAKNOW = "Break now";     ///< "Start break early" menu item.
+    static constexpr const char *SKIPBREAK = "Skip Break";   ///< "Skip the current break" menu item.
+    static constexpr const char *TOSELECT = "To Select";     ///< "Back to preset selection" menu item.
 
+    static constexpr const char *SETTINGS = "Settings";         // Einstellungen
+    static constexpr const char *MISCMSG = "Distracting news";  // Ablenkende Nachrichten
+    static constexpr const char *MODE = "LPE Mode";             // LPE Modus
+    static constexpr const char *RSTDEVICE = "Reset Device";    // Reset Device
+
+    static constexpr const char *CURRENTCYCLE = "Current cycle";   // Aktueller Zyklus
+    static constexpr const char *CURRENTTIME = "Working hours";    // Arbeitszeit
+    static constexpr const char *CURRENTBREAKTIME = "Break time";  // Pausenzeit
+    static constexpr const char *TOTALCYCLES = "Cycles";           // Zyklen
+    static constexpr const char *TOTALTIME = "Working hours";      // Arbeitszeit
+    static constexpr const char *TOTALBREAKTIME = "Break time";    // Pausenzeit
+
+    /* Message lists */
+
+    /// Candidate messages shown when a break begins.
     static constexpr std::array<const char *, 4> BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax",
                                                                    "Well done!"};
+
+    /// Candidate "restart timer" messages used in LPE mode.
+    static constexpr std::array<const char *, 4> RESTARTTIMERMSGLPE = {"Noch mal!", "AGAIN!", "Here we go again...",
+                                                                       "Do it agane"};
+
+    /// Candidate "restart timer" messages used outside LPE mode.
+    static constexpr std::array<const char *, 4> RESTARTTIMERMSG = {"Restart", "Let's go again", "One more time"};
 };
 
+/// German candidate speech-bubble messages shown while a preset timer is running (legacy, predates the struct).
 static const std::vector<const char *> genericPresetMessages = {
     "Okaaay, let's go!",
     "Heute schon auf Reddit gewesen?",
@@ -28,12 +71,14 @@ static const std::vector<const char *> genericPresetMessages = {
     "Schauen wir mal was wird\n\n                              was wird",
 };
 
+/// German candidate messages shown when a break begins (legacy, predates the struct; still English text here).
 static const std::vector<const char *> genericStartBreakMessages = {"Break time!", "Take a rest", "Time to relax",
                                                                     "Well done!"};
 
-static const char *gINTOTAL = "Gesamt";
-static const char *gSTATISTICS = "Statistik";
+static const char *gINTOTAL = "Gesamt";        ///< German "In total" label. Currently unused/unreferenced.
+static const char *gSTATISTICS = "Statistik";  ///< German "Statistics" label. Currently unused/unreferenced.
 
+/// German candidate trivia facts, translated equivalent of Msgs::CHAT_GPT_FACTS.
 static const std::vector<const char *> chatGptFacts = {
     "Das Gehirn eines Elefanten\nenthaelt ueber 257 Mrd. Neuronen\nund zeigt starke Emotionen.",
     "Tintenfische besitzen drei Herzen\nund ein ausgekluegeltes Nervensystem,\ndas Probleme effizient loest.",

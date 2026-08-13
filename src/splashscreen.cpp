@@ -1,3 +1,4 @@
+/// @file splashscreen.cpp
 #include "splashscreen.h"
 #include "button.h"
 #include "icon_provider.h"
@@ -45,7 +46,7 @@ void SplashScreen::draw() {
     display.display(true);
 }
 
-void SplashScreen::loop(volatile int *encoderCount) {
+void SplashScreen::loop(volatile const int *encoderCount) {
     while (true) {
         if (buttons.loop(encoderCount)) {
             // Redraw
@@ -85,7 +86,7 @@ void SplashScreen::drawSettings() {
     display.display(true);
 }
 
-void SplashScreen::loopSettings(volatile int *encoderCount) {
+void SplashScreen::loopSettings(volatile const int *encoderCount) {
     while (true) {
         if (lastEncoderCount != *encoderCount) {
             // select next or previous checkbox
@@ -104,7 +105,7 @@ void SplashScreen::loopSettings(volatile int *encoderCount) {
         }
 
         if (Button::instance->checkAndClearButtonPress()) {
-            if (selectedCheckbox->getName() == "Reset Device") {
+            if (strcmp(selectedCheckbox->getName(), Msgs::RSTDEVICE) == 0) {
                 Preferences preferences;
                 preferences.begin("pomodoro", false);
                 preferences.clear();

@@ -1,3 +1,4 @@
+/// @file statistics.cpp
 #include "statistics.h"
 #include "preferences_manager.h"
 

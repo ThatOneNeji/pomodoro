@@ -1,3 +1,7 @@
+/**
+ * @file images.h
+ * @brief Aggregates the full-screen background bitmaps generated into src/images/ by scripts/gen_assets.py.
+ */
 #ifndef IMAGES_H
 #define IMAGES_H
 

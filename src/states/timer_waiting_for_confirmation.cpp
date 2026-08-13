@@ -1,6 +1,11 @@
+/**
+ * @file timer_waiting_for_confirmation.cpp
+ * @brief Timer::handleWaitingForConfirmation() / Timer::drawWaitingForConfirmation(): the
+ * TimerState::WaitingConfirmStartOfBreak / WaitingConfirmEndOfBreak screen.
+ */
 #include "../timer.h"
 
-void Timer::handleWaitingForConfirmation(volatile int *encoderCount) {
+void Timer::handleWaitingForConfirmation(volatile const int *encoderCount) {
     elapsed = millis() - startTime - totalPausedTime;
 
     const int encoderDelta = *encoderCount - lastEncoderCount;

@@ -1,9 +1,18 @@
+/// @file preferences_manager.cpp
 #include "preferences_manager.h"
+#include <nvs_flash.h>
 
 Preferences preferences;
 
 void initPreferences() {
-    // preferences.begin(PREFS_NAMESPACE, false);
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        // Partition layout or NVS format changed since it was last written; reformat and retry.
+        Serial.println("Preferences: NVS partition needs erase, reformatting");
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
 }
 
 bool pref_getCheckbox(const char *key, bool defaultValue) {

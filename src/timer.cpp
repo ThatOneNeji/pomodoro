@@ -1,3 +1,4 @@
+/// @file timer.cpp
 #include "timer.h"
 #include "strings.h"
 #include "images.h"
@@ -57,6 +58,15 @@ Timer::Timer(DISPLAY_CLASS &display) : display(display) {
     this->lastRedrawTime = 0;
     this->pauseStartTime = 0;
     this->totalPausedTime = 0;
+    this->startTime = 0;
+    this->elapsed = 0;
+    this->menuNeedsRedraw = false;
+    this->flashingIcon = false;
+    this->breakImage = nullptr;
+    this->needsFullRedraw = true;
+    this->lastPauseRedrawTime = 0;
+    this->lastPauseState = false;
+    this->lastMessageUpdate = 0;
 
     MenuItem *items = new MenuItem[3]{MenuItem(messageCache.getMessage(Messages::MenuItem_Pause)),
                                       MenuItem(messageCache.getMessage(Messages::MenuItem_BreakNow)),
@@ -227,11 +237,11 @@ void Timer::stop() {
 int Timer::drawMenuBar() {
     const unsigned int padding = 8;
     const unsigned int innerPadding = 4;
-    const unsigned int iconSize = 48;
 
-    Bounds bounds = getBounds(display, currentPreset->getName(), &SUB_FONT);
+    // REMOVE if TESTING PASSES -> Bounds bounds = getBounds(display, currentPreset->getName(), &SUB_FONT);
 
 #ifdef DEBUG
+    const unsigned int iconSize = 48;
     display.drawRect(padding, padding, iconSize, iconSize, GxEPD_BLACK);
 #endif
 
@@ -240,7 +250,8 @@ int Timer::drawMenuBar() {
     const uint16_t menuX = padding;
     const uint16_t menuY = padding;
     const uint16_t paddingBetweenBoxes = 10;
-    const uint16_t totalPaddingWidth = paddingBetweenBoxes * (topMenu->getItemCount() - 1);
+    // REMOVE if TESTING PASSES -> const uint16_t totalPaddingWidth = paddingBetweenBoxes * (topMenu->getItemCount() -
+    // 1);
     const uint16_t rawMenuWidth = display.width() - menuX - padding;
     const uint16_t menuItemWidth =
         (rawMenuWidth - (topMenu->getItemCount() - 1) * paddingBetweenBoxes) / topMenu->getItemCount();
@@ -277,7 +288,7 @@ int Timer::drawMenuBar() {
     return menuY + menuHeight;
 }
 
-void Timer::loop(volatile int *encoderCount) {
+void Timer::loop(volatile const int *encoderCount) {
     auto start = millis();
 
     switch (state) {

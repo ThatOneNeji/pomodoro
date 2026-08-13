@@ -1,3 +1,4 @@
+/// @file button.cpp
 #include "button.h"
 
 static const unsigned long DEBOUNCE_DELAY = 1000;  // ms

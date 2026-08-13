@@ -1,9 +1,13 @@
+/**
+ * @file timer_running.cpp
+ * @brief Timer::handleRunning() / Timer::drawRunning(): the TimerState::Running / UserInitiatedPause screen.
+ */
 #include "../timer.h"
 #include "../strings.h"
 #include "../config.h"
 #include <sstream>
 
-void Timer::handleRunning(volatile int *encoderCount) {
+void Timer::handleRunning(volatile const int *encoderCount) {
     if (state == TimerState::Running) {
         elapsed = millis() - startTime - totalPausedTime;
     }
@@ -80,7 +84,7 @@ void Timer::drawRunning() {
 
     drawMenuBar();
 
-    unsigned int remainingUnit = 0;
+    // REMOVE if TESTING PASSES -> unsigned int remainingUnit = 0;
     char buffer[32];  // Increased buffer size to be safe
 
     const unsigned int remainingMillis = currentPreset->getDuration() - elapsed;
@@ -91,7 +95,7 @@ void Timer::drawRunning() {
 
     if (timerStyleOld) {
         if (roundedSeconds >= 60) {
-            sprintf(buffer, "%d %s", minutes, messageCache.getMessage(Messages::TimeFormat_Minutes));
+            sprintf(buffer, "%u %s", minutes, messageCache.getMessage(Messages::TimeFormat_Minutes));
         } else {
             if (redrawInterval != REDRAW_INTERVAL_FAST) {
                 redrawInterval = REDRAW_INTERVAL_FAST;
@@ -100,7 +104,7 @@ void Timer::drawRunning() {
             sprintf(buffer, "%d %s", roundedSeconds, messageCache.getMessage(Messages::TimeFormat_Seconds));
         }
     } else {
-        sprintf(buffer, "%02d:%02d", minutes, secondsT);
+        sprintf(buffer, "%02u:%02u", minutes, secondsT);
     }
 
     const uint16_t progressBarHeight = 32;
@@ -128,11 +132,11 @@ void Timer::drawRunning() {
 
     // Space for message: 221,330 until 649,409
     const uint16_t messageMinX = 221;
-    const uint16_t messageMaxX = 649;
+    // REMOVE if TESTING PASSES -> const uint16_t messageMaxX = 649;
     const uint16_t messageMinY = 330;
-    const uint16_t messageMaxY = 409;
-    const uint16_t messageW = messageMaxX - messageMinX;
-    const uint16_t messageH = messageMaxY - messageMinY;
+    // REMOVE if TESTING PASSES -> const uint16_t messageMaxY = 409;
+    // REMOVE if TESTING PASSES -> const uint16_t messageW = messageMaxX - messageMinX;
+    // REMOVE if TESTING PASSES -> const uint16_t messageH = messageMaxY - messageMinY;
 
     drawDebugCrosshair(display, 221, 330);
 

@@ -1,3 +1,4 @@
+/// @file menu.cpp
 #include "menu.h"
 
 Menu::Menu(DISPLAY_CLASS &display, MenuItem *items, int itemCount)
@@ -26,7 +27,7 @@ void Menu::next() { selectedIndex = (selectedIndex + 1) % itemCount; }
 
 void Menu::previous() { selectedIndex = (selectedIndex - 1 + itemCount) % itemCount; }
 
-bool Menu::loop(volatile int *encoderCount) {
+bool Menu::loop(volatile const int *encoderCount) {
     if (*encoderCount != lastEncoderCount) {
         if (*encoderCount < lastEncoderCount) {
             previous();

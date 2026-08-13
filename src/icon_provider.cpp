@@ -1,3 +1,4 @@
+/// @file icon_provider.cpp
 #include "icon_provider.h"
 
 // Initialize the static member
