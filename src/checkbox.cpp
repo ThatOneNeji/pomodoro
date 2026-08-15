@@ -1,6 +1,10 @@
 /// @file checkbox.cpp
 #include "checkbox.h"
 #include "preferences_manager.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "CHECKBOX";
 
 /// Redundant re-declaration of preferences_manager.h's ::preferences; unused here (Checkbox goes through
 /// pref_getCheckbox()/pref_putCheckbox() instead).
@@ -29,13 +33,13 @@ void Checkbox::toggle() { checked = !checked; }
 void Checkbox::load() {
     checked = pref_getCheckbox(key, defaultValue);
 
-    Serial.printf("Checkbox::load: key=%s, value=%s\n", key, checked ? "true" : "false");
+    ESP_LOGI(TAG, "load: key=%s, value=%s", key, checked ? "true" : "false");
 }
 
 void Checkbox::save() {
     pref_putCheckbox(key, checked);
 
-    Serial.printf("Checkbox::save: key=%s, value=%s\n", key, checked ? "true" : "false");
+    ESP_LOGI(TAG, "save: key=%s, value=%s", key, checked ? "true" : "false");
 }
 
 void Checkbox::draw(DISPLAY_CLASS &display, uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool selected) {

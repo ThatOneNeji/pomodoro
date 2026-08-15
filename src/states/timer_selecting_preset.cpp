@@ -3,20 +3,33 @@
  * @brief Timer::handleSelectingPreset() / Timer::drawPresetSelection(): the TimerState::SelectingPreset screen.
  */
 #include "../timer.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "TIMER";
 
 #define THRESHOLD 5  ///< Unused.
 
 void Timer::handleSelectingPreset(volatile const int *encoderCount) {
+    if (displayBlanked) {
+        if (wakeDisplayIfTriggered(encoderCount)) {
+            lastEncoderCount = *encoderCount;  // this input just wakes the display, it's not also a preset move
+        }
+        // Ignore all other input while blanked; nothing else to do until woken.
+        return;
+    }
+
     if (Button::instance->checkAndClearButtonPress()) {
-        Serial.printf("Timer::handleSelectingPreset: starting with preset %d\n", presetIndex);
+        ESP_LOGI(TAG, "handleSelectingPreset: starting with preset %u", presetIndex);
         start();
         topMenu->setEncoderCount(*encoderCount);
         needsFullRedraw = true;
+        lastActivityTime = millis();
     }
 
     if (*encoderCount != lastEncoderCount) {
         int change = *encoderCount - lastEncoderCount;
-        Serial.printf("Timer::handleSelectingPreset: encoder delta %d\n", change);
+        ESP_LOGD(TAG, "handleSelectingPreset: encoder delta %d", change);
 
         if (change < 0) {
             previousPreset();
@@ -24,9 +37,14 @@ void Timer::handleSelectingPreset(volatile const int *encoderCount) {
             nextPreset();
         }
 
-        Serial.printf("Timer::handleSelectingPreset: selected preset %d (%s)\n", presetIndex, currentPreset->getName());
+        ESP_LOGI(TAG, "handleSelectingPreset: selected preset %u (%s)", presetIndex, currentPreset->getName());
         needsRedraw = true;
         lastEncoderCount = *encoderCount;
+        lastActivityTime = millis();
+    }
+
+    if (millis() - lastActivityTime >= IDLE_BLANK_TIMEOUT) {
+        blankDisplay(encoderCount);
     }
 }
 

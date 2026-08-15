@@ -8,6 +8,14 @@
 #include <sstream>
 
 void Timer::handleRunning(volatile const int *encoderCount) {
+    if (state == TimerState::UserInitiatedPause && displayBlanked) {
+        if (wakeDisplayIfTriggered(encoderCount)) {
+            topMenu->setEncoderCount(*encoderCount);  // this input just wakes the display, it's not also a menu move
+        }
+        // Ignore all other input while blanked; nothing else to do until woken.
+        return;
+    }
+
     if (state == TimerState::Running) {
         elapsed = millis() - startTime - totalPausedTime;
     }
@@ -67,11 +75,18 @@ void Timer::handleRunning(volatile const int *encoderCount) {
 
                 needsFullRedraw = true;
             }
+
+            lastActivityTime = millis();
         }
 
         if (topMenu->loop(encoderCount)) {
             menuNeedsRedraw = true;
+            lastActivityTime = millis();
         }
+    }
+
+    if (state == TimerState::UserInitiatedPause && millis() - lastActivityTime >= PAUSE_BLANK_TIMEOUT) {
+        blankDisplay(encoderCount);
     }
 }
 

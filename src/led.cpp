@@ -2,6 +2,10 @@
 #include "led.h"
 #include "button.h"
 #include "timer.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "LED";
 
 #define WS2812_PIN 25             ///< Data pin the status LED is wired to.
 #define LED_TASK_STACK_SIZE 2048  ///< Stack size, in bytes, for ledTask()'s FreeRTOS task.
@@ -160,7 +164,7 @@ static void ledTask(void *parameter) {
         // Show quick acknowledgement flash if button was pressed or the encoder was turned
         if ((currentMode != LedMode::QuickAcknowledgementFlash) && (currentMode != LedMode::TimerPaused) &&
             lastEncoderCount != *encoderCount) {
-            Serial.println("=== Led: Quick acknowledgement flash (encoder)");
+            ESP_LOGD(TAG, "Quick acknowledgement flash (encoder)");
             isEncoderTriggeredFlash = true;
             setLedMode(LedMode::QuickAcknowledgementFlash);
             lastQuickAcknowledgeFlashTime = Button::instance->lastPressTime;
@@ -169,7 +173,7 @@ static void ledTask(void *parameter) {
                    (Button::instance->lastPressTime >
                     lastQuickAcknowledgeFlashTime))  // use time in case we miss a press due to the task
         {
-            Serial.println("=== Led: Quick acknowledgement flash");
+            ESP_LOGD(TAG, "Quick acknowledgement flash");
             isEncoderTriggeredFlash = false;
             setLedMode(LedMode::QuickAcknowledgementFlash);
             lastQuickAcknowledgeFlashTime = Button::instance->lastPressTime;
@@ -223,9 +227,9 @@ static void ledTask(void *parameter) {
 }
 
 void setLedMode(LedMode mode) {
-    Serial.printf("=== Led: Setting mode from %d to %d\n", currentMode, mode);
+    ESP_LOGD(TAG, "Setting mode from %d to %d", (int) currentMode, (int) mode);
     if (currentMode != LedMode::QuickAcknowledgementFlash) {
-        Serial.printf("=== Led: setting last mode to %d\n", currentMode);
+        ESP_LOGD(TAG, "setting last mode to %d", (int) currentMode);
         lastMode = currentMode;
     }
 

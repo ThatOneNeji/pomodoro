@@ -2,6 +2,10 @@
 #include "splashscreen.h"
 #include "button.h"
 #include "icon_provider.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "SPLASHSCREEN";
 
 SplashScreen::SplashScreen(DISPLAY_CLASS &display, Timer &timer) : display(display), timer(timer) {
     for (int i = 0; i < checkboxes.size(); i++) {
@@ -55,7 +59,7 @@ void SplashScreen::loop(volatile const int *encoderCount) {
         }
 
         if (!Button::instance) {
-            Serial.println("Button instance is null");
+            ESP_LOGW(TAG, "Button instance is null");
             continue;
         }
 

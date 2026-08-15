@@ -8,6 +8,14 @@
 #include <stdint.h>
 
 void Timer::handleRunningBreak(volatile const int *encoderCount) {
+    if (state == TimerState::UserInitiatedBreakPause && displayBlanked) {
+        if (wakeDisplayIfTriggered(encoderCount)) {
+            topMenu->setEncoderCount(*encoderCount);  // this input just wakes the display, it's not also a menu move
+        }
+        // Ignore all other input while blanked; nothing else to do until woken.
+        return;
+    }
+
     if (state == TimerState::RunningBreak) {
         elapsed = millis() - startTime - totalPausedTime;
     }
@@ -54,15 +62,21 @@ void Timer::handleRunningBreak(volatile const int *encoderCount) {
             }
 
             needsFullRedraw = true;
+            lastActivityTime = millis();
         }
 
         if (topMenu->loop(encoderCount)) {
             menuNeedsRedraw = true;
+            lastActivityTime = millis();
         }
     }
 
     if (millis() - lastRedrawTime >= redrawInterval) {
         needsRedraw = true;
+    }
+
+    if (state == TimerState::UserInitiatedBreakPause && millis() - lastActivityTime >= PAUSE_BLANK_TIMEOUT) {
+        blankDisplay(encoderCount);
     }
 }
 

@@ -136,6 +136,40 @@ class Timer {
     bool showSpeechBubble =
         true;  ///< Persisted "msgs" setting: whether to show background + speech-bubble messages while running.
 
+    static const unsigned long IDLE_BLANK_TIMEOUT =
+        10000;  ///< Idle time in TimerState::SelectingPreset before the display blanks, in ms.
+    static const unsigned long PAUSE_BLANK_TIMEOUT =
+        5 * 60 * 1000;               ///< Idle time while user-paused before the display blanks, in ms.
+    unsigned long lastActivityTime;  ///< millis() timestamp of the last activity seen while idle/paused, relative to
+                                     ///< whichever *_BLANK_TIMEOUT currently applies.
+    bool displayBlanked = false;     ///< Whether the display is currently blanked and the panel controller hibernating.
+    int blankEncoderSnapshot;        ///< Encoder count captured when blankDisplay() was called, used by
+                                     ///< wakeDisplayIfTriggered() to detect movement.
+
+    /**
+     * @brief Blank and hibernate the display to save power.
+     *
+     * E-paper is bistable: cutting power alone leaves the last image visible, so this draws a
+     * black/white flash first (a single refresh often isn't enough to fully clear ghosting left
+     * by prior partial updates) before hibernating. Called from handleSelectingPreset() after
+     * ::IDLE_BLANK_TIMEOUT, and from handleRunning()/handleRunningBreak() after
+     * ::PAUSE_BLANK_TIMEOUT while user-paused.
+     * @param encoderCount Pointer to the shared, debounced encoder count, snapshotted so a later
+     *                      wakeDisplayIfTriggered() call can detect movement.
+     */
+    void blankDisplay(volatile const int *encoderCount);
+
+    /**
+     * @brief If the display is blanked and the button was pressed or the encoder moved, wake it.
+     *
+     * Waking requires a full re-init (the only way to recover from hibernate() is a hardware
+     * reset), so this is deliberately not attempted every loop() — only call it while
+     * ::displayBlanked is true.
+     * @param encoderCount Pointer to the shared, debounced encoder count.
+     * @return true if a wake was triggered (and performed) this call.
+     */
+    bool wakeDisplayIfTriggered(volatile const int *encoderCount);
+
     /// Draw the WaitingConfirmStartOfBreak/WaitingConfirmEndOfBreak screen. See
     /// src/states/timer_waiting_for_confirmation.cpp.
     void drawWaitingForConfirmation();
@@ -149,11 +183,32 @@ class Timer {
     void drawRunning();
     /// Handle input/timing for the WaitingConfirm* states. See src/states/timer_waiting_for_confirmation.cpp.
     void handleWaitingForConfirmation(volatile const int *encoderCount);
-    /// Handle input for the SelectingPreset state. See src/states/timer_selecting_preset.cpp.
+    /**
+     * @brief Handle input for the SelectingPreset state, including idle display-blanking.
+     *
+     * After ::IDLE_BLANK_TIMEOUT of no encoder/button activity, blanks and hibernates the
+     * display to save power. The next encoder movement or button press only wakes the display
+     * back up (a full re-init, since hibernate() requires a hardware reset to recover) — that
+     * input is not also applied as a preset selection/start. See src/states/timer_selecting_preset.cpp.
+     */
     void handleSelectingPreset(volatile const int *encoderCount);
-    /// Handle input/timing for the Running/UserInitiatedPause states. See src/states/timer_running.cpp.
+    /**
+     * @brief Handle input/timing for the Running/UserInitiatedPause states, including idle
+     * display-blanking while user-paused.
+     *
+     * After ::PAUSE_BLANK_TIMEOUT of no encoder/button activity in TimerState::UserInitiatedPause,
+     * blanks the display the same way handleSelectingPreset() does (see blankDisplay()); the
+     * Running state itself never blanks. See src/states/timer_running.cpp.
+     */
     void handleRunning(volatile const int *encoderCount);
-    /// Handle input/timing for the RunningBreak/UserInitiatedBreakPause states. See src/states/timer_running_break.cpp.
+    /**
+     * @brief Handle input/timing for the RunningBreak/UserInitiatedBreakPause states, including
+     * idle display-blanking while user-paused.
+     *
+     * After ::PAUSE_BLANK_TIMEOUT of no encoder/button activity in TimerState::UserInitiatedBreakPause,
+     * blanks the display the same way handleSelectingPreset() does (see blankDisplay()); the
+     * RunningBreak state itself never blanks. See src/states/timer_running_break.cpp.
+     */
     void handleRunningBreak(volatile const int *encoderCount);
     /// Draw the RunningBreak/UserInitiatedBreakPause screen. See src/states/timer_running_break.cpp.
     void drawRunningBreak();

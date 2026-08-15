@@ -3,6 +3,7 @@
  * @brief Arduino entry point: hardware bring-up (setup()) and the main event loop (loop()).
  */
 #include <Arduino.h>
+#include "esp_log.h"
 
 #include "config.h"
 #include <ESP32Encoder.h>
@@ -25,6 +26,9 @@
 #if STRINGS_TEST
 #include <sstream>
 #endif
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "MAIN";
 
 #define MINUTE 60 * 1000  ///< One minute, in milliseconds; used to size preset durations.
 
@@ -92,6 +96,21 @@ void setupEncoder() {
     debouncedCount = 0;
     lastCount = 0;
 }
+
+/**
+ * @brief Forces NVS to be initialized before any other global object's constructor runs.
+ *
+ * ::timer's constructor resolves several menu-item message strings, which reads a preference
+ * (see MessageCache::isLpeModeEnabled()) — and global objects are constructed before setup()
+ * ever runs, so without this, those reads would hit NVS before initPreferences() (called from
+ * setup()) has had a chance to run, failing with NOT_INITIALIZED. C++ guarantees globals in the
+ * same file initialize in declaration order, so declaring this immediately before ::timer below
+ * is what makes the ordering safe.
+ */
+struct PreferencesInitializer {
+    PreferencesInitializer() { initPreferences(); }
+};
+static PreferencesInitializer preferencesInitializer;
 
 /// The global Timer instance driving the whole UI, constructed against the display selected in
 /// GxEPD2_display_selection_new_style.h.
@@ -249,7 +268,7 @@ void setup() {
     const uint16_t messageW = messageMaxX - messageMinX;
     const uint16_t messageH = messageMaxY - messageMinY;
 
-    Serial.println("--- Messages ---");
+    ESP_LOGI(TAG, "--- Messages ---");
 
     for (auto msg : messageCache.getMessages()) {
         // Split message by lines and print individually
@@ -259,7 +278,7 @@ void setup() {
         int lineIndex = 0;
         while (std::getline(iss, line, '\n')) {
             if (lineIndex >= 3) {
-                Serial.printf("ERR: Too many lines in message \"%s\"\n", msg);
+                ESP_LOGW(TAG, "Too many lines in message \"%s\"", msg);
                 break;
             }
 
@@ -271,10 +290,10 @@ void setup() {
                 auto wOver = b.w - messageW;
                 auto hOver = b.y + b.h - messageMaxY;
 
-                Serial.printf("ERR: Line too long: \"%s\" {x: %d, y: %d, w: %d (+%d), h: %d (+%d)}\n", line.c_str(),
-                              b.x, b.y, b.w, wOver > 0 ? wOver : 0, b.h, hOver > 0 ? hOver : 0);
+                ESP_LOGW(TAG, "Line too long: \"%s\" {x: %d, y: %d, w: %d (+%d), h: %d (+%d)}", line.c_str(), b.x, b.y,
+                         b.w, wOver > 0 ? wOver : 0, b.h, hOver > 0 ? hOver : 0);
             } else {
-                Serial.printf("OK:  \"%s\" {x: %d, y: %d, w: %d, h: %d}\n", line.c_str(), b.x, b.y, b.w, b.h);
+                ESP_LOGI(TAG, "\"%s\" {x: %d, y: %d, w: %d, h: %d}", line.c_str(), b.x, b.y, b.w, b.h);
             }
         }
     }
@@ -306,7 +325,11 @@ void setup() {
     timer.addPreset(iconProvider->getPresetIcon("Focus"), iconProvider->getTimerRunningBackgroundImage(), "Focus",
                     25 * MINUTE, 5 * MINUTE, 20 * MINUTE);
 
-    timer.selectPreset(1);
+    // enterPresetSelection() (rather than selectPreset(1) alone) also resets the idle-blank
+    // timer, which otherwise would have been ticking since Timer's construction near boot —
+    // through however long setup() and the splash screen took — causing an immediate blank
+    // on the very first tick of real interaction.
+    timer.enterPresetSelection();
 }
 
 /// Arduino loop(): drive the timer state machine each iteration with the current encoder count.

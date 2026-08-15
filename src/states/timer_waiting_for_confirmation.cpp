@@ -4,6 +4,10 @@
  * TimerState::WaitingConfirmStartOfBreak / WaitingConfirmEndOfBreak screen.
  */
 #include "../timer.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "TIMER";
 
 void Timer::handleWaitingForConfirmation(volatile const int *encoderCount) {
     elapsed = millis() - startTime - totalPausedTime;
@@ -21,12 +25,12 @@ void Timer::handleWaitingForConfirmation(volatile const int *encoderCount) {
 
     if (Button::instance->checkAndClearButtonPress()) {
         if (state == TimerState::WaitingConfirmStartOfBreak) {
-            Serial.println("Timer::handleWaitingForConfirmation: confirmed start of break");
+            ESP_LOGI(TAG, "handleWaitingForConfirmation: confirmed start of break");
             messageCache.clearCache(Messages::TimerWaitingForConfirmationStartOfBreak_Header);
             startBreak();
             needsFullRedraw = true;
         } else {
-            Serial.println("Timer::handleWaitingForConfirmation: handling end of break");
+            ESP_LOGI(TAG, "handleWaitingForConfirmation: handling end of break");
             messageCache.clearCache(Messages::TimerWaitingForConfirmationEndOfBreak_Header);
 
             incrementTotalBreakTime(elapsed);

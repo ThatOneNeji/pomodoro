@@ -4,6 +4,11 @@
 #include "images.h"
 #include "led.h"
 #include "preferences_manager.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls. src/states/*.cpp each define their own copy
+/// of this same "TIMER" tag, since it's a per-translation-unit static.
+[[maybe_unused]] static const char *TAG = "TIMER";
 
 extern Preferences preferences;
 
@@ -67,6 +72,8 @@ Timer::Timer(DISPLAY_CLASS &display) : display(display) {
     this->lastPauseRedrawTime = 0;
     this->lastPauseState = false;
     this->lastMessageUpdate = 0;
+    this->lastActivityTime = millis();
+    this->blankEncoderSnapshot = 0;
 
     MenuItem *items = new MenuItem[3]{MenuItem(messageCache.getMessage(Messages::MenuItem_Pause)),
                                       MenuItem(messageCache.getMessage(Messages::MenuItem_BreakNow)),
@@ -121,6 +128,7 @@ void Timer::enterPresetSelection() {
     state = TimerState::SelectingPreset;
     selectPreset(1);
     needsRedraw = true;
+    lastActivityTime = millis();
 }
 
 void Timer::reset() {
@@ -136,6 +144,44 @@ void Timer::reset() {
     topMenu->setSelectedIndex(1);
 }
 
+void Timer::blankDisplay(volatile const int *encoderCount) {
+    ESP_LOGI(TAG, "blankDisplay: idle timeout reached, blanking display");
+
+    // E-paper is bistable, so cutting power alone would leave the last image visible. A single
+    // full refresh can also leave ghosting from prior partial updates, so flash black then white
+    // to properly clear the panel before hibernating.
+    display.fillScreen(GxEPD_BLACK);
+    display.display(false);
+    display.fillScreen(GxEPD_WHITE);
+    display.display(false);
+    display.hibernate();
+
+    blankEncoderSnapshot = *encoderCount;
+    displayBlanked = true;
+    needsRedraw = false;
+    needsFullRedraw = false;
+}
+
+bool Timer::wakeDisplayIfTriggered(volatile const int *encoderCount) {
+    const bool buttonPressed = Button::instance->checkAndClearButtonPress();
+    const bool encoderMoved = *encoderCount != blankEncoderSnapshot;
+
+    if (!buttonPressed && !encoderMoved) {
+        return false;
+    }
+
+    ESP_LOGI(TAG, "wakeDisplayIfTriggered: waking display from idle blank");
+
+    // hibernate() requires a hardware reset to recover from; init() drives that reset.
+    display.init(115200, true, 2, false);
+    display.setRotation(0);
+
+    displayBlanked = false;
+    lastActivityTime = millis();
+    needsFullRedraw = true;
+    return true;
+}
+
 void Timer::start() {
     if (currentPreset != nullptr) {
         showSpeechBubble = pref_getCheckbox("msgs", true);
@@ -146,7 +192,7 @@ void Timer::start() {
         reset();
         topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
 
-        Serial.printf("Timer::start with preset %d\n", presetIndex);
+        ESP_LOGI(TAG, "start with preset %u", presetIndex);
         state = TimerState::Running;
         selectPreset(presetIndex);
     }
@@ -156,12 +202,14 @@ void Timer::pause() {
     if (state == TimerState::Running) {
         state = TimerState::UserInitiatedPause;
         pauseStartTime = millis();
+        lastActivityTime = millis();  // start the PAUSE_BLANK_TIMEOUT countdown fresh
         setLedMode(LedMode::TimerPaused);
         topMenu->getItems()[0].setText(messageCache.getMessage(Messages::MenuItem_Resume));
         topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
     } else if (state == TimerState::RunningBreak) {
         state = TimerState::UserInitiatedBreakPause;
         pauseStartTime = millis();
+        lastActivityTime = millis();  // start the PAUSE_BLANK_TIMEOUT countdown fresh
         setLedMode(LedMode::TimerPaused);
         topMenu->getItems()[0].setText(messageCache.getMessage(Messages::MenuItem_Resume));
         topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
@@ -190,10 +238,9 @@ void Timer::startBreak() {
     minutesWorked += elapsed / 1000 / 60;
     incrementTotalTime(elapsed);
 
-    Serial.printf("Timer::startBreak: cycles %d with long break after %d\n", cycles,
-                  currentPreset->getLongPauseAfter());
+    ESP_LOGD(TAG, "startBreak: cycles %u with long break after %u", cycles, currentPreset->getLongPauseAfter());
     if (cycles % (currentPreset->getLongPauseAfter()) == 0) {
-        Serial.println("Timer::startBreak: long break");
+        ESP_LOGI(TAG, "startBreak: long break");
         currentBreakDuration = currentPreset->getLongPauseDuration();
         isLongBreak = true;
         longestEarnedPauseInShortCycles = 0;
@@ -211,7 +258,7 @@ void Timer::startBreak() {
         drawRunningBreak();
         display.display(true);
     } else {
-        Serial.println("Timer::startBreak: short break");
+        ESP_LOGI(TAG, "startBreak: short break");
         currentBreakDuration = currentPreset->getPauseDuration();
         isLongBreak = false;
         needsRedraw = true;
@@ -308,7 +355,7 @@ void Timer::loop(volatile const int *encoderCount) {
             handleWaitingForConfirmation(encoderCount);
             break;
         default:
-            Serial.printf("Timer::loop: unknown state %d\n", state);
+            ESP_LOGE(TAG, "loop: unknown state %d", (int) state);
             break;
     }
 
@@ -316,17 +363,17 @@ void Timer::loop(volatile const int *encoderCount) {
         auto millisMenuStart = millis();
         drawMenuBar();
         display.displayWindow(0, 0, display.width(), 8 + 4 + 48 + 4);
-        Serial.printf("Timer::loop: menu update took %d ms\n", millis() - millisMenuStart);
+        ESP_LOGD(TAG, "loop: menu update took %lu ms", millis() - millisMenuStart);
 
         menuNeedsRedraw = false;
 
         if (!needsRedraw && !needsFullRedraw) {
-            Serial.printf("Timer::loop: display update took %d ms\n", millis() - start);
+            ESP_LOGD(TAG, "loop: display update took %lu ms", millis() - start);
         }
     }
 
     if (needsRedraw || needsFullRedraw) {
-        Serial.printf("Timer::loop: needs redraw with state %d\n", state);
+        ESP_LOGD(TAG, "loop: needs redraw with state %d", (int) state);
 
         display.firstPage();
 
@@ -337,34 +384,34 @@ void Timer::loop(volatile const int *encoderCount) {
 
         switch (state) {
             case TimerState::SelectingPreset:
-                Serial.println("Timer::loop: drawPresetSelection");
+                ESP_LOGD(TAG, "loop: drawPresetSelection");
                 drawPresetSelection();
                 break;
             case TimerState::UserInitiatedPause:
             case TimerState::Running:
-                Serial.println("Timer::loop: drawRunning");
+                ESP_LOGD(TAG, "loop: drawRunning");
                 drawRunning();
                 break;
             case TimerState::UserInitiatedBreakPause:
             case TimerState::RunningBreak:
-                Serial.println("Timer::loop: drawRunningBreak");
+                ESP_LOGD(TAG, "loop: drawRunningBreak");
                 drawRunningBreak();
                 break;
             case TimerState::WaitingConfirmEndOfBreak:
             case TimerState::WaitingConfirmStartOfBreak:
-                Serial.println("Timer::loop: drawWaitingForConfirmation");
+                ESP_LOGD(TAG, "loop: drawWaitingForConfirmation");
                 drawWaitingForConfirmation();
                 break;
             default:
-                Serial.printf("Timer::loop: unknown state %d\n", state);
+                ESP_LOGE(TAG, "loop: unknown state %d", (int) state);
                 break;
         }
 
         if (needsFullRedraw) {
-            Serial.println("Timer::loop: full display update");
+            ESP_LOGD(TAG, "loop: full display update");
             display.display(false);
         } else {
-            Serial.println("Timer::loop: partial display update");
+            ESP_LOGD(TAG, "loop: partial display update");
             display.display(true);
         }
 
@@ -372,7 +419,7 @@ void Timer::loop(volatile const int *encoderCount) {
         needsRedraw = false;
         needsFullRedraw = false;
         lastRedrawTime = millis();
-        Serial.printf("Timer::loop: display update took %d ms\n", millis() - start);
+        ESP_LOGD(TAG, "loop: display update took %lu ms", millis() - start);
     }
 }
 

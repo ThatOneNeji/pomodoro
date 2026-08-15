@@ -1,5 +1,9 @@
 /// @file button.cpp
 #include "button.h"
+#include "esp_log.h"
+
+/// Log tag for this file, used by ESP_LOGx() calls.
+[[maybe_unused]] static const char *TAG = "BUTTON";
 
 static const unsigned long DEBOUNCE_DELAY = 1000;  // ms
 
@@ -8,7 +12,7 @@ bool Button::instanceExists = false;
 
 Button::Button(int pin) : pin(pin) {
     if (instanceExists) {
-        Serial.println("ERROR: Only one Button instance allowed!");
+        ESP_LOGE(TAG, "Only one Button instance allowed!");
         return;
     }
 
@@ -43,7 +47,7 @@ bool Button::checkAndClearButtonPress() {
         return false;  // Safety check
 
     if (pressed) {
-        Serial.println("Button pressed");
+        ESP_LOGI(TAG, "Button pressed");
         pressed = false;
         return true;
     }
