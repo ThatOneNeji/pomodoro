@@ -2,7 +2,7 @@
  * @file anniversary.h
  * @brief One-off, paged full-screen presentation shown instead of the normal timer UI.
  *
- * Gated behind `ANNIVERSARY_MODE` in defs.h (currently disabled). There is no corresponding
+ * Gated behind `ANNIVERSARY_MODE` in config.h (currently disabled). There is no corresponding
  * anniversary.cpp yet, so this class is declared but unimplemented; enabling `ANNIVERSARY_MODE`
  * as-is will fail to link.
  */

@@ -6,6 +6,7 @@
 #define CHECKBOX_H
 
 #include <Arduino.h>
+#include "config.h"
 #include <Preferences.h>
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
@@ -13,7 +14,6 @@
 #include "icon.h"
 #include "gfx_utils.h"
 #include "debug.h"
-#include "defs.h"
 
 /**
  * @brief A boolean setting with an icon and label, persisted via Preferences under ::key.

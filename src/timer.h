@@ -6,13 +6,10 @@
 #define TIMER_H
 
 #include <Arduino.h>
+#include "config.h"
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
 #include <vector>
-
-#include "defs.h"
-
-#define ENCODER_SW 14  ///< Optional encoder push-button pin, passed to Button's constructor in main.cpp.
 
 #include "gfx_utils.h"
 #include "icons.h"

@@ -30,14 +30,6 @@
 /// Log tag for this file, used by ESP_LOGx() calls.
 [[maybe_unused]] static const char *TAG = "MAIN";
 
-#define MINUTE 60 * 1000  ///< One minute, in milliseconds; used to size preset durations.
-
-#define ENCODER_CLK 32  ///< Encoder clock (A) pin.
-#define ENCODER_DT 21   ///< Encoder data (B) pin.
-
-#define ENCODER_STABILITY_DELAY 50          ///< ms to wait after a button press before trusting encoder changes.
-#define ENCODER_LOCK_TIME_AFTER_BUTTON 200  ///< Unused; see ENCODER_STABILITY_DELAY, which is what's actually applied.
-
 ESP32Encoder encoder;                          ///< Rotary encoder hardware driver.
 volatile unsigned long lastEncoderUpdate = 0;  ///< millis() timestamp checkPosition() last accepted a count update.
 const unsigned long encoderDebounceTime = 10;  ///< Minimum ms between accepted encoder count updates.
@@ -319,7 +311,7 @@ void setup() {
     auto iconProvider = IconProvider::getInstance();
 
     timer.addPreset(iconProvider->getPresetIcon("Emails"), iconProvider->getTimerRunningBackgroundImage(), "Emails",
-                    15 * MINUTE, 5 * MINUTE, 15 * MINUTE);
+                    3 * MINUTE, 1 * MINUTE, 3 * MINUTE);
     timer.addPreset(iconProvider->getPresetIcon("Coding"), iconProvider->getTimerRunningBackgroundImage(), "Coding",
                     45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2);
     timer.addPreset(iconProvider->getPresetIcon("Focus"), iconProvider->getTimerRunningBackgroundImage(), "Focus",

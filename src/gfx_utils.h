@@ -6,11 +6,10 @@
 #define GFXUTILS_H
 
 #include <Arduino.h>
+#include "config.h"
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
 #include <vector>
-
-#include "defs.h"
 
 /// Visual style for drawProgressBar().
 enum class ProgressBarStyle {

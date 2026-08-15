@@ -5,8 +5,8 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include "defs.h"
 #include <Arduino.h>
+#include "config.h"
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
 #include "icon.h"
