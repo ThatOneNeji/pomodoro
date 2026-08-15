@@ -13,5 +13,7 @@ src/anniversary.cpp
 src/wifi_credentials.h
 
 tmp/
-package.json
+package-lock.json
+node_modules/
 docs/api-docs
+data/

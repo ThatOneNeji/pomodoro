@@ -6,6 +6,7 @@
 // NeoPixelBus's headers haven't been parsed yet.
 #include "timer.h"
 #include <WiFi.h>
+#include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include "wifi_manager.h"
@@ -19,6 +20,8 @@ extern Timer timer;
 
 static AsyncWebServer server(80);
 static bool serverStarted = false;
+/// Whether LittleFS mounted successfully; static file serving (data/) is skipped if not.
+static bool littleFsMounted = false;
 
 /// @return A human-readable name for a TimerState, for JSON responses.
 static const char *timerStateName(TimerState state) {
@@ -63,6 +66,11 @@ static void startServer() {
     }
 
     server.on("/status", HTTP_GET, handleStatus);
+
+    if (littleFsMounted) {
+        server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+    }
+
     server.begin();
     serverStarted = true;
     ESP_LOGI(TAG, "Webserver started, status at http://%s/status", WiFi.localIP().toString().c_str());
@@ -82,6 +90,16 @@ static void onWiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 }
 
 void setupWebServer() {
+    // Mount is local and doesn't depend on WiFi; do it up front so a missing/corrupt filesystem
+    // (e.g. `pio run -t uploadfs` was never run) is logged immediately rather than only once a
+    // request for a static file 404s later.
+    littleFsMounted = LittleFS.begin(true);
+    if (littleFsMounted) {
+        ESP_LOGI(TAG, "LittleFS mounted");
+    } else {
+        ESP_LOGW(TAG, "LittleFS mount failed; static files won't be served. Did you run 'pio run -t uploadfs'?");
+    }
+
     WiFi.onEvent(onWiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(onWiFiDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
