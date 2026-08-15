@@ -315,12 +315,11 @@ void setup() {
 
     auto iconProvider = IconProvider::getInstance();
 
-    timer.addPreset(iconProvider->getPresetIcon("Emails"), iconProvider->getTimerRunningBackgroundImage(), "Emails",
-                    15 * MINUTE, 5 * MINUTE, 15 * MINUTE);
-    timer.addPreset(iconProvider->getPresetIcon("Coding"), iconProvider->getTimerRunningBackgroundImage(), "Coding",
-                    45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2);
-    timer.addPreset(iconProvider->getPresetIcon("Focus"), iconProvider->getTimerRunningBackgroundImage(), "Focus",
-                    25 * MINUTE, 5 * MINUTE, 20 * MINUTE);
+    for (const auto &preset : PRESETS) {
+        timer.addPreset(iconProvider->getPresetIcon(preset.name), iconProvider->getTimerRunningBackgroundImage(),
+                        preset.name, preset.duration, preset.pauseDuration, preset.longPauseDuration,
+                        preset.longPauseAfter);
+    }
 
     // enterPresetSelection() (rather than selectPreset(1) alone) also resets the idle-blank
     // timer, which otherwise would have been ticking since Timer's construction near boot —

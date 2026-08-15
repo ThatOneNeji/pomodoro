@@ -123,17 +123,29 @@ uv sync
 uv run scripts/gen_assets.py
 ```
 
+`assets/icons/*.png` (other than the `lpe*` ones) and `assets/fonts/*.ttf` are gitignored, since
+most icon/font sources aren't ours to redistribute. The `email`/`warning`/`focus`/`coffee`/
+`checkmark`/`coding` icons are sourced from [Bootstrap Icons](https://github.com/twbs/icons)
+(MIT-licensed, safe to redistribute) — see `THIRD_PARTY_LICENSES.md` for the full license text
+and which icon each file came from.
+
 ### Customizing Presets
 
-The presets are defined in `src/main.cpp`:
+The presets are defined in the `PRESETS` table in `src/config.h`:
 
 ```cpp
-  timer.addPreset(iconProvider->getPresetIcon("Emails"), iconProvider->getTimerRunningBackgroundImage(), "Emails", 15 * MINUTE, 5 * MINUTE, 15 * MINUTE);
-  timer.addPreset(iconProvider->getPresetIcon("Coding"), iconProvider->getTimerRunningBackgroundImage(), "Coding", 45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2);
-  timer.addPreset(iconProvider->getPresetIcon("Focus"), iconProvider->getTimerRunningBackgroundImage(), "Focus", 25 * MINUTE, 5 * MINUTE, 20 * MINUTE);
+static const PresetConfig PRESETS[] = {
+    {"Emails", 15 * MINUTE, 5 * MINUTE, 15 * MINUTE, 4},
+    {"Coding", 45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2},
+    {"Focus", 25 * MINUTE, 5 * MINUTE, 20 * MINUTE, 4},
+};
 ```
 
-If you want to customize this, I would start there and keep looking for references to these presets.
+Each row is `{name, work duration, short break duration, long break duration, cycles between long breaks}`.
+`src/main.cpp`'s `setup()` loops over this table to register the presets with `Timer`, resolving
+each one's icon by name via `IconProvider::getPresetIcon()`. Add, remove, or edit a preset by
+editing this table — no other code needs to change unless you're adding a preset name that
+`IconProvider` doesn't already know how to map to an icon.
 
 ## Pin Mapping
 

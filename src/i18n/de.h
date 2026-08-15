@@ -1,13 +1,6 @@
 /**
  * @file de.h
  * @brief German strings for the ::Msgs API (see strings.h for how these are selected/consumed).
- *
- * @note Incomplete: unlike en.h, this file's `Msgs` struct does not define `GENERIC_PRESET_MESSAGES`
- * or `CHAT_GPT_FACTS`, and the single-word entries below (OPEN, CLOSE, PAUSE, ...) are still the
- * English text, not German translations — only the free-standing message lists further down in
- * this file (genericPresetMessages, chatGptFacts, etc.) are actually translated. Selecting
- * `LANG_DE` today would fail to compile anywhere `Msgs::GENERIC_PRESET_MESSAGES` or
- * `Msgs::CHAT_GPT_FACTS` is referenced (see strings.cpp).
  */
 #pragma once
 #include <vector>

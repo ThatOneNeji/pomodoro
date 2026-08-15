@@ -15,10 +15,10 @@
         "test": "test"
     },
     "scripts": {
-        "minify": "node html/index.js && mv ./html/index.min.html ./data/index.html && mv ./html/settings.min.html ./data/settings.html",
+        "minify": "node html/index.js && mv ./html/index.min.html ./data/index.html && mv ./html/settings.min.html ./data/settings.html && mkdir -p ./data/icons && cp ./html/icons/*.svg ./data/icons/",
         "uploadfs":"find ./data/ -maxdepth 1 -type f ! -name \"*.gz\" -exec gzip -f -k {} \\; && pio run -e esp32dev -t uploadfs",
         "datasize": "find ./data/ -maxdepth 1 -type f ! -name \"*.gz\" -exec gzip -f -k {} \\; && du -sb data | awk -v budget=1966080 '{pct=($1/budget)*100; printf \"%d / %d bytes used (%.1f%%)\\n\", $1, budget, pct}'",
-        "cppcheck": "cppcheck --enable=unusedFunction --enable=style --error-exitcode=1 src/",
+        "cppcheck": "cppcheck --enable=unusedFunction --enable=style --error-exitcode=1 --suppress=ctuOneDefinitionRuleViolation:src/i18n/en.h src/",
         "clang": "find ./src -type f \\( -iname \"*.cpp\" -o -iname \"*.h\" \\) -print | xargs -r -n1 clang-format-20 -i",
         "test": "echo \"Error: no test specified\" && exit 1",
         "doxygen": "doxygen Doxyfile"

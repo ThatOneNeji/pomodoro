@@ -42,6 +42,27 @@
 
 #define MINUTE 60 * 1000  ///< One minute, in milliseconds; used to size preset durations.
 
+/**
+ * @brief One row of the ::PRESETS table: everything Timer::addPreset() needs except the icon and
+ * background image, which are resolved at runtime by name (see IconProvider::getPresetIcon()),
+ * since they depend on the current LPE-mode setting rather than being fixed per preset.
+ */
+struct PresetConfig {
+    const char *name;                 ///< Preset name, also used as the IconProvider lookup key.
+    unsigned long duration;           ///< Work interval duration, in milliseconds.
+    unsigned long pauseDuration;      ///< Short break duration, in milliseconds.
+    unsigned long longPauseDuration;  ///< Long break duration, in milliseconds.
+    unsigned int longPauseAfter;      ///< Number of completed cycles between long breaks.
+};
+
+/// The presets registered with Timer at startup (see main.cpp's setup()). Add/remove/edit entries
+/// here rather than touching the addPreset() call site.
+static const PresetConfig PRESETS[] = {
+    {"Emails", 15 * MINUTE, 5 * MINUTE, 15 * MINUTE, 4},
+    {"Coding", 45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2},
+    {"Focus", 25 * MINUTE, 5 * MINUTE, 20 * MINUTE, 4},
+};
+
 #define ENCODER_CLK 32  ///< Encoder clock (A) pin.
 #define ENCODER_DT 21   ///< Encoder data (B) pin.
 
