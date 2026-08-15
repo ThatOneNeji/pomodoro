@@ -10,6 +10,7 @@ assets/icons/*.png
 
 src/strings_private.cpp
 src/anniversary.cpp
+src/wifi_credentials.h
 
 tmp/
 package.json

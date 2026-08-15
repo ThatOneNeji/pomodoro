@@ -76,3 +76,22 @@ void pref_putStatistic(const char *key, unsigned long value) {
     preferences.putULong(prefKey, value);
     preferences.end();
 }
+
+String pref_getString(const char *key, const String &defaultValue) {
+    preferences.begin(PREFS_NAMESPACE, true);
+    char prefKey[32];
+    snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_WIFI, key);
+
+    auto v = preferences.getString(prefKey, defaultValue);
+
+    preferences.end();
+    return v;
+}
+
+void pref_putString(const char *key, const String &value) {
+    preferences.begin(PREFS_NAMESPACE, false);
+    char prefKey[32];
+    snprintf(prefKey, sizeof(prefKey), "%s%s", PREF_WIFI, key);
+    preferences.putString(prefKey, value);
+    preferences.end();
+}

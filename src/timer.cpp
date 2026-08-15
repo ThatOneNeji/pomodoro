@@ -336,7 +336,7 @@ int Timer::drawMenuBar() {
 }
 
 void Timer::loop(volatile const int *encoderCount) {
-    auto start = millis();
+    [[maybe_unused]] auto start = millis();  // only read by ESP_LOGD calls below, which compile out below Debug level
 
     switch (state) {
         case TimerState::SelectingPreset:
@@ -360,7 +360,7 @@ void Timer::loop(volatile const int *encoderCount) {
     }
 
     if (menuNeedsRedraw) {
-        auto millisMenuStart = millis();
+        [[maybe_unused]] auto millisMenuStart = millis();  // only read by the ESP_LOGD call below
         drawMenuBar();
         display.displayWindow(0, 0, display.width(), 8 + 4 + 48 + 4);
         ESP_LOGD(TAG, "loop: menu update took %lu ms", millis() - millisMenuStart);
@@ -424,3 +424,19 @@ void Timer::loop(volatile const int *encoderCount) {
 }
 
 TimerState Timer::getState() { return state; }
+
+const char *Timer::getCurrentPresetName() { return currentPreset ? currentPreset->getName() : nullptr; }
+
+unsigned long Timer::getRemainingMillis() {
+    switch (state) {
+        case TimerState::Running:
+        case TimerState::UserInitiatedPause:
+            return (currentPreset && elapsed < currentPreset->getDuration()) ? currentPreset->getDuration() - elapsed
+                                                                             : 0;
+        case TimerState::RunningBreak:
+        case TimerState::UserInitiatedBreakPause:
+            return elapsed < currentBreakDuration ? currentBreakDuration - elapsed : 0;
+        default:
+            return 0;
+    }
+}

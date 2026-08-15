@@ -282,6 +282,16 @@ class Timer {
     /// @return The current state.
     TimerState getState();
 
+    /// @return The active preset's name, or nullptr if none is selected (e.g. before the first addPreset() call).
+    const char *getCurrentPresetName();
+
+    /**
+     * @brief Milliseconds remaining in the current work/break interval.
+     * @return The remaining time while Running/RunningBreak (or their paused variants), or 0 in
+     * any other state (e.g. SelectingPreset).
+     */
+    unsigned long getRemainingMillis();
+
     /// @return true if the hardware button was pressed since the last check (and clears the pending flag).
     bool checkAndClearButtonPress();
 };

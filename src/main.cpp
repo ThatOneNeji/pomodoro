@@ -22,6 +22,7 @@
 #include "icon_provider.h"
 #include "anniversary.h"
 #include "preferences_manager.h"
+#include "web_server.h"
 
 #if STRINGS_TEST
 #include <sstream>
@@ -131,6 +132,10 @@ void setup() {
 
     // Initialize preferences once
     initPreferences();
+
+    // Start connecting to WiFi in the background; the webserver comes online later, once (and
+    // only if) a connection succeeds. Never blocks startup.
+    setupWebServer();
 
     // Initialize the display
     display.init(115200, true, 2, false);
@@ -311,7 +316,7 @@ void setup() {
     auto iconProvider = IconProvider::getInstance();
 
     timer.addPreset(iconProvider->getPresetIcon("Emails"), iconProvider->getTimerRunningBackgroundImage(), "Emails",
-                    3 * MINUTE, 1 * MINUTE, 3 * MINUTE);
+                    15 * MINUTE, 5 * MINUTE, 15 * MINUTE);
     timer.addPreset(iconProvider->getPresetIcon("Coding"), iconProvider->getTimerRunningBackgroundImage(), "Coding",
                     45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2);
     timer.addPreset(iconProvider->getPresetIcon("Focus"), iconProvider->getTimerRunningBackgroundImage(), "Focus",

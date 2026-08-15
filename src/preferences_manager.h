@@ -19,6 +19,8 @@
 #define PREF_STATISTICS "stats."
 /// Key prefix for anniversary-mode state.
 #define PREF_ANNIVERSARY "anniv."
+/// Key prefix for WiFi settings (see wifi_manager.h).
+#define PREF_WIFI "wifi."
 
 /// Shared Preferences handle used by every pref_* accessor.
 extern Preferences preferences;
@@ -76,5 +78,20 @@ unsigned long pref_getStatistic(const char *key, unsigned long defaultValue);
  * @param value Value to store.
  */
 void pref_putStatistic(const char *key, unsigned long value);
+
+/**
+ * @brief Read a persisted string setting.
+ * @param key Key, relative to the ::PREF_WIFI prefix.
+ * @param defaultValue Value returned if @p key has never been stored.
+ * @return The stored value, or @p defaultValue.
+ */
+String pref_getString(const char *key, const String &defaultValue);
+
+/**
+ * @brief Persist a string setting.
+ * @param key Key, relative to the ::PREF_WIFI prefix.
+ * @param value Value to store.
+ */
+void pref_putString(const char *key, const String &value);
 
 #endif
