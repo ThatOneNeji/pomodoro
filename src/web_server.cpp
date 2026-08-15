@@ -10,6 +10,8 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include "wifi_manager.h"
+#include "sntp_manager.h"
+#include "mqtt_manager.h"
 #include "esp_log.h"
 
 /// Log tag for this file, used by ESP_LOGx() calls.
@@ -92,6 +94,29 @@ static void handleGetWifi(AsyncWebServerRequest *request) {
 }
 
 /**
+ * @brief GET /system: read-only SNTP/MQTT configuration and current status, for settings.html's
+ * info panels. Nothing here is editable yet (see roadmap.MD) — this just surfaces the config.h
+ * defaults and current sync/connection state.
+ */
+static void handleGetSystem(AsyncWebServerRequest *request) {
+    JsonDocument doc;
+    doc["sntpServer"] = SNTP_SERVER;
+    doc["sntpTimezone"] = SNTP_TIMEZONE;
+    doc["timeSynced"] = isTimeSynced();
+    doc["currentTime"] = getCurrentTimeString();
+
+    bool mqttEnabled = strlen(MQTT_BROKER_ADDRESS) > 0;
+    doc["mqttEnabled"] = mqttEnabled;
+    doc["mqttBrokerAddress"] = MQTT_BROKER_ADDRESS;
+    doc["mqttBrokerPort"] = MQTT_BROKER_PORT;
+    doc["mqttConnected"] = isMqttConnected();
+
+    String json;
+    serializeJson(doc, json);
+    request->send(200, "application/json", json);
+}
+
+/**
  * @brief POST /wifi: save new WiFi credentials, then restart so they take effect.
  *
  * Body: `{"ssid": "...", "password": "..."}`. `password` may be omitted (or empty) to keep the
@@ -132,6 +157,7 @@ static void startServer() {
 
     server.on("/wifi", HTTP_GET, handleGetWifi);
     server.on("/wifi", HTTP_POST, handleSaveWifi);
+    server.on("/system", HTTP_GET, handleGetSystem);
 
     if (littleFsMounted) {
         server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
@@ -170,6 +196,7 @@ static void onWiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
     (void) info;
     ESP_LOGI(TAG, "WiFi connected, IP address: %s", WiFi.localIP().toString().c_str());
     startServer();
+    setupSntp();
 }
 
 static void onWiFiDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {

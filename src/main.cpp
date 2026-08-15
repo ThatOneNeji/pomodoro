@@ -23,6 +23,7 @@
 #include "anniversary.h"
 #include "preferences_manager.h"
 #include "web_server.h"
+#include "mqtt_manager.h"
 
 #if STRINGS_TEST
 #include <sstream>
@@ -136,6 +137,11 @@ void setup() {
     // Start connecting to WiFi in the background; the webserver comes online later, once (and
     // only if) a connection succeeds. Never blocks startup.
     setupWebServer();
+
+    // Configures the MQTT client (no-op if MQTT_BROKER_ADDRESS is empty); the actual connection
+    // attempt happens lazily from mqttLoop() once WiFi is up, same non-blocking philosophy as
+    // the webserver above.
+    setupMqtt();
 
     // Initialize the display
     display.init(115200, true, 2, false);
@@ -334,4 +340,5 @@ void loop() {
     lastCount = debouncedCount;
 
     webServerLoop();
+    mqttLoop();
 }

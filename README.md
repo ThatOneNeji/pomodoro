@@ -147,6 +147,31 @@ each one's icon by name via `IconProvider::getPresetIcon()`. Add, remove, or edi
 editing this table — no other code needs to change unless you're adding a preset name that
 `IconProvider` doesn't already know how to map to an icon.
 
+### Networking (WiFi / SNTP / MQTT)
+
+WiFi is optional — the device works fully offline; the webserver, SNTP, and MQTT client all just
+stay dormant without a connection. To enable WiFi, copy `src/wifi_credentials.example.h` to
+`src/wifi_credentials.h` and fill in your network's SSID/password (gitignored, so real
+credentials never get committed). These are only the compiled-in defaults: once WiFi is up, they
+can be overridden from the browser at `/settings.html` (saved to NVS, takes precedence from then on).
+
+SNTP (time sync) and MQTT are configured in `src/config.h`:
+
+```cpp
+#define SNTP_SERVER "pool.ntp.org"
+#define SNTP_TIMEZONE "UTC0"  // POSIX TZ string; see https://github.com/nayarsystems/posix_tz_db
+
+#define MQTT_BROKER_ADDRESS ""  // empty disables the MQTT client entirely
+#define MQTT_BROKER_PORT 1883
+```
+
+SNTP starts automatically once WiFi connects — there's no hardware RTC, so the clock resets to
+the epoch on every reboot until it resyncs. MQTT only connects if `MQTT_BROKER_ADDRESS` is set;
+if your broker needs a login, copy `src/mqtt_credentials.example.h` to `src/mqtt_credentials.h`
+and fill in `MQTT_USERNAME`/`MQTT_PASSWORD` (also gitignored). Both are currently read-only,
+connection-only scaffolding — visible as status info on `/settings.html`, but the MQTT client
+doesn't publish or subscribe to anything yet.
+
 ## Pin Mapping
 
 #### Rotary Encoder (KY-040)

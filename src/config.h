@@ -98,3 +98,23 @@ const static bool timerStyleOld = false;
 
 // #define LANG_AF // Uncomment for Afrikaans text messages
 // #define LANG_DE // Uncomment for German text messages
+
+/// @name SNTP time sync
+/// Neither of these are sensitive, so (unlike WiFi/MQTT credentials) they live directly here
+/// rather than in a gitignored credentials header. See sntp_manager.h.
+/// @{
+#define SNTP_SERVER "pool.ntp.org"  ///< NTP server to sync the device clock from.
+/// POSIX TZ string (not just a UTC offset) so daylight saving is handled automatically; see
+/// https://github.com/nayarsystems/posix_tz_db for a lookup table of these by region.
+#define SNTP_TIMEZONE "SAST-2"
+/// @}
+
+/// @name MQTT client
+/// Broker address/port aren't sensitive so they live here; MQTT_USERNAME/MQTT_PASSWORD are in
+/// the gitignored mqtt_credentials.h instead (see mqtt_credentials.example.h). An empty
+/// MQTT_BROKER_ADDRESS disables MQTT entirely (see mqtt_manager.cpp) — the default, since most
+/// checkouts of this repo won't have a broker to connect to.
+/// @{
+#define MQTT_BROKER_ADDRESS ""  ///< MQTT broker hostname or IP. Empty disables the MQTT client.
+#define MQTT_BROKER_PORT 1883   ///< MQTT broker port (1883 is the standard unencrypted default).
+/// @}

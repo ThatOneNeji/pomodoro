@@ -10,6 +10,8 @@
  *   - GET  /wifi: the currently configured SSID (never the password).
  *   - POST /wifi: save new WiFi credentials ({"ssid": "...", "password": "..."}, password
  *     optional to keep the existing one) and restart to apply them.
+ *   - GET  /system: read-only SNTP/MQTT config and current status (see sntp_manager.h/mqtt_manager.h);
+ *     nothing here is editable yet.
  *   - static files from data/ (e.g. /, /settings.html) once LittleFS is mounted.
  */
 #ifndef WEB_SERVER_H

@@ -304,3 +304,44 @@ body {
     color: var(--text-muted);
     text-decoration: none;
 }
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.info-section h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.info-row .info-label {
+    color: var(--text-muted);
+}
+
+.info-row .info-value {
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+.status-ok {
+    color: var(--accent-short-break);
+}
+
+.status-pending {
+    color: var(--text-muted);
+}
