@@ -308,7 +308,7 @@ int Timer::drawMenuBar() {
     for (int i = 0; i < topMenu->getItemCount(); i++) {
         const bool selected = i == topMenu->getSelectedIndex();
         const auto foreground = GxEPD_BLACK;
-        const auto background = GxEPD_WHITE;
+        // REMOVE if TESTING PASSES -> const auto background = GxEPD_WHITE;
 
         const unsigned int xOffset = menuX + i * (menuItemWidth + paddingBetweenBoxes);
 

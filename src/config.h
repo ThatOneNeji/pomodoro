@@ -116,6 +116,6 @@ const static bool timerStyleOld = false;
 /// MQTT_BROKER_ADDRESS disables MQTT entirely (see mqtt_manager.cpp) — the default, since most
 /// checkouts of this repo won't have a broker to connect to.
 /// @{
-#define MQTT_BROKER_ADDRESS ""  ///< MQTT broker hostname or IP. Empty disables the MQTT client.
-#define MQTT_BROKER_PORT 1883   ///< MQTT broker port (1883 is the standard unencrypted default).
+#define MQTT_BROKER_ADDRESS "192.168.100.249"  ///< MQTT broker hostname or IP. Empty disables the MQTT client.
+#define MQTT_BROKER_PORT 1883                  ///< MQTT broker port (1883 is the standard unencrypted default).
 /// @}
