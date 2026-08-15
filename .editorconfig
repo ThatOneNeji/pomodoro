@@ -1,33 +1,15 @@
 root = true
 
-# general
 [*]
 end_of_line = lf
-insert_final_newline = true
 charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
 
-# python
-[*.py]
+[package.json]
 indent_style = space
-indent_size = 4
+indent_size = 2
 
-# C++
-[*.{cpp,h,tcc}]
-indent_style = space
-indent_size = 4
-
-# Web
-[*.{js,html,css}]
-indent_style = space
-indent_size = 4
-
-# YAML
-[*.{yaml,yml}]
-indent_style = space
-indent_size = 4
-quote_type = double
-
-# JSON
-[*.json]
+[{**/*.js,**/*.css,**/*.json}]
 indent_style = space
 indent_size = 4

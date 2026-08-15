@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ESP32 Pomodoro — Settings</title>
+        <link rel="icon" href="favicon.ico" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header class="app-header">
+            <a class="back-link" href="index.html">&larr; Back</a>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+                <svg class="icon icon-sun" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+                </svg>
+                <svg class="icon icon-moon" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <main class="settings-card">
+            <h1 class="settings-title">WiFi Settings</h1>
+
+            <form id="wifi-form">
+                <div class="form-group">
+                    <label for="ssid">Network name (SSID)</label>
+                    <input id="ssid" name="ssid" type="text" autocomplete="off" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="off" placeholder="Leave blank to keep current password" />
+                    <p class="form-hint">Only fill this in if you want to change the saved password.</p>
+                </div>
+
+                <button id="save-btn" class="btn-primary" type="submit">Save &amp; Restart</button>
+                <p id="form-status" class="form-status" role="status"></p>
+            </form>
+        </main>
+
+        <footer class="app-footer">
+            <p>Pomodoro running on ESP32</p>
+        </footer>
+
+        <script>
+            (function () {
+                "use strict";
+
+                // ---- Theme (same logic as index.html; no shared JS between the two static pages) ----
+                var root = document.documentElement;
+                var themeToggle = document.getElementById("theme-toggle");
+                var storedTheme = localStorage.getItem("theme");
+                if (storedTheme === "light" || storedTheme === "dark") {
+                    root.setAttribute("data-theme", storedTheme);
+                }
+
+                function currentEffectiveTheme() {
+                    var explicit = root.getAttribute("data-theme");
+                    if (explicit) return explicit;
+                    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                }
+
+                themeToggle.addEventListener("click", function () {
+                    var next = currentEffectiveTheme() === "dark" ? "light" : "dark";
+                    root.setAttribute("data-theme", next);
+                    localStorage.setItem("theme", next);
+                });
+
+                // ---- WiFi settings form ----
+                var form = document.getElementById("wifi-form");
+                var ssidInput = document.getElementById("ssid");
+                var passwordInput = document.getElementById("password");
+                var saveBtn = document.getElementById("save-btn");
+                var statusEl = document.getElementById("form-status");
+
+                function setStatus(message, kind) {
+                    statusEl.textContent = message;
+                    statusEl.className = "form-status" + (kind ? " " + kind : "");
+                }
+
+                fetch("/wifi")
+                    .then(function (res) {
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        ssidInput.value = data.ssid || "";
+                    })
+                    .catch(function () {
+                        setStatus("Couldn't load current settings.", "error");
+                    });
+
+                form.addEventListener("submit", function (event) {
+                    event.preventDefault();
+
+                    var ssid = ssidInput.value.trim();
+                    if (!ssid) {
+                        setStatus("Network name can't be empty.", "error");
+                        return;
+                    }
+
+                    saveBtn.disabled = true;
+                    setStatus("Saving...", "");
+
+                    fetch("/wifi", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ ssid: ssid, password: passwordInput.value }),
+                    })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                return res.json().then(function (data) {
+                                    throw new Error(data.error || "Save failed.");
+                                });
+                            }
+                            setStatus("Saved. The device is restarting to reconnect...", "success");
+                        })
+                        .catch(function (err) {
+                            saveBtn.disabled = false;
+                            setStatus(err.message, "error");
+                        });
+                });
+            })();
+        </script>
+    </body>
+</html>

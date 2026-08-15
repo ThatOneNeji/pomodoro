@@ -3,9 +3,171 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>ESP32 Pomodoro V2</title>
+        <title>ESP32 Pomodoro</title>
+        <link rel="icon" href="favicon.ico" />
+        <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
-        <h1>Hello</h1>
+        <header class="app-header">
+            <span class="app-title">Pomodoro</span>
+            <div class="header-actions">
+                <a class="icon-link" href="settings.html" aria-label="Settings" title="Settings">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                        ></path>
+                    </svg>
+                </a>
+                <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+                    <svg class="icon icon-sun" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+                    </svg>
+                    <svg class="icon icon-moon" viewBox="0 0 24 24">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="timer-card">
+            <nav class="mode-tabs" role="tablist">
+                <button class="mode-tab active" type="button" data-mode="pomodoro" role="tab" aria-selected="true">Pomodoro</button>
+                <button class="mode-tab" type="button" data-mode="short-break" role="tab" aria-selected="false">Short Break</button>
+                <button class="mode-tab" type="button" data-mode="long-break" role="tab" aria-selected="false">Long Break</button>
+            </nav>
+
+            <div class="time-display" id="time-display">25:00</div>
+
+            <div class="controls">
+                <button id="start-pause-btn" class="btn-primary" type="button">Start</button>
+                <button id="reset-btn" class="btn-secondary" type="button" aria-label="Reset timer" title="Reset">↺</button>
+            </div>
+
+            <p class="session-count" id="session-count">Session #1</p>
+        </main>
+
+        <footer class="app-footer">
+            <p>Pomodoro running on ESP32</p>
+        </footer>
+
+        <script>
+            (function () {
+                'use strict';
+
+                // ---- Theme ----
+                var root = document.documentElement;
+                var themeToggle = document.getElementById('theme-toggle');
+                var storedTheme = localStorage.getItem('theme');
+                if (storedTheme === 'light' || storedTheme === 'dark') {
+                    root.setAttribute('data-theme', storedTheme);
+                }
+
+                function currentEffectiveTheme() {
+                    var explicit = root.getAttribute('data-theme');
+                    if (explicit) return explicit;
+                    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+
+                themeToggle.addEventListener('click', function () {
+                    var next = currentEffectiveTheme() === 'dark' ? 'light' : 'dark';
+                    root.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                });
+
+                // ---- Timer ----
+                var MODES = {
+                    pomodoro: { label: 'pomodoro', seconds: 25 * 60, color: 'var(--accent)' },
+                    'short-break': { label: 'short break', seconds: 5 * 60, color: 'var(--accent-short-break)' },
+                    'long-break': { label: 'long break', seconds: 15 * 60, color: 'var(--accent-long-break)' }
+                };
+
+                var timeDisplay = document.getElementById('time-display');
+                var startPauseBtn = document.getElementById('start-pause-btn');
+                var resetBtn = document.getElementById('reset-btn');
+                var sessionCountEl = document.getElementById('session-count');
+                var modeTabs = document.querySelectorAll('.mode-tab');
+
+                var currentMode = 'pomodoro';
+                var remainingSeconds = MODES[currentMode].seconds;
+                var running = false;
+                var intervalId = null;
+                var completedSessions = 1;
+
+                function formatTime(totalSeconds) {
+                    var m = Math.floor(totalSeconds / 60);
+                    var s = totalSeconds % 60;
+                    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                }
+
+                function render() {
+                    timeDisplay.textContent = formatTime(remainingSeconds);
+                    startPauseBtn.textContent = running ? 'Pause' : 'Start';
+                    sessionCountEl.textContent = 'Session #' + completedSessions;
+                    root.style.setProperty('--mode-color', MODES[currentMode].color);
+                }
+
+                function stopTicking() {
+                    if (intervalId !== null) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                    running = false;
+                }
+
+                function tick() {
+                    remainingSeconds -= 1;
+                    if (remainingSeconds <= 0) {
+                        stopTicking();
+                        remainingSeconds = 0;
+                        if (currentMode === 'pomodoro') {
+                            completedSessions += 1;
+                        }
+                        render();
+                        return;
+                    }
+                    render();
+                }
+
+                function setMode(mode) {
+                    currentMode = mode;
+                    stopTicking();
+                    remainingSeconds = MODES[mode].seconds;
+
+                    modeTabs.forEach(function (tab) {
+                        var isActive = tab.getAttribute('data-mode') === mode;
+                        tab.classList.toggle('active', isActive);
+                        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    });
+
+                    render();
+                }
+
+                startPauseBtn.addEventListener('click', function () {
+                    if (running) {
+                        stopTicking();
+                    } else {
+                        running = true;
+                        intervalId = setInterval(tick, 1000);
+                    }
+                    render();
+                });
+
+                resetBtn.addEventListener('click', function () {
+                    stopTicking();
+                    remainingSeconds = MODES[currentMode].seconds;
+                    render();
+                });
+
+                modeTabs.forEach(function (tab) {
+                    tab.addEventListener('click', function () {
+                        setMode(tab.getAttribute('data-mode'));
+                    });
+                });
+
+                render();
+            })();
+        </script>
     </body>
 </html>

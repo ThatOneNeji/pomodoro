@@ -59,6 +59,46 @@ static void handleStatus(AsyncWebServerRequest *request) {
     request->send(200, "application/json", json);
 }
 
+/// GET /wifi: the currently configured SSID. Never returns the password.
+static void handleGetWifi(AsyncWebServerRequest *request) {
+    JsonDocument doc;
+    doc["ssid"] = getWifiSSID();
+
+    String json;
+    serializeJson(doc, json);
+    request->send(200, "application/json", json);
+}
+
+/**
+ * @brief POST /wifi: save new WiFi credentials, then restart so they take effect.
+ *
+ * Body: `{"ssid": "...", "password": "..."}`. `password` may be omitted (or empty) to keep the
+ * currently saved password unchanged, so the settings page never has to know/display it. `ssid`
+ * is required and rejected with 400 if blank, to avoid saving a configuration that can never
+ * reconnect. On success, responds first and only then restarts (mirrors the same
+ * save-then-ESP.restart() pattern SplashScreen::loopSettings() already uses on-device), giving
+ * the response time to actually reach the browser before the connection drops.
+ */
+static void handleSaveWifi(AsyncWebServerRequest *request, const JsonVariant &json) {
+    String ssid = json["ssid"] | "";
+    if (ssid.length() == 0) {
+        request->send(400, "application/json", "{\"error\":\"ssid must not be empty\"}");
+        return;
+    }
+
+    String password = json["password"] | "";
+    if (password.length() == 0) {
+        password = getWifiPassword();
+    }
+
+    setWifiCredentials(ssid, password);
+    ESP_LOGI(TAG, "Saved new WiFi credentials for SSID \"%s\"; restarting", ssid.c_str());
+
+    request->send(200, "application/json", "{\"ok\":true}");
+    delay(1000);
+    ESP.restart();
+}
+
 /// Register routes and start listening. Safe to call more than once (e.g. on WiFi reconnect); only takes effect once.
 static void startServer() {
     if (serverStarted) {
@@ -66,6 +106,8 @@ static void startServer() {
     }
 
     server.on("/status", HTTP_GET, handleStatus);
+    server.on("/wifi", HTTP_GET, handleGetWifi);
+    server.on("/wifi", HTTP_POST, handleSaveWifi);
 
     if (littleFsMounted) {
         server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");

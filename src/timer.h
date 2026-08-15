@@ -226,6 +226,13 @@ class Timer {
     explicit Timer(DISPLAY_CLASS &display);
     ~Timer();  ///< Destructor.
 
+    // Timer owns topMenu/confirmationMenu via raw new/delete and holds a reference member, so
+    // it can't be copied safely (a compiler-generated copy would double-free those on
+    // destruction) and has no sensible copy semantics anyway; make that explicit rather than
+    // relying on implicit (and, for assignment, already-broken) behavior.
+    Timer(const Timer &) = delete;
+    Timer &operator=(const Timer &) = delete;
+
     /**
      * @brief Append a preset to the end of the preset list.
      * @param icon Icon representing this preset.

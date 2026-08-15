@@ -115,7 +115,7 @@ void Timer::nextPreset() {
 }
 
 void Timer::previousPreset() {
-    if (presetIndex <= 0) {
+    if (presetIndex == 0) {
         presetIndex = presets.size() - 1;
     } else {
         presetIndex--;
@@ -187,14 +187,14 @@ void Timer::start() {
         showSpeechBubble = pref_getCheckbox("msgs", true);
 
         // remember selected preset
-        auto presetIndex = this->presetIndex;
+        auto savedPresetIndex = this->presetIndex;
 
         reset();
         topMenu->setEncoderCount(lastEncoderCount);  // Sync encoder count
 
-        ESP_LOGI(TAG, "start with preset %u", presetIndex);
+        ESP_LOGI(TAG, "start with preset %u", savedPresetIndex);
         state = TimerState::Running;
-        selectPreset(presetIndex);
+        selectPreset(savedPresetIndex);
     }
 }
 
@@ -336,7 +336,8 @@ int Timer::drawMenuBar() {
 }
 
 void Timer::loop(volatile const int *encoderCount) {
-    [[maybe_unused]] auto start = millis();  // only read by ESP_LOGD calls below, which compile out below Debug level
+    [[maybe_unused]] auto loopStartTime =
+        millis();  // only read by ESP_LOGD calls below, which compile out below Debug level
 
     switch (state) {
         case TimerState::SelectingPreset:
@@ -368,7 +369,7 @@ void Timer::loop(volatile const int *encoderCount) {
         menuNeedsRedraw = false;
 
         if (!needsRedraw && !needsFullRedraw) {
-            ESP_LOGD(TAG, "loop: display update took %lu ms", millis() - start);
+            ESP_LOGD(TAG, "loop: display update took %lu ms", millis() - loopStartTime);
         }
     }
 
@@ -419,7 +420,7 @@ void Timer::loop(volatile const int *encoderCount) {
         needsRedraw = false;
         needsFullRedraw = false;
         lastRedrawTime = millis();
-        ESP_LOGD(TAG, "loop: display update took %lu ms", millis() - start);
+        ESP_LOGD(TAG, "loop: display update took %lu ms", millis() - loopStartTime);
     }
 }
 
