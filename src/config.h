@@ -58,10 +58,18 @@ struct PresetConfig {
 /// The presets registered with Timer at startup (see main.cpp's setup()). Add/remove/edit entries
 /// here rather than touching the addPreset() call site.
 static const PresetConfig PRESETS[] = {
-    {"Emails", 15 * MINUTE, 5 * MINUTE, 15 * MINUTE, 4},
-    {"Coding", 45 * MINUTE, 15 * MINUTE, 30 * MINUTE, 2},
-    {"Focus", 25 * MINUTE, 5 * MINUTE, 20 * MINUTE, 4},
+    {"Emails", 3 * MINUTE, 1 * MINUTE, 3 * MINUTE, 4},
+    {"Coding", 15 * MINUTE, 5 * MINUTE, 10 * MINUTE, 2},
+    {"Focus", 8 * MINUTE, 5 * MINUTE, 6 * MINUTE, 4},
 };
+
+/* This is the old PRESETS. I needed smaller values for testing
+static const PresetConfig PRESETS[] = {
+    {"Emails", 5 * MINUTE, 1 * MINUTE, 5 * MINUTE, 4},
+    {"Coding", 15 * MINUTE, 5 * MINUTE, 10 * MINUTE, 2},
+    {"Focus", 8 * MINUTE, 5 * MINUTE, 6 * MINUTE, 4},
+};
+*/
 
 #define ENCODER_CLK 32  ///< Encoder clock (A) pin.
 #define ENCODER_DT 21   ///< Encoder data (B) pin.

@@ -19,9 +19,14 @@ static const char *TAG = "WEBSERVER";
 extern Timer timer;
 
 static AsyncWebServer server(80);
+static AsyncWebSocket ws("/ws");
 static bool serverStarted = false;
 /// Whether LittleFS mounted successfully; static file serving (data/) is skipped if not.
 static bool littleFsMounted = false;
+/// millis() timestamp status was last broadcast to /ws clients, throttling webServerLoop().
+static unsigned long lastStatusBroadcast = 0;
+/// How often to broadcast status to /ws clients, in ms.
+static const unsigned long STATUS_BROADCAST_INTERVAL = 1000;
 
 /// @return A human-readable name for a TimerState, for JSON responses.
 static const char *timerStateName(TimerState state) {
@@ -47,8 +52,8 @@ static const char *timerStateName(TimerState state) {
     }
 }
 
-/// GET /status: current TimerState, active preset name (if any), and milliseconds remaining.
-static void handleStatus(AsyncWebServerRequest *request) {
+/// @return The current TimerState/preset/remaining-time status, serialized as JSON, for /ws clients.
+static String buildStatusJson() {
     JsonDocument doc;
     doc["state"] = timerStateName(timer.getState());
     doc["presetName"] = timer.getCurrentPresetName();
@@ -56,7 +61,24 @@ static void handleStatus(AsyncWebServerRequest *request) {
 
     String json;
     serializeJson(doc, json);
-    request->send(200, "application/json", json);
+    return json;
+}
+
+/// Handle /ws connection lifecycle events; a newly connected client is sent the current status
+/// immediately rather than waiting for the next throttled webServerLoop() broadcast.
+static void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data,
+                      size_t len) {
+    (void) server;
+    (void) arg;
+    (void) data;
+    (void) len;
+
+    if (type == WS_EVT_CONNECT) {
+        ESP_LOGI(TAG, "WebSocket client #%u connected", client->id());
+        client->text(buildStatusJson());
+    } else if (type == WS_EVT_DISCONNECT) {
+        ESP_LOGI(TAG, "WebSocket client #%u disconnected", client->id());
+    }
 }
 
 /// GET /wifi: the currently configured SSID. Never returns the password.
@@ -105,7 +127,9 @@ static void startServer() {
         return;
     }
 
-    server.on("/status", HTTP_GET, handleStatus);
+    ws.onEvent(onWsEvent);
+    server.addHandler(&ws);
+
     server.on("/wifi", HTTP_GET, handleGetWifi);
     server.on("/wifi", HTTP_POST, handleSaveWifi);
 
@@ -115,7 +139,30 @@ static void startServer() {
 
     server.begin();
     serverStarted = true;
-    ESP_LOGI(TAG, "Webserver started, status at http://%s/status", WiFi.localIP().toString().c_str());
+    ESP_LOGI(TAG, "Webserver started, status feed at ws://%s/ws", WiFi.localIP().toString().c_str());
+}
+
+void webServerLoop() {
+    if (!serverStarted) {
+        return;
+    }
+
+    // ESPAsyncWebServer recommends periodically pruning clients that disconnected without a
+    // clean close handshake, since it can't detect that on its own; doing it here means it
+    // happens once a loop() tick without needing a separate timer.
+    ws.cleanupClients();
+
+    if (ws.count() == 0) {
+        return;
+    }
+
+    unsigned long now = millis();
+    if (now - lastStatusBroadcast < STATUS_BROADCAST_INTERVAL) {
+        return;
+    }
+    lastStatusBroadcast = now;
+
+    ws.textAll(buildStatusJson());
 }
 
 static void onWiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {

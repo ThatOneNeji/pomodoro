@@ -332,4 +332,6 @@ void setup() {
 void loop() {
     timer.loop(&debouncedCount);
     lastCount = debouncedCount;
+
+    webServerLoop();
 }

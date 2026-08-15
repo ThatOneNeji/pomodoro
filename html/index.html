@@ -50,6 +50,37 @@
         </footer>
 
         <script>
+            const gateway = `ws://${globalThis.location.hostname}/ws`;
+            const RECONNECT_DELAY_MAX = 30000;
+            let websocket;
+            let reconnectDelay = 1000;
+
+            function initWebSocket() {
+                websocket = new WebSocket(gateway);
+
+                websocket.onopen = function () {
+                    reconnectDelay = 1000;
+                };
+
+                websocket.onmessage = function (event) {
+                    const incomingData = JSON.parse(event.data);
+                    console.log(incomingData);
+                };
+
+                // onclose also fires after a connection error (the WebSocket spec always follows
+                // an error with a close), so reconnecting here alone covers both cases. Backing
+                // off geometrically avoids hammering the device while it's rebooting (e.g. after
+                // a WiFi settings save) or unreachable.
+                websocket.onclose = function () {
+                    setTimeout(initWebSocket, reconnectDelay);
+                    reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_DELAY_MAX);
+                };
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                initWebSocket();
+            });
+
             (function () {
                 'use strict';
 

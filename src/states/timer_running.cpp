@@ -119,7 +119,7 @@ void Timer::drawRunning() {
             sprintf(buffer, "%d %s", roundedSeconds, messageCache.getMessage(Messages::TimeFormat_Seconds));
         }
     } else {
-        sprintf(buffer, "%02u:%02u", minutes, secondsT);
+        sprintf(buffer, "%02u:%02u", seconds / 60, secondsT);
     }
 
     const uint16_t progressBarHeight = 32;
