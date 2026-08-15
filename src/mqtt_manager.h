@@ -1,7 +1,7 @@
 /**
  * @file mqtt_manager.h
  * @brief Minimal MQTT client scaffold: connects (and reconnects) to the broker configured in
- * config.h/mqtt_credentials.h, once WiFi is up. Doesn't publish or subscribe to anything yet —
+ * config.h, once WiFi is up. Doesn't publish or subscribe to anything yet —
  * this is just the connection plumbing for later use.
  */
 #ifndef MQTT_MANAGER_H

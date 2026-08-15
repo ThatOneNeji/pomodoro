@@ -1,7 +1,7 @@
 /**
  * @file wifi_manager.h
  * @brief Resolves WiFi credentials: an NVS-saved override if the user has set one, otherwise the
- * compiled-in default from wifi_credentials.h.
+ * compiled-in default from credentials.h.
  */
 #ifndef WIFI_MANAGER_H
 #define WIFI_MANAGER_H

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "credentials.h"
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
 
@@ -111,7 +112,7 @@ const static bool timerStyleOld = false;
 
 /// @name MQTT client
 /// Broker address/port aren't sensitive so they live here; MQTT_USERNAME/MQTT_PASSWORD are in
-/// the gitignored mqtt_credentials.h instead (see mqtt_credentials.example.h). An empty
+/// the gitignored credentials.h instead (see credentials.example.h). An empty
 /// MQTT_BROKER_ADDRESS disables MQTT entirely (see mqtt_manager.cpp) — the default, since most
 /// checkouts of this repo won't have a broker to connect to.
 /// @{

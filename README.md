@@ -150,12 +150,13 @@ editing this table — no other code needs to change unless you're adding a pres
 ### Networking (WiFi / SNTP / MQTT)
 
 WiFi is optional — the device works fully offline; the webserver, SNTP, and MQTT client all just
-stay dormant without a connection. To enable WiFi, copy `src/wifi_credentials.example.h` to
-`src/wifi_credentials.h` and fill in your network's SSID/password (gitignored, so real
-credentials never get committed). These are only the compiled-in defaults: once WiFi is up, they
-can be overridden from the browser at `/settings.html` (saved to NVS, takes precedence from then on).
+stay dormant without a connection. All credentials (WiFi SSID/password, MQTT username/password)
+live in one gitignored file: copy `src/credentials.example.h` to `src/credentials.h` and fill in
+your details, so real credentials never get committed. The WiFi SSID/password there are only the
+compiled-in defaults: once WiFi is up, they can be overridden from the browser at
+`/settings.html` (saved to NVS, takes precedence from then on).
 
-SNTP (time sync) and MQTT are configured in `src/config.h`:
+SNTP (time sync) and MQTT's non-secret settings are configured in `src/config.h`:
 
 ```cpp
 #define SNTP_SERVER "pool.ntp.org"
@@ -167,10 +168,10 @@ SNTP (time sync) and MQTT are configured in `src/config.h`:
 
 SNTP starts automatically once WiFi connects — there's no hardware RTC, so the clock resets to
 the epoch on every reboot until it resyncs. MQTT only connects if `MQTT_BROKER_ADDRESS` is set;
-if your broker needs a login, copy `src/mqtt_credentials.example.h` to `src/mqtt_credentials.h`
-and fill in `MQTT_USERNAME`/`MQTT_PASSWORD` (also gitignored). Both are currently read-only,
-connection-only scaffolding — visible as status info on `/settings.html`, but the MQTT client
-doesn't publish or subscribe to anything yet.
+if your broker needs a login, set `MQTT_USERNAME`/`MQTT_PASSWORD` in `credentials.h` (leave empty
+for an anonymous connection). Both are currently read-only, connection-only scaffolding —
+visible as status info on `/settings.html`, but the MQTT client doesn't publish or subscribe to
+anything yet.
 
 ## Pin Mapping
 

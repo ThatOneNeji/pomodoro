@@ -1,7 +1,7 @@
 /// @file wifi_manager.cpp
 #include "wifi_manager.h"
 #include "preferences_manager.h"
-#include "wifi_credentials.h"
+#include "config.h"
 
 String getWifiSSID() { return pref_getString("ssid", WIFI_SSID_DEFAULT); }
 

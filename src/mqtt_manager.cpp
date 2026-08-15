@@ -1,7 +1,6 @@
 /// @file mqtt_manager.cpp
 #include "mqtt_manager.h"
 #include "config.h"
-#include "mqtt_credentials.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include "esp_log.h"

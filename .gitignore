@@ -12,6 +12,7 @@ src/strings_private.cpp
 src/anniversary.cpp
 src/wifi_credentials.h
 src/mqtt_credentials.h
+src/credentials.h
 
 tmp/
 package-lock.json
