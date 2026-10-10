@@ -44,18 +44,16 @@ struct Msgs {
     /* Message lists */
 
     /// Candidate messages shown when a break begins.
-    static constexpr std::array<const char *, 4> BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax",
-                                                                   "Well done!"};
+    static constexpr std::array BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax", "Well done!"};
 
     /// Candidate "restart timer" messages used in LPE mode.
-    static constexpr std::array<const char *, 4> RESTARTTIMERMSGLPE = {"Noch mal!", "AGAIN!", "Here we go again...",
-                                                                       "Do it agane"};
+    static constexpr std::array RESTARTTIMERMSGLPE = {"Noch mal!", "AGAIN!", "Here we go again...", "Do it agane"};
 
     /// Candidate "restart timer" messages used outside LPE mode.
-    static constexpr std::array<const char *, 4> RESTARTTIMERMSG = {"Restart", "Let's go again", "One more time"};
+    static constexpr std::array RESTARTTIMERMSG = {"Restart", "Let's go again", "One more time"};
 
     /// Candidate speech-bubble messages shown while a preset timer is running.
-    static constexpr std::array<const char *, 8> GENERIC_PRESET_MESSAGES = {
+    static constexpr std::array GENERIC_PRESET_MESSAGES = {
         "Okaaay, let's go!",
         "Heute schon auf Reddit gewesen?",
         "Bist du hydriert?",
@@ -67,7 +65,7 @@ struct Msgs {
     };
 
     /// Candidate trivia facts shown alongside GENERIC_PRESET_MESSAGES while a preset is running.
-    static constexpr std::array<const char *, 42> CHAT_GPT_FACTS = {
+    static constexpr std::array CHAT_GPT_FACTS = {
         "Das Gehirn eines Elefanten\nenthaelt ueber 257 Mrd. Neuronen\nund zeigt starke Emotionen.",
         "Tintenfische besitzen drei Herzen\nund ein ausgekluegeltes Nervensystem,\ndas Probleme effizient loest.",
         "Voegel besitzen Magnetrezeptoren,\ndie ihnen helfen, das Erdmagnetfeld\nals Kompass zu nutzen.",

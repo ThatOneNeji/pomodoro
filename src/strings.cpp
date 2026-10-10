@@ -202,3 +202,21 @@ std::vector<const char *> MessageCache::getMessages() {
 
     return messages;
 }
+
+// Every message pool must be fully populated: an empty slot is a null pointer that
+// randomMessage() can pick, and drawing it crashes. The arrays in src/i18n/ let the compiler
+// count their entries (`std::array NAME = {...}`), which already rules out a size that's larger
+// than the list; this also catches an explicit nullptr or a size added back by hand.
+template<std::size_t N> static constexpr bool allPopulated(const std::array<const char *, N> &messages) {
+    for (const char *message : messages) {
+        if (message == nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+static_assert(allPopulated(Msgs::GENERIC_PRESET_MESSAGES), "empty slot in Msgs::GENERIC_PRESET_MESSAGES");
+static_assert(allPopulated(Msgs::CHAT_GPT_FACTS), "empty slot in Msgs::CHAT_GPT_FACTS");
+static_assert(allPopulated(Msgs::BREAK_MESSAGES), "empty slot in Msgs::BREAK_MESSAGES");
+static_assert(allPopulated(Msgs::RESTARTTIMERMSG), "empty slot in Msgs::RESTARTTIMERMSG");
+static_assert(allPopulated(Msgs::RESTARTTIMERMSGLPE), "empty slot in Msgs::RESTARTTIMERMSGLPE");
