@@ -121,15 +121,24 @@ Things only a person looking at the e-paper or the browser can confirm. Most com
 
 ## Power measurements
 
-For the planned LiPo battery (roadmap: Battery power). These are readings from a USB power meter or an INA219, not pass/fail code tests. Record the result in the **Result** column.
+For the planned LiPo battery (roadmap: Battery power). These are readings from a USB power meter or an INA219, not pass/fail code tests. Record the result in the **Result** column, with the date and conditions (WiFi signal, whether a web page was open).
+
+**How to measure:** the meter is a RuiDeng UM34C, which sits between the USB supply and the device. It sends its readings over Bluetooth, so the laptop can log them:
+
+1. Pair the meter and bind it to a serial port (e.g. `/dev/rfcomm0`).
+2. Put the device in the state to measure.
+3. Run `python3 scripts/um34c_log.py --minutes 30 --csv tmp/<name>.csv`. It samples once a second and prints the average, minimum and maximum at the end.
+
+Use averages over at least a few minutes, not single readings. The current jumps around (roughly 65–150 mA when running) because WiFi transmits in bursts and the display refreshes every few seconds. An open web page adds a status message every second, so close it unless that's what you're measuring.
 
 | ID | What to measure | Why | Result |
 | --- | --- | --- | --- |
-| PWR-01 | Average current on USB, timer running, WiFi connected | The baseline, before any battery hardware goes in | — |
+| PWR-01 | Average current on USB, timer running, WiFi connected | The baseline, before any battery hardware goes in | **88.5 mA, 0.46 W** at 5.2 V (2026-10-10): 15 min average, Workshop running, WiFi connected at a weak −77 dBm, no web page open. Samples ranged 60–151 mA |
 | PWR-02 | On battery with WiFi connected | Expected to be the main drain (roughly 80–120 mA) | — |
-| PWR-03 | On battery with WiFi off or not configured | Shows how much turning WiFi off would buy | — |
+| PWR-03 | On battery with WiFi off or not configured | Shows how much turning WiFi off would buy | Measured on USB, not battery (2026-10-10): **79.3 mA, 0.41 W**, steady at 79–80 mA, idle on the blanked selection screen with WiFi switched off (PR #22). That's only 4.5 mA below the same state with WiFi on: the CPU, not the radio, is most of the draw |
 | PWR-04 | A 24-hour preset on a full battery: does it finish, and how much charge is left? | The target use case; needs TMR-10 passing first | — |
-| PWR-05 | Current while the display is blanked (idle and paused) | Blanking exists to save power; this shows how much it saves | — |
+| PWR-05 | Current while the display is blanked (idle and paused) | Blanking exists to save power; this shows how much it saves | **83.8 mA, 0.435 W** at 5.2 V (2026-10-10): 5 min idle on the blanked selection screen, WiFi on, no web page open. About 5 mA below running (PWR-01), so blanking saves little: e-paper needs no power to keep showing a picture |
+| PWR-06 | Current after Settings → Shut down (deep sleep) | Shows what "off" really costs: the dev board's regulator and USB chip stay powered | **19.4 mA, 0.10 W** at 5.2 V (2026-10-10): steady over 4 min. A lot for "off": a 2000 mAh battery would be flat in about 4 days |
 
 ---
 
