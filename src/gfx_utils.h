@@ -146,4 +146,18 @@ Bounds drawBottomAlignedText(DISPLAY_CLASS &display, const char *text, int16_t x
 Bounds drawCenteredText(DISPLAY_CLASS &display, const char *text, int16_t x, int16_t y, const GFXfont *font,
                         uint16_t color);
 
+/**
+ * @brief Draw a speech bubble: a white rounded box with a 3px outline, a dotted drop shadow, and
+ * a tail on its left edge pointing down-left, towards a speaker drawn to its lower left.
+ *
+ * Replaces what used to be part of a 48 KB full-screen bitmap. Only the bubble is drawn; the
+ * caller writes the text inside it.
+ * @param display Target display.
+ * @param x Left edge of the box (the tail extends 40px further left).
+ * @param y Top edge of the box.
+ * @param w Box width.
+ * @param h Box height (the tail and shadow extend 14px/10px below it).
+ */
+void drawSpeechBubble(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t w, int16_t h);
+
 #endif

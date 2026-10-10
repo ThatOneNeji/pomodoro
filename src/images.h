@@ -9,8 +9,6 @@
 
 #include "config.h"
 
-#include "images/image_bg_bubble.h"
-
 #if INCLUDE_MEME_ASSETS
 #include "images/image_bg_lpe_bubble.h"
 #include "images/image_bg_cat.h"

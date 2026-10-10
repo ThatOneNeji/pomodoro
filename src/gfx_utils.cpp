@@ -165,3 +165,26 @@ Bounds drawCenteredText(DISPLAY_CLASS &display, const char *text, int16_t x, int
 
     return {static_cast<int16_t>(x - w / 2), correctedY, w, h};
 }
+
+void drawSpeechBubble(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t w, int16_t h) {
+    const int16_t radius = 18;
+    const int16_t outline = 3;
+    const int16_t shadowOffset = 10;
+
+    // Shadow first, so the bubble body covers all of it except the offset strip.
+    drawPatternInRoundedArea(display, x + shadowOffset, y + shadowOffset, w, h, radius, Pattern::Dots);
+    display.fillRoundRect(x, y, w, h, radius, GxEPD_WHITE);
+    for (int16_t i = 0; i < outline; i++) {
+        display.drawRoundRect(x + i, y + i, w - 2 * i, h - 2 * i, radius - i, GxEPD_BLACK);
+    }
+
+    // Tail: a white wedge that cuts through the outline where it joins the box, then its two edges.
+    const int16_t topX = x, topY = y + h - 52;
+    const int16_t bottomX = x, bottomY = y + h - 22;
+    const int16_t tipX = x - 40, tipY = y + h + 14;
+    display.fillTriangle(topX + outline + 1, topY, bottomX + outline + 1, bottomY, tipX, tipY, GxEPD_WHITE);
+    for (int16_t i = 0; i < outline; i++) {
+        display.drawLine(topX, topY + i, tipX, tipY + i, GxEPD_BLACK);
+        display.drawLine(bottomX, bottomY + i - 1, tipX, tipY + i - 1, GxEPD_BLACK);
+    }
+}

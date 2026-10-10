@@ -89,7 +89,16 @@ void Timer::drawRunning() {
     display.fillScreen(GxEPD_WHITE);
 
     if (showSpeechBubble) {
-        display.drawBitmap(0, 0, currentPreset->getBackground(), display.width(), display.height(), GxEPD_BLACK);
+        if (currentPreset->getBackground()) {
+            // LPE mode's full-screen background bitmap (see IconProvider).
+            display.drawBitmap(0, 0, currentPreset->getBackground(), display.width(), display.height(), GxEPD_BLACK);
+        } else {
+            // Neutral: drawn rather than stored, ~2 KB (the icon) instead of a 48 KB bitmap. The
+            // bubble encloses the message area used below (221,330 to 649,409).
+            const ScaledIcon person = icon_person.scaled(128);
+            display.drawBitmap(48, display.height() - person.size, person.data, person.size, person.size, GxEPD_BLACK);
+            drawSpeechBubble(display, 196, 318, 470, 108);
+        }
     }
 
     drawMenuBar();
