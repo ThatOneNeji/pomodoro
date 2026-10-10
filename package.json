@@ -15,7 +15,7 @@
         "test": "test"
     },
     "scripts": {
-        "minify": "node html/index.js && mv ./html/index.min.html ./data/index.html && mv ./html/settings.min.html ./data/settings.html && mkdir -p ./data/icons && cp ./html/icons/*.svg ./data/icons/",
+        "minify": "node html/index.js && mv ./html/index.min.html ./data/index.html && mv ./html/settings.min.html ./data/settings.html && mv ./html/status.min.html ./data/status.html && mkdir -p ./data/icons && cp ./html/icons/*.svg ./data/icons/",
         "uploadfs":"find ./data/ -maxdepth 1 -type f ! -name \"*.gz\" -exec gzip -f -k {} \\; && pio run -e esp32dev -t uploadfs",
         "datasize": "find ./data/ -maxdepth 1 -type f ! -name \"*.gz\" -exec gzip -f -k {} \\; && du -sb data | awk -v budget=1966080 '{pct=($1/budget)*100; printf \"%d / %d bytes used (%.1f%%)\\n\", $1, budget, pct}'",
         "sizecheck": "pio run -e esp32dev | tee .pio/build.log && python3 scripts/check_size.py .pio/build.log --fs-dir data",

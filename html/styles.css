@@ -299,6 +299,12 @@ button:disabled {
     stroke-linejoin: round;
 }
 
+/* Filled icons (e.g. Bootstrap Icons) rather than the stroked outline style above. */
+.icon-link .icon-filled {
+    fill: currentColor;
+    stroke: none;
+}
+
 .settings-card {
     width: 100%;
     max-width: 360px;
@@ -364,10 +370,10 @@ button:disabled {
     color: #dc2626;
 }
 
-.back-link {
-    font-size: 13px;
-    color: var(--text-muted);
-    text-decoration: none;
+.status-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
 }
 
 .info-section {

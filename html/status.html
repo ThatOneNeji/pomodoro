@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ESP32 Pomodoro — Status</title>
+        <link rel="icon" href="favicon.ico" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header class="app-header">
+            <a class="back-link icon-link" href="index.html" aria-label="Back" title="Back">
+                <!-- Bootstrap Icons "arrow-left" (MIT) -->
+                <svg class="icon icon-filled" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"></path>
+                </svg>
+            </a>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
+                <svg class="icon icon-sun" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+                </svg>
+                <svg class="icon icon-moon" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <main class="settings-card">
+            <h1 class="settings-title">Device Status</h1>
+            <div id="status-sections" class="status-sections"></div>
+            <p class="form-status" id="status-error" role="status"></p>
+            <p class="form-hint">Refreshes every 5 seconds. Settings like the time server and MQTT broker are set at build time (config.h).</p>
+        </main>
+
+        <footer class="app-footer">
+            <p>Pomodoro running on ESP32</p>
+        </footer>
+
+        <script>
+            (function () {
+                "use strict";
+
+                // ---- Theme (same logic as index.html; no shared JS between the static pages) ----
+                var root = document.documentElement;
+                var themeToggle = document.getElementById("theme-toggle");
+                var storedTheme = localStorage.getItem("theme");
+                if (storedTheme === "light" || storedTheme === "dark") {
+                    root.setAttribute("data-theme", storedTheme);
+                }
+
+                function currentEffectiveTheme() {
+                    var explicit = root.getAttribute("data-theme");
+                    if (explicit) return explicit;
+                    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                }
+
+                themeToggle.addEventListener("click", function () {
+                    var next = currentEffectiveTheme() === "dark" ? "light" : "dark";
+                    root.setAttribute("data-theme", next);
+                    localStorage.setItem("theme", next);
+                });
+
+                // ---- Device address (same logic as index.html) ----
+                var params = new URLSearchParams(location.search);
+                var isLocalDev = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+                var deviceHost = params.get("device");
+                try {
+                    if (deviceHost) {
+                        localStorage.setItem("device", deviceHost);
+                    } else if (isLocalDev) {
+                        deviceHost = localStorage.getItem("device");
+                    }
+                } catch (e) {
+                    // Storage blocked (e.g. private mode): ?device= still works for this load.
+                }
+                var apiBase = deviceHost && deviceHost !== location.host ? "http://" + deviceHost : "";
+                document.querySelector("a.back-link").search = location.search;
+
+                // ---- Formatting ----
+                function bytes(n) {
+                    if (n < 1024) return n + " B";
+                    if (n < 1024 * 1024) return Math.round(n / 1024) + " KB";
+                    return (n / (1024 * 1024)).toFixed(1) + " MB";
+                }
+
+                function minutes(total) {
+                    var h = Math.floor(total / 60);
+                    return h > 0 ? h + "h " + (total % 60) + "m" : total + "m";
+                }
+
+                function yesNo(value, no) {
+                    return { text: value ? "Yes" : no, ok: value };
+                }
+
+                // ---- Layout: [section title, [[label, value(d)], ...]] over GET /system (see system_status.h).
+                // A value can be a string, or {text, ok} to colour it as a good/pending state.
+                var SECTIONS = [
+                    ["Network", [
+                        ["WiFi", function (d) { return { text: d.wifiConnected ? "Connected" : "Connecting to " + d.ssid + "…", ok: d.wifiConnected }; }],
+                        ["IP address", function (d) { return d.ip || "—"; }],
+                        ["Network", function (d) { return d.ssid; }],
+                        ["Signal", function (d) { return d.wifiConnected ? d.rssi + " dBm" : "—"; }],
+                        ["MAC address", function (d) { return d.mac; }]
+                    ]],
+                    ["Time", [
+                        ["Synced", function (d) { return yesNo(d.timeSynced, "Not yet"); }],
+                        ["Current time", function (d) { return d.currentTime; }],
+                        ["Timezone", function (d) { return d.sntpTimezone; }],
+                        ["Time server", function (d) { return d.sntpServer; }]
+                    ]],
+                    ["MQTT", [
+                        ["Broker", function (d) { return d.mqttEnabled ? d.mqttBrokerAddress + ":" + d.mqttBrokerPort : "Disabled (no broker configured)"; }],
+                        ["Connection", function (d) { return d.mqttEnabled ? yesNo(d.mqttConnected, "Not connected") : "Disabled"; }]
+                    ]],
+                    ["Device", [
+                        ["Chip", function (d) { return d.chipModel + " rev " + d.chipRevision; }],
+                        ["CPU", function (d) { return d.cpuMhz + " MHz"; }],
+                        ["Uptime", function (d) { return minutes(Math.floor(d.uptimeSeconds / 60)); }],
+                        ["Free memory", function (d) { return bytes(d.freeHeapBytes); }]
+                    ]],
+                    ["Firmware", [
+                        ["Version", function (d) { return d.firmwareVersion; }],
+                        ["Built", function (d) { return d.firmwareBuildTime; }],
+                        ["Size", function (d) { return bytes(d.firmwareBytes) + " of " + bytes(d.appPartitionBytes) + " (" + Math.round((100 * d.firmwareBytes) / d.appPartitionBytes) + "%)"; }]
+                    ]],
+                    ["Storage", [
+                        ["Web files", function (d) { return d.fsTotalBytes ? bytes(d.fsUsedBytes) + " of " + bytes(d.fsTotalBytes) : "Not mounted"; }]
+                    ]],
+                    ["Statistics", [
+                        ["Total cycles", function (d) { return String(d.totalCycles); }],
+                        ["Total work time", function (d) { return minutes(d.totalWorkMinutes); }],
+                        ["Total break time", function (d) { return minutes(d.totalBreakMinutes); }]
+                    ]]
+                ];
+
+                var container = document.getElementById("status-sections");
+                var errorEl = document.getElementById("status-error");
+                var valueEls = [];
+
+                // Build the rows once; refreshes only update the values.
+                SECTIONS.forEach(function (section) {
+                    var el = document.createElement("section");
+                    el.className = "info-section";
+                    var heading = document.createElement("h2");
+                    heading.textContent = section[0];
+                    el.appendChild(heading);
+                    section[1].forEach(function (row) {
+                        var rowEl = document.createElement("div");
+                        rowEl.className = "info-row";
+                        var label = document.createElement("span");
+                        label.className = "info-label";
+                        label.textContent = row[0];
+                        var value = document.createElement("span");
+                        value.className = "info-value";
+                        value.textContent = "—";
+                        rowEl.appendChild(label);
+                        rowEl.appendChild(value);
+                        el.appendChild(rowEl);
+                        valueEls.push([value, row[1]]);
+                    });
+                    container.appendChild(el);
+                });
+
+                function render(data) {
+                    valueEls.forEach(function (entry) {
+                        var v = entry[1](data);
+                        var el = entry[0];
+                        if (typeof v === "object") {
+                            el.textContent = v.text;
+                            el.className = "info-value " + (v.ok ? "status-ok" : "status-pending");
+                        } else {
+                            el.textContent = v;
+                            el.className = "info-value";
+                        }
+                    });
+                }
+
+                function refresh() {
+                    fetch(apiBase + "/system")
+                        .then(function (res) {
+                            if (!res.ok) throw new Error(res.status);
+                            return res.json();
+                        })
+                        .then(function (data) {
+                            errorEl.textContent = "";
+                            errorEl.className = "form-status";
+                            render(data);
+                        })
+                        .catch(function () {
+                            errorEl.textContent = "Couldn't reach the device; retrying…";
+                            errorEl.className = "form-status error";
+                        });
+                }
+
+                refresh();
+                setInterval(refresh, 5000);
+            })();
+        </script>
+    </body>
+</html>
