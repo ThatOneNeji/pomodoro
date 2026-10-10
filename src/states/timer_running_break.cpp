@@ -47,19 +47,9 @@ void Timer::handleRunningBreak(volatile const int *encoderCount) {
                     // Resume
                     resume();
                 }
-            } else if (topMenu->getSelectedIndex() == 1) {
-                // Skip break
-                incrementTotalBreakTime(elapsed);
-                minutesOnBreak += elapsed / 1000 / 60;
-                reset();
-                enterPresetSelection();
-            } else if (topMenu->getSelectedIndex() == 2) {
-                // Cancel
-                incrementTotalBreakTime(elapsed);
-                minutesOnBreak += elapsed / 1000 / 60;
-                stop();
-                selectPreset(1);
-                enterPresetSelection();
+            } else if (topMenu->getSelectedIndex() == 1 || topMenu->getSelectedIndex() == 2) {
+                // Skip break / Cancel
+                cancelBreakInterval();
             }
 
             needsFullRedraw = true;

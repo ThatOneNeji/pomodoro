@@ -68,12 +68,7 @@ void Timer::handleRunning(volatile const int *encoderCount) {
                 startBreak();
             } else if (topMenu->getSelectedIndex() == 2) {
                 // Cancel
-                incrementTotalTime(elapsed);
-                minutesWorked += elapsed / 1000 / 60;
-                stop();
-                enterPresetSelection();
-
-                needsFullRedraw = true;
+                cancelWorkInterval();
             }
 
             lastActivityTime = millis();

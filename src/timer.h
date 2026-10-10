@@ -79,6 +79,17 @@ enum class TimerState {
     Stopped                      ///< Timer cancelled back to preset selection.
 };
 
+/// Remote (e.g. WebSocket) control commands, applied via Timer::handleCommand().
+enum class TimerCommand {
+    Select,   ///< Select the preset at the given index, without starting it. SelectingPreset only.
+    Start,    ///< Start the selected preset, or restart work after a finished break.
+    Pause,    ///< Pause a running work or break interval.
+    Resume,   ///< Resume a user-paused work or break interval.
+    Restart,  ///< Restart the current work interval from zero, keeping the cycle count.
+    Stop,     ///< Cancel the current interval and return to preset selection.
+    Break,    ///< Start a break now, or confirm the break once a work interval has finished.
+};
+
 /**
  * @brief Owns the pomodoro TimerState machine, its presets, and the UI it drives.
  *
@@ -166,6 +177,27 @@ class Timer {
      * @return true if a wake was triggered (and performed) this call.
      */
     bool wakeDisplayIfTriggered(volatile const int *encoderCount);
+
+    /// Re-init the display after blankDisplay() and request a full redraw. Shared by
+    /// wakeDisplayIfTriggered() and handleCommand().
+    void wakeDisplay();
+
+    /// @name Shared state-transition actions
+    /// Used by both the encoder/button handlers in src/states/ and handleCommand(), so local and
+    /// remote input always do the same bookkeeping (statistics, caches, redraw flags).
+    /// @{
+    /// Cancel a work interval: record the time worked so far, then return to preset selection.
+    void cancelWorkInterval();
+    /// Cancel or skip a break: record the break time so far, then return to preset selection.
+    void cancelBreakInterval();
+    /// Confirm the break offered in TimerState::WaitingConfirmStartOfBreak.
+    void confirmStartOfBreak();
+    /**
+     * @brief Leave TimerState::WaitingConfirmEndOfBreak, recording the break time.
+     * @param restartWork true to start another work interval, false to return to preset selection.
+     */
+    void confirmEndOfBreak(bool restartWork);
+    /// @}
 
     /// Draw the WaitingConfirmStartOfBreak/WaitingConfirmEndOfBreak screen. See
     /// src/states/timer_waiting_for_confirmation.cpp.
@@ -298,6 +330,40 @@ class Timer {
      * any other state (e.g. SelectingPreset).
      */
     unsigned long getRemainingMillis();
+
+    /**
+     * @brief Total length of the current work/break interval.
+     * @return The interval duration while Running/RunningBreak (or their paused variants), or 0
+     * in any other state.
+     */
+    unsigned long getIntervalMillis();
+
+    /// @return Index of the selected preset.
+    unsigned int getPresetIndex();
+
+    /// @return Number of registered presets.
+    unsigned int getPresetCount();
+
+    /// @return The preset at @p index, or nullptr if out of range.
+    Preset *getPreset(unsigned int index);
+
+    /// @return Whether the break in progress (or about to start) is a long break.
+    bool isOnLongBreak();
+
+    /// @return Completed work cycles for the current session, since power-on.
+    unsigned int getCycles();
+
+    /**
+     * @brief Apply a remote control command, mirroring what the encoder/button does in each state.
+     *
+     * Must be called from the main loop() task (never from a network callback), since it touches
+     * the display and the state machine. Wakes a blanked display first, as any input would.
+     * @param command The command to apply.
+     * @param arg Preset index for TimerCommand::Select; ignored otherwise.
+     * @param encoderCount Pointer to the shared, debounced encoder count, to resync menus.
+     * @return true if the command was valid in the current state and applied, false if rejected.
+     */
+    bool handleCommand(TimerCommand command, int arg, volatile const int *encoderCount);
 
     /// @return true if the hardware button was pressed since the last check (and clears the pending flag).
     bool checkAndClearButtonPress();

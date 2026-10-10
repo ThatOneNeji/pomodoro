@@ -336,6 +336,12 @@ void setup() {
 
 /// Arduino loop(): drive the timer state machine each iteration with the current encoder count.
 void loop() {
+    TimerCommand command;
+    int commandArg;
+    while (webServerNextCommand(command, commandArg)) {
+        timer.handleCommand(command, commandArg, &debouncedCount);
+    }
+
     timer.loop(&debouncedCount);
     lastCount = debouncedCount;
 

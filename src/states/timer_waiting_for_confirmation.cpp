@@ -26,26 +26,11 @@ void Timer::handleWaitingForConfirmation(volatile const int *encoderCount) {
     if (Button::instance->checkAndClearButtonPress()) {
         if (state == TimerState::WaitingConfirmStartOfBreak) {
             ESP_LOGI(TAG, "handleWaitingForConfirmation: confirmed start of break");
-            messageCache.clearCache(Messages::TimerWaitingForConfirmationStartOfBreak_Header);
-            startBreak();
-            needsFullRedraw = true;
+            confirmStartOfBreak();
         } else {
             ESP_LOGI(TAG, "handleWaitingForConfirmation: handling end of break");
-            messageCache.clearCache(Messages::TimerWaitingForConfirmationEndOfBreak_Header);
-
-            incrementTotalBreakTime(elapsed);
-            minutesOnBreak += elapsed / 1000 / 60;
-
-            // Handle menu selection
-            if (confirmationMenu->getSelectedIndex() == 0) {
-                // Restart timer
-                start();
-            } else {
-                // Back to presets
-                reset();
-                enterPresetSelection();
-            }
-            needsFullRedraw = true;
+            // Menu index 0 is "Restart timer", 1 is "Back to presets".
+            confirmEndOfBreak(confirmationMenu->getSelectedIndex() == 0);
         }
     }
 

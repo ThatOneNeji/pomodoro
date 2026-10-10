@@ -172,7 +172,11 @@ bool Timer::wakeDisplayIfTriggered(volatile const int *encoderCount) {
     }
 
     ESP_LOGI(TAG, "wakeDisplayIfTriggered: waking display from idle blank");
+    wakeDisplay();
+    return true;
+}
 
+void Timer::wakeDisplay() {
     // hibernate() requires a hardware reset to recover from; init() drives that reset.
     display.init(115200, true, 2, false);
     display.setRotation(0);
@@ -180,7 +184,6 @@ bool Timer::wakeDisplayIfTriggered(volatile const int *encoderCount) {
     displayBlanked = false;
     lastActivityTime = millis();
     needsFullRedraw = true;
-    return true;
 }
 
 void Timer::start() {
@@ -280,6 +283,136 @@ void Timer::stop() {
     reset();
 
     enterPresetSelection();
+}
+
+void Timer::cancelWorkInterval() {
+    incrementTotalTime(elapsed);
+    minutesWorked += elapsed / 1000 / 60;
+    stop();
+    needsFullRedraw = true;
+}
+
+void Timer::cancelBreakInterval() {
+    incrementTotalBreakTime(elapsed);
+    minutesOnBreak += elapsed / 1000 / 60;
+    stop();
+    needsFullRedraw = true;
+}
+
+void Timer::confirmStartOfBreak() {
+    messageCache.clearCache(Messages::TimerWaitingForConfirmationStartOfBreak_Header);
+    startBreak();
+    needsFullRedraw = true;
+}
+
+void Timer::confirmEndOfBreak(bool restartWork) {
+    messageCache.clearCache(Messages::TimerWaitingForConfirmationEndOfBreak_Header);
+
+    incrementTotalBreakTime(elapsed);
+    minutesOnBreak += elapsed / 1000 / 60;
+
+    if (restartWork) {
+        start();
+    } else {
+        reset();
+        enterPresetSelection();
+    }
+    needsFullRedraw = true;
+}
+
+bool Timer::handleCommand(TimerCommand command, int arg, volatile const int *encoderCount) {
+    // Like any physical input, a remote command wakes a blanked display first.
+    if (displayBlanked) {
+        wakeDisplay();
+    }
+
+    bool accepted = false;
+
+    switch (state) {
+        case TimerState::SelectingPreset:
+            if (command == TimerCommand::Select && arg >= 0 && (unsigned int) arg < presets.size()) {
+                selectPreset(arg);
+                needsRedraw = true;
+                accepted = true;
+            } else if (command == TimerCommand::Start) {
+                start();
+                topMenu->setEncoderCount(*encoderCount);
+                needsFullRedraw = true;
+                accepted = true;
+            }
+            break;
+
+        case TimerState::Running:
+        case TimerState::UserInitiatedPause:
+            if (command == TimerCommand::Pause && state == TimerState::Running) {
+                pause();
+                needsRedraw = true;
+                accepted = true;
+            } else if (command == TimerCommand::Resume && state == TimerState::UserInitiatedPause) {
+                resume();
+                needsRedraw = true;
+                accepted = true;
+            } else if (command == TimerCommand::Restart) {
+                // Count the time worked so far, like a cancel would, but keep the cycle count:
+                // start() only resets per-interval timekeeping.
+                incrementTotalTime(elapsed);
+                minutesWorked += elapsed / 1000 / 60;
+                start();
+                topMenu->setEncoderCount(*encoderCount);
+                needsFullRedraw = true;
+                accepted = true;
+            } else if (command == TimerCommand::Break) {
+                startBreak();
+                accepted = true;
+            } else if (command == TimerCommand::Stop) {
+                cancelWorkInterval();
+                accepted = true;
+            }
+            break;
+
+        case TimerState::RunningBreak:
+        case TimerState::UserInitiatedBreakPause:
+            if (command == TimerCommand::Pause && state == TimerState::RunningBreak) {
+                pause();
+                needsFullRedraw = true;
+                accepted = true;
+            } else if (command == TimerCommand::Resume && state == TimerState::UserInitiatedBreakPause) {
+                resume();
+                needsFullRedraw = true;
+                accepted = true;
+            } else if (command == TimerCommand::Stop) {
+                cancelBreakInterval();
+                accepted = true;
+            }
+            break;
+
+        case TimerState::WaitingConfirmStartOfBreak:
+            if (command == TimerCommand::Break) {
+                confirmStartOfBreak();
+                accepted = true;
+            }
+            break;
+
+        case TimerState::WaitingConfirmEndOfBreak:
+            if (command == TimerCommand::Start || command == TimerCommand::Restart) {
+                confirmEndOfBreak(true);
+                accepted = true;
+            } else if (command == TimerCommand::Stop) {
+                confirmEndOfBreak(false);
+                accepted = true;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    if (accepted) {
+        lastActivityTime = millis();
+    } else {
+        ESP_LOGW(TAG, "handleCommand: command %d not valid in state %d", (int) command, (int) state);
+    }
+    return accepted;
 }
 
 int Timer::drawMenuBar() {
@@ -442,3 +575,26 @@ unsigned long Timer::getRemainingMillis() {
             return 0;
     }
 }
+
+unsigned long Timer::getIntervalMillis() {
+    switch (state) {
+        case TimerState::Running:
+        case TimerState::UserInitiatedPause:
+            return currentPreset ? currentPreset->getDuration() : 0;
+        case TimerState::RunningBreak:
+        case TimerState::UserInitiatedBreakPause:
+            return currentBreakDuration;
+        default:
+            return 0;
+    }
+}
+
+unsigned int Timer::getPresetIndex() { return presetIndex; }
+
+unsigned int Timer::getPresetCount() { return presets.size(); }
+
+Preset *Timer::getPreset(unsigned int index) { return index < presets.size() ? &presets[index] : nullptr; }
+
+bool Timer::isOnLongBreak() { return isLongBreak; }
+
+unsigned int Timer::getCycles() { return cycles; }
