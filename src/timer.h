@@ -255,7 +255,7 @@ class Timer {
     /// Select the previous preset, wrapping around at the start.
     void previousPreset();
 
-    /// Switch to TimerState::SelectingPreset and reselect preset index 1.
+    /// Switch to TimerState::SelectingPreset, keeping the last-used preset selected.
     void enterPresetSelection();
 
     /// Begin (or restart) a work interval for the current preset, entering TimerState::Running.

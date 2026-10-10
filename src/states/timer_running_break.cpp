@@ -20,7 +20,8 @@ void Timer::handleRunningBreak(volatile const int *encoderCount) {
         elapsed = millis() - startTime - totalPausedTime;
     }
 
-    if (state == TimerState::RunningBreak && millis() - startTime >= currentBreakDuration) {
+    // elapsed excludes time spent paused, so a paused break still runs its full length.
+    if (state == TimerState::RunningBreak && elapsed >= currentBreakDuration) {
         setLedMode(LedMode::ConfirmationFlash);
         state = TimerState::WaitingConfirmEndOfBreak;
 

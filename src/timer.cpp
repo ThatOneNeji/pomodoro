@@ -126,7 +126,8 @@ void Timer::previousPreset() {
 
 void Timer::enterPresetSelection() {
     state = TimerState::SelectingPreset;
-    selectPreset(1);
+    // Keep the last-used preset selected (index 0 on first entry after boot).
+    selectPreset(presetIndex < presets.size() ? presetIndex : 0);
     needsRedraw = true;
     lastActivityTime = millis();
 }
