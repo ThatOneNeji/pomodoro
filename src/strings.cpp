@@ -26,10 +26,8 @@ template<std::size_t N> static const char *randomMessage(const std::array<const 
 
 /// LPE-mode variant of genericStartBreakMessages. Currently empty; randomMessage() falls back to "???" until populated.
 extern const std::vector<const char *> lpeStartBreakMessages = {};
-/// LPE-mode additions layered onto Messages::Preset_Email_Message. Currently empty.
-static const std::vector<const char *> lpeEmailPresetMessages = {};
-/// LPE-mode additions layered onto Messages::Preset_Coding_Message. Currently empty.
-static const std::vector<const char *> lpeCodingPresetMessages = {};
+/// LPE-mode additions layered onto Messages::Preset_RunningMessage. Currently empty.
+static const std::vector<const char *> lpeRunningMessages = {};
 
 static const char *generateMessage(Messages message) {
     const char *result = "";
@@ -120,22 +118,11 @@ static const char *generateMessage(Messages message) {
             result = "sec";
             break;
 
-        // Preset specific
-        case Messages::Preset_Email_Message:
+        // Running presets: trivia and generic lines, the same for every preset.
+        case Messages::Preset_RunningMessage:
             if (lpeModeEnabled) {
-                messages.insert(messages.end(), lpeEmailPresetMessages.begin(), lpeEmailPresetMessages.end());
+                messages.insert(messages.end(), lpeRunningMessages.begin(), lpeRunningMessages.end());
             }
-            result = randomMessage(messages);
-            break;
-
-        case Messages::Preset_Coding_Message:
-            if (lpeModeEnabled) {
-                messages.insert(messages.end(), lpeCodingPresetMessages.begin(), lpeCodingPresetMessages.end());
-            }
-            result = randomMessage(messages);
-            break;
-
-        case Messages::Preset_Focus_Message:
             result = randomMessage(messages);
             break;
 
@@ -196,9 +183,26 @@ std::vector<const char *> MessageCache::getMessages() {
     messages.insert(messages.end(), Msgs::GENERIC_PRESET_MESSAGES.begin(), Msgs::GENERIC_PRESET_MESSAGES.end());
     messages.insert(messages.end(), Msgs::BREAK_MESSAGES.begin(), Msgs::BREAK_MESSAGES.end());
     messages.insert(messages.end(), lpeStartBreakMessages.begin(), lpeStartBreakMessages.end());
-    messages.insert(messages.end(), lpeEmailPresetMessages.begin(), lpeEmailPresetMessages.end());
-    messages.insert(messages.end(), lpeCodingPresetMessages.begin(), lpeCodingPresetMessages.end());
+    messages.insert(messages.end(), lpeRunningMessages.begin(), lpeRunningMessages.end());
     messages.insert(messages.end(), Msgs::CHAT_GPT_FACTS.begin(), Msgs::CHAT_GPT_FACTS.end());
 
     return messages;
 }
+
+// Every message pool must be fully populated: an empty slot is a null pointer that
+// randomMessage() can pick, and drawing it crashes. The arrays in src/i18n/ let the compiler
+// count their entries (`std::array NAME = {...}`), which already rules out a size that's larger
+// than the list; this also catches an explicit nullptr or a size added back by hand.
+template<std::size_t N> static constexpr bool allPopulated(const std::array<const char *, N> &messages) {
+    for (const char *message : messages) {
+        if (message == nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+static_assert(allPopulated(Msgs::GENERIC_PRESET_MESSAGES), "empty slot in Msgs::GENERIC_PRESET_MESSAGES");
+static_assert(allPopulated(Msgs::CHAT_GPT_FACTS), "empty slot in Msgs::CHAT_GPT_FACTS");
+static_assert(allPopulated(Msgs::BREAK_MESSAGES), "empty slot in Msgs::BREAK_MESSAGES");
+static_assert(allPopulated(Msgs::RESTARTTIMERMSG), "empty slot in Msgs::RESTARTTIMERMSG");
+static_assert(allPopulated(Msgs::RESTARTTIMERMSGLPE), "empty slot in Msgs::RESTARTTIMERMSGLPE");

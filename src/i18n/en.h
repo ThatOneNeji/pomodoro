@@ -46,18 +46,16 @@ struct Msgs {
     /* Message lists */
 
     /// Candidate messages shown when a break begins.
-    static constexpr std::array<const char *, 4> BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax",
-                                                                   "Well done!"};
+    static constexpr std::array BREAK_MESSAGES = {"Break time!", "Take a rest", "Time to relax", "Well done!"};
 
     /// Candidate "restart timer" messages used in LPE mode.
-    static constexpr std::array<const char *, 4> RESTARTTIMERMSGLPE = {"Noch mal!", "AGAIN!", "Here we go again...",
-                                                                       "Do it agane"};
+    static constexpr std::array RESTARTTIMERMSGLPE = {"Noch mal!", "AGAIN!", "Here we go again...", "Do it agane"};
 
     /// Candidate "restart timer" messages used outside LPE mode.
-    static constexpr std::array<const char *, 4> RESTARTTIMERMSG = {"Restart", "Let's go again", "One more time"};
+    static constexpr std::array RESTARTTIMERMSG = {"Restart", "Let's go again", "One more time"};
 
     /// Candidate speech-bubble messages shown while a preset timer is running.
-    static constexpr std::array<const char *, 8> GENERIC_PRESET_MESSAGES = {
+    static constexpr std::array GENERIC_PRESET_MESSAGES = {
         "Okaaay, let's go!",
         "Have you been on Reddit today?",
         "Are you hydrated?",
@@ -68,7 +66,7 @@ struct Msgs {
         "Let's see what happens.\n\n                          What happens?"};
 
     /// Candidate trivia facts shown alongside GENERIC_PRESET_MESSAGES while a preset is running.
-    static constexpr std::array<const char *, 42> CHAT_GPT_FACTS = {
+    static constexpr std::array CHAT_GPT_FACTS = {
         "An elephant's brain contains over\n257 billion neurons\nand displays strong emotions.",
         "Octopuses have three hearts and a\nsophisticated nervous system\nthat efficiently solves problems.",
         "Birds possess magnetoreceptors that\nhelp them use the Earth's\nmagnetic field as a compass.",
