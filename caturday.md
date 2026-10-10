@@ -21,7 +21,7 @@ Prep notes written before Caturday (2026-10-08), then kept up to date as the wor
 | 10 | MQTT direction | 📋 Later (`roadmap.MD`); the `endsAt` part is done |
 | 11 | Splash + selection menu | ✅ Done (PR #4, #5); break icons decided and done (PR #8) |
 
-**Still to do:** nothing from the Caturday plan. **Later** (`roadmap.MD`): MQTT publishing, the QR code on the status screen, fully removing LPE, tests (Phase 2).
+**Still to do:** nothing from the Caturday plan. **Later** (`roadmap.MD`): MQTT publishing, an mDNS hostname (`pomodoro.local`), fully removing LPE, tests (Phase 2).
 
 **Also fixed along the way (PR #7):** the trivia list had 42 slots but 41 facts, so ~1 in 50 running messages could be a null pointer and crash the device. The message arrays now size themselves, and the build fails if a slot is ever empty.
 
@@ -172,7 +172,7 @@ Presets are matched **by name string** in three places, and none of them knows a
 | Neutral screens | **Drawn in code** (shapes + Bootstrap icons), not stored as bitmaps |
 | Start screen | **"Pomodoro" + Bootstrap `stopwatch` icon**, drawn in code |
 | Long press (§7) | **Dropped** (2026-10-10): Settings is on the preset selection screen now |
-| Status screen QR code | **Future feature**, revisit once the images are redone and the flash budget is known |
+| Status screen QR code | ~~Future feature~~ **Dropped** (2026-10-10): Status already shows the IP; an mDNS hostname (`roadmap.MD`) replaces it |
 
 ---
 
@@ -267,7 +267,7 @@ Settings already restart the device, so a restart is what "go back to the start 
 > - **Firmware version:** `git describe` via `scripts/fw_version.py`, as planned below.
 > - **Firmware size** is measured against the running app partition: with `no_ota.csv`, `ESP.getFreeSketchSpace()` reports an OTA partition that doesn't exist.
 > - **Found on the way: fonts were duplicated per source file** (`const` arrays in headers, included from `config.h`): 34,418 B of duplicate font data, and the status screen would have added ~21 KB more. Fonts are now defined once in `src/fonts.cpp`. Net flash with the whole status screen: **68.1% → 67.0%**.
-> - **Not done:** the QR code (still in `roadmap.MD` → Future), and `fetch-depth: 0` in CI (only needed once the repo has tags).
+> - **Not done:** `fetch-depth: 0` in CI (only needed once the repo has tags). The QR code was later dropped in favour of an mDNS hostname (`roadmap.MD` → Future).
 
 ### How it works today
 
@@ -301,7 +301,7 @@ Settings already restart the device, so a restart is what "go back to the start 
 
 ### Optional extras
 
-- ~~QR code~~: moved to the **Future** section of `roadmap.MD`. Revisit once the images are redone and the flash budget is known.
+- ~~QR code~~: dropped (2026-10-10). Status already shows the IP; an mDNS hostname (`pomodoro.local`, `roadmap.MD` → Future) is the cheaper fix for not having to type it.
 - **Same screen in the web UI:** `settings.html` already shows `/system`. With the shared `collectSystemStatus()`, it gets the extra fields for free.
 
 ### Firmware version (decided: yes)
