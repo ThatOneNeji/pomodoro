@@ -135,9 +135,9 @@ Use averages over at least a few minutes, not single readings. The current jumps
 | --- | --- | --- | --- |
 | PWR-01 | Average current on USB, timer running, WiFi connected | The baseline, before any battery hardware goes in | **88.5 mA, 0.46 W** at 5.2 V (2026-10-10): 15 min average, Workshop running, WiFi connected at a weak −77 dBm, no web page open. Samples ranged 60–151 mA |
 | PWR-02 | On battery with WiFi connected | Expected to be the main drain (roughly 80–120 mA) | — |
-| PWR-03 | On battery with WiFi off or not configured | Shows how much turning WiFi off would buy | — |
+| PWR-03 | On battery with WiFi off or not configured | Shows how much turning WiFi off would buy | Measured on USB, not battery (2026-10-10): **79.3 mA, 0.41 W**, steady at 79–80 mA, idle on the blanked selection screen with WiFi switched off (PR #22). That's only 4.5 mA below the same state with WiFi on: the CPU, not the radio, is most of the draw |
 | PWR-04 | A 24-hour preset on a full battery: does it finish, and how much charge is left? | The target use case; needs TMR-10 passing first | — |
-| PWR-05 | Current while the display is blanked (idle and paused) | Blanking exists to save power; this shows how much it saves | Inconclusive (2026-10-10): no drop showed around the time-up screen and blanking, which stayed at 77–110 mA per 10 s. Needs a clean run: 5 min on the blanked selection screen |
+| PWR-05 | Current while the display is blanked (idle and paused) | Blanking exists to save power; this shows how much it saves | **83.8 mA, 0.435 W** at 5.2 V (2026-10-10): 5 min idle on the blanked selection screen, WiFi on, no web page open. About 5 mA below running (PWR-01), so blanking saves little: e-paper needs no power to keep showing a picture |
 | PWR-06 | Current after Settings → Shut down (deep sleep) | Shows what "off" really costs: the dev board's regulator and USB chip stay powered | **19.4 mA, 0.10 W** at 5.2 V (2026-10-10): steady over 4 min. A lot for "off": a 2000 mAh battery would be flat in about 4 days |
 
 ---
