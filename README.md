@@ -175,7 +175,7 @@ anything yet.
 
 ## Pin Mapping
 
-#### Rotary Encoder (KY-040)
+### Rotary Encoder (KY-040)
 
 | PIN | #   |
 | --- | --- |
@@ -183,7 +183,7 @@ anything yet.
 | DT  | 21  |
 | SW  | 14  |
 
-#### ePaper Display (GxEPD2_426_GDEQ0426T82, WaveShare 4.26" b/w)
+### ePaper Display (GxEPD2_426_GDEQ0426T82, WaveShare 4.26" b/w)
 
 | PIN  | #   |
 | ---- | --- |
@@ -194,7 +194,7 @@ anything yet.
 | CLK  | 18  |
 | DIN  | 23  |
 
-#### LED (WS2812)
+### LED (WS2812)
 
 | PIN | #   |
 | --- | --- |

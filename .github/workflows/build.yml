@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      # credentials.h is gitignored; the example's placeholder values are enough to compile.
+      - name: Use placeholder credentials
+        run: cp src/credentials.example.h src/credentials.h
+
+      - name: Build firmware
+        run: |
+          set -o pipefail
+          pio run -e esp32dev | tee build.log
+
+      # data/ is gitignored, so rebuild it the same way `npm run minify` + `npm run uploadfs` would.
+      - name: Build LittleFS data
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p data
+          npm run minify
+          cp html/favicon.ico data/
+          find ./data/ -maxdepth 1 -type f ! -name "*.gz" -exec gzip -f -k {} \;
+
+      - name: Check size budgets
+        run: python scripts/check_size.py build.log --fs-dir data

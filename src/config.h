@@ -59,8 +59,8 @@ struct PresetConfig {
 /// The presets registered with Timer at startup (see main.cpp's setup()). Add/remove/edit entries
 /// here rather than touching the addPreset() call site.
 static const PresetConfig PRESETS[] = {
-    {"Emails", 3 * MINUTE, 1 * MINUTE, 3 * MINUTE, 4},
     {"Coding", 15 * MINUTE, 5 * MINUTE, 10 * MINUTE, 2},
+    {"Workshop", 30 * MINUTE, 10 * MINUTE, 20 * MINUTE, 4},
     {"Focus", 8 * MINUTE, 5 * MINUTE, 6 * MINUTE, 4},
 };
 
@@ -116,6 +116,7 @@ const static bool timerStyleOld = false;
 /// MQTT_BROKER_ADDRESS disables MQTT entirely (see mqtt_manager.cpp) — the default, since most
 /// checkouts of this repo won't have a broker to connect to.
 /// @{
-#define MQTT_BROKER_ADDRESS "192.168.100.249"  ///< MQTT broker hostname or IP. Empty disables the MQTT client.
-#define MQTT_BROKER_PORT 1883                  ///< MQTT broker port (1883 is the standard unencrypted default).
+// // #define MQTT_BROKER_ADDRESS "192.168.100.249"  ///< MQTT broker hostname or IP. Empty disables the MQTT client.
+#define MQTT_BROKER_ADDRESS ""  ///< MQTT broker hostname or IP. Empty disables the MQTT client.
+#define MQTT_BROKER_PORT 1883   ///< MQTT broker port (1883 is the standard unencrypted default).
 /// @}
