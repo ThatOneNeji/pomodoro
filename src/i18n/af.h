@@ -1,6 +1,6 @@
 /**
  * @file af.h
- * @brief Afrikaans strings for the ::Msgs API (see strings.h for how these are selected/consumed).
+ * @brief Afrikaans strings for the ::Msgs API (see messages.h for how these are selected/consumed).
  */
 #pragma once
 #include <vector>

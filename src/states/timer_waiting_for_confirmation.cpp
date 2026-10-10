@@ -5,6 +5,7 @@
  */
 #include "../timer.h"
 #include "../icon_provider.h"
+#include "../messages.h"
 #include "esp_log.h"
 
 /// Log tag for this file, used by ESP_LOGx() calls.

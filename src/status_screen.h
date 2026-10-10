@@ -21,7 +21,7 @@
 class StatusScreen {
    private:
     DISPLAY_CLASS &display;
-    SystemStatus status;    ///< The snapshot currently drawn.
+    SystemStatus status{};  ///< The snapshot currently drawn.
     unsigned int page = 0;  ///< Index into the page list in status_screen.cpp.
 
     static const unsigned long COLLECT_INTERVAL = 1000;  ///< How often to re-collect the status, in ms.
