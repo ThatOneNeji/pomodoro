@@ -17,6 +17,7 @@ struct SystemStatus {
     String ip;           ///< IP address, or "" while not connected.
     int rssi;            ///< Signal strength in dBm (0 while not connected).
     String mac;          ///< WiFi MAC address.
+    String hostname;     ///< mDNS name, e.g. "pomodoro.local", or "" if mDNS is disabled (see config.h).
 
     // Time
     bool timeSynced;     ///< Whether SNTP has set the clock.

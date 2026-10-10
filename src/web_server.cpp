@@ -8,6 +8,7 @@
 #include <WiFi.h>
 #include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
 #include <ArduinoJson.h>
 #include <Ticker.h>
 #include "wifi_manager.h"
@@ -417,11 +418,29 @@ void webServerLoop() {
     ws.textAll(buildStatusJson());
 }
 
+/// Start announcing ::MDNS_HOSTNAME and the web server via mDNS. Only takes effect once: the
+/// responder keeps running (and re-announces) across WiFi reconnects by itself.
+static void startMdns() {
+    static bool started = false;
+    if (started || strlen(MDNS_HOSTNAME) == 0) {
+        return;
+    }
+
+    if (!MDNS.begin(MDNS_HOSTNAME)) {
+        ESP_LOGW(TAG, "mDNS failed to start; the web UI is still reachable by IP");
+        return;
+    }
+    MDNS.addService("http", "tcp", 80);
+    started = true;
+    ESP_LOGI(TAG, "mDNS started: http://%s.local/", MDNS_HOSTNAME);
+}
+
 static void onWiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
     (void) event;
     (void) info;
     ESP_LOGI(TAG, "WiFi connected, IP address: %s", WiFi.localIP().toString().c_str());
     startServer();
+    startMdns();
     setupSntp();
 }
 
@@ -447,6 +466,10 @@ void setupWebServer() {
     WiFi.onEvent(onWiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(onWiFiDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
+    if (strlen(MDNS_HOSTNAME) > 0) {
+        // Must be set before WiFi.mode() for the DHCP request to carry it.
+        WiFi.setHostname(MDNS_HOSTNAME);
+    }
     WiFi.mode(WIFI_STA);
     WiFi.setAutoReconnect(true);
 

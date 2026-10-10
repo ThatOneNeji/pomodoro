@@ -119,6 +119,14 @@ const static bool timerStyleOld = false;
 #define SNTP_TIMEZONE "SAST-2"
 /// @}
 
+/**
+ * @brief Name the device announces on the local network via mDNS, so the web UI is at
+ * http://<name>.local/ (default http://pomodoro.local/) and keeps working when the router hands
+ * out a new IP. Also used as the WiFi hostname, so router device lists show it. Use a different
+ * name per device if you run several. An empty string disables mDNS.
+ */
+#define MDNS_HOSTNAME "pomodoro"
+
 /// @name MQTT client
 /// Broker address/port aren't sensitive so they live here; MQTT_USERNAME/MQTT_PASSWORD are in
 /// the gitignored credentials.h instead (see credentials.example.h). An empty
