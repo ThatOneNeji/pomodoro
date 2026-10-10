@@ -159,14 +159,7 @@ void Timer::reset() {
 void Timer::blankDisplay(volatile const int *encoderCount) {
     ESP_LOGI(TAG, "blankDisplay: idle timeout reached, blanking display");
 
-    // E-paper is bistable, so cutting power alone would leave the last image visible. A single
-    // full refresh can also leave ghosting from prior partial updates, so flash black then white
-    // to properly clear the panel before hibernating.
-    display.fillScreen(GxEPD_BLACK);
-    display.display(false);
-    display.fillScreen(GxEPD_WHITE);
-    display.display(false);
-    display.hibernate();
+    clearPanel(display);
 
     blankEncoderSnapshot = *encoderCount;
     displayBlanked = true;

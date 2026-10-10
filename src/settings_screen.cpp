@@ -3,11 +3,26 @@
 #include "button.h"
 #include "gfx_utils.h"
 #include "icons.h"
+#include "power.h"
 #include "esp_log.h"
 #include <Preferences.h>
 
 /// Log tag for this file, used by ESP_LOGx() calls.
 [[maybe_unused]] static const char *TAG = "SETTINGS";
+
+/// Draw an action button in the last row: an icon and a label in a rounded box, dotted when selected.
+static void drawAction(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t w, int16_t h, Icon &icon,
+                       const char *label, bool selected) {
+    const int16_t padding = 12;
+    display.drawRoundRect(x, y, w, h, 10, GxEPD_BLACK);
+    if (selected) {
+        drawPatternInRoundedArea(display, x, y, w, h, 10, Pattern::SparseDots);
+    }
+    const ScaledIcon scaled = icon.scaled(64);
+    display.drawBitmap(x + padding, y + (h - scaled.size) / 2, scaled.data, scaled.size, scaled.size, GxEPD_BLACK);
+    const Bounds bounds = getBounds(display, label, &MAIN_FONT);
+    drawText(display, label, x + padding + scaled.size + padding, y + h / 2 + bounds.h / 2, &MAIN_FONT, GxEPD_BLACK);
+}
 
 SettingsScreen::SettingsScreen(DISPLAY_CLASS &display) : display(display) {
     for (auto &checkbox : checkboxes) {
@@ -17,7 +32,7 @@ SettingsScreen::SettingsScreen(DISPLAY_CLASS &display) : display(display) {
 
 void SettingsScreen::draw() {
     const int16_t margin = 16;
-    const unsigned int rows = checkboxes.size() + 1;  // + Back
+    const unsigned int rows = checkboxes.size() + 1;  // + the Back / Shut down row
     const int16_t rowHeight = 96;
     const int16_t gap = rows <= 3 ? 32 : 16;  // 4 rows (with INCLUDE_MEME_ASSETS) need a tighter gap
     const int16_t width = display.width() - 2 * margin;
@@ -29,22 +44,16 @@ void SettingsScreen::draw() {
         checkboxes[i].draw(display, margin, margin + i * (rowHeight + gap), width, rowHeight, i == selectedIndex);
     }
 
-    // Back row, laid out like a checkbox row but with an arrow and no check box.
+    // Last row: Back and Shut down side by side, so the screen needs no extra row for them.
     const int16_t y = margin + checkboxes.size() * (rowHeight + gap);
-    const int16_t padding = 12;
-    display.drawRoundRect(margin, y, width, rowHeight, 10, GxEPD_BLACK);
-    if (selectedIndex == checkboxes.size()) {
-        drawPatternInRoundedArea(display, margin, y, width, rowHeight, 10, Pattern::SparseDots);
-    }
-    const ScaledIcon arrow = icon_back.scaled(64);
-    display.drawBitmap(margin + padding, y + padding, arrow.data, arrow.size, arrow.size, GxEPD_BLACK);
-    const Bounds bounds = getBounds(display, Msgs::BACK, &MAIN_FONT);
-    drawText(display, Msgs::BACK, margin + padding + arrow.size + padding, y + rowHeight / 2 + bounds.h / 2, &MAIN_FONT,
-             GxEPD_BLACK);
+    const int16_t half = (width - gap) / 2;
+    drawAction(display, margin, y, half, rowHeight, icon_back, Msgs::BACK, selectedIndex == backIndex());
+    drawAction(display, margin + half + gap, y, half, rowHeight, icon_power, Msgs::SHUTDOWN,
+               selectedIndex == shutDownIndex());
 }
 
 void SettingsScreen::run(volatile const int *encoderCount) {
-    const unsigned int rows = checkboxes.size() + 1;
+    const unsigned int positions = shutDownIndex() + 1;  // the checkboxes, then Back, then Shut down
     selectedIndex = 0;
     draw();
     display.display(false);
@@ -52,17 +61,20 @@ void SettingsScreen::run(volatile const int *encoderCount) {
     int lastEncoderCount = *encoderCount;
     while (true) {
         if (*encoderCount != lastEncoderCount) {
-            selectedIndex =
-                *encoderCount > lastEncoderCount ? (selectedIndex + 1) % rows : (selectedIndex + rows - 1) % rows;
+            selectedIndex = *encoderCount > lastEncoderCount ? (selectedIndex + 1) % positions
+                                                             : (selectedIndex + positions - 1) % positions;
             lastEncoderCount = *encoderCount;
             draw();
             display.display(true);
         }
 
         if (Button::instance && Button::instance->checkAndClearButtonPress()) {
-            if (selectedIndex == checkboxes.size()) {
+            if (selectedIndex == backIndex()) {
                 ESP_LOGI(TAG, "run: back");
                 return;
+            }
+            if (selectedIndex == shutDownIndex()) {
+                shutDown(display);  // doesn't return
             }
 
             Checkbox &selected = checkboxes[selectedIndex];

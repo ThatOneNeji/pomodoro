@@ -118,6 +118,7 @@
                 var clockOffset = 0; // device clock minus browser clock, in ms
                 var pending = null; // {state, presetIndex, endsAt, timer} while waiting for a command to take effect
                 var notice = '';
+                var switchedOff = false; // the device announced a shutdown; cleared when it's back
 
                 var presetTabs = document.getElementById('preset-tabs');
                 var phaseLabel = document.getElementById('phase-label');
@@ -253,7 +254,9 @@
                     }
 
                     var text = notice;
-                    if (!connected) {
+                    if (switchedOff) {
+                        text = 'The device is switched off. Press its knob to switch it back on; this page reconnects by itself.';
+                    } else if (!connected) {
                         if (status) {
                             text = 'Connection lost, reconnecting… (the countdown keeps running)';
                         } else if (isLocalDev && deviceHost === location.hostname) {
@@ -268,7 +271,7 @@
                         text = 'Connected. Waiting for the device to finish starting up…';
                     }
                     connectionStatus.textContent = text;
-                    connectionStatus.classList.toggle('is-warning', !connected || text === notice && notice !== '');
+                    connectionStatus.classList.toggle('is-warning', switchedOff || !connected || text === notice && notice !== '');
 
                     renderTime();
                 }
@@ -304,6 +307,15 @@
                             clearTimeout(pending.timer);
                             pending = null;
                         }
+                    } else if (message.type === 'shutdown') {
+                        // Nothing is counting down any more: drop the last status, so the page
+                        // doesn't keep a countdown running for a device that's off.
+                        switchedOff = true;
+                        status = null;
+                        phaseLabel.textContent = 'Switched off';
+                        timeDisplay.textContent = '--:--';
+                        progressBar.style.width = '0%';
+                        document.title = 'Pomodoro';
                     } else if (message.type === 'error') {
                         clearTimeout(pending && pending.timer);
                         pending = null;
@@ -317,6 +329,7 @@
 
                     websocket.onopen = function () {
                         connected = true;
+                        switchedOff = false;
                         reconnectDelay = 1000;
                         notice = '';
                         render();

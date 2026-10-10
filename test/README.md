@@ -115,6 +115,7 @@ Things only a person looking at the e-paper or the browser can confirm. Most com
 | MAN-05 | MQTT shows as connected | Needs a broker; worth doing with the MQTT work | 👀 |
 | MAN-06 | After a new commit, only `version.cpp` recompiles | The firmware-version script must not trigger full rebuilds | 👀 |
 | MAN-07 | Menus and messages fit on screen in af and de | Both are English placeholders for now; check once they're translated | 👀 |
+| MAN-08 | Settings → Shut down: the web page says "switched off", the screen clears to white, the LED goes off; a knob press switches the device back on, and the web page reconnects by itself | Added 2026-10-10. Deep sleep and waking can only be checked on the device. Passed 2026-10-10, twice, with the web page watched in a browser | ✅ |
 
 ---
 
