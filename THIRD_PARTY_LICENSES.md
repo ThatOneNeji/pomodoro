@@ -2,18 +2,15 @@
 
 ## Bootstrap Icons
 
-The following icon source files under `assets/icons/` are from
-[Bootstrap Icons](https://github.com/twbs/icons), used here under the MIT License:
+The full Bootstrap Icons SVG set is included under `assets/svg/`, from
+[Bootstrap Icons](https://github.com/twbs/icons), used here under the MIT License. The icons
+compiled into the firmware are listed in `assets/manifest.json`; currently:
 
-- `email.png` (envelope-fill)
-- `warning.png` (exclamation-triangle-fill)
-- `focus.png` (bullseye)
-- `coffee.png` (cup-hot-fill)
-- `checkmark.png` (check-lg)
-- `coding.png` (code-slash)
+- `code-slash`, `bullseye`, `tools`, `stopwatch` (preset and start screen icons)
+- `bell-fill`, `chat-quote-fill`, `check-lg`, `cup-hot-fill`
 
-They were rasterized from the original SVGs for use with `scripts/gen_assets.py`'s
-PNG-to-bitmap pipeline (see `src/icons/icons.cpp`).
+`scripts/gen_assets.py` rasterizes them into the bitmaps in `src/icons/icons.cpp`. The web UI's
+icons in `html/icons/` are from the same set.
 
 ```
 The MIT License (MIT)

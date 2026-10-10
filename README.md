@@ -114,20 +114,29 @@ During the pause, you can view some statistics. Every few iterations (4 by defau
 
 ### Generating Assets
 
-In order to prepare images, icons, and fonts, you will need to run the `generate_assets.py` script. This script will take care of resizing images, converting them to the correct format, and generating the necessary C++ code to include them in the project.
+Every bitmap compiled into the firmware is listed in `assets/manifest.json`. `scripts/gen_assets.py`
+turns that into `src/icons.h`, `src/icons/icons.cpp`, `src/images.h` and `src/images/*.h`, and
+prints what each asset costs in flash.
 
 ```bash
 # install dependencies with uv or a different package manager
 uv sync
 
-uv run scripts/gen_assets.py
+uv run python scripts/gen_assets.py           # icons + images
+uv run python scripts/gen_assets.py --fonts   # also regenerate src/fonts/
 ```
 
-`assets/icons/*.png` (other than the `lpe*` ones) and `assets/fonts/*.ttf` are gitignored, since
-most icon/font sources aren't ours to redistribute. The `email`/`warning`/`focus`/`coffee`/
-`checkmark`/`coding` icons are sourced from [Bootstrap Icons](https://github.com/twbs/icons)
-(MIT-licensed, safe to redistribute) — see `THIRD_PARTY_LICENSES.md` for the full license text
-and which icon each file came from.
+- **Icons** come from [Bootstrap Icons](https://github.com/twbs/icons) (MIT), whose SVGs are all in
+  `assets/svg/`. To add one, pick it at <https://icons.getbootstrap.com/>, add a manifest entry
+  with its name and **only the pixel sizes the code draws it at** (each size costs
+  `size × size / 8` bytes), and rerun the script. SVGs are rendered straight at each size, without
+  dithering, so they stay crisp. Drawn art can use `"png"` instead, and is dithered.
+- **Background images** are 800×480 PNGs in `assets/images/`, at 48,000 B of flash each.
+- **Meme assets:** entries marked `"meme": true` (the LPE art and the long-break images) are only
+  compiled in with `INCLUDE_MEME_ASSETS` in `src/config.h`, which is off by default and saves
+  ~250 KB of flash. It also enables the "LPE Mode" setting.
+- **Fonts** need `fontconvert` and `assets/fonts/*.ttf`, which are gitignored since the font
+  sources aren't ours to redistribute. `--fonts` checks they exist before touching `src/fonts/`.
 
 ### Customizing Presets
 
