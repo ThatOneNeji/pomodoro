@@ -13,9 +13,9 @@ Prep notes written before Caturday (2026-10-08), then kept up to date as the wor
 | 2 | Frontend: controls and countdown | ✅ Done (PR #1) |
 | 3 | Preset graphics / Workshop | 🟡 Workshop icon done (PR #2); **its running message still says "Unknown preset"** |
 | 4 | Decisions | ✅ All recorded |
-| 5 | Suggested order | 🟡 5 of 7 steps done; the Workshop message and the long press remain |
+| 5 | Suggested order | 🟡 5 of 7 steps done, 1 dropped (the long press); the Workshop message remains |
 | 6 | CI size budget | ✅ Done; runs on every PR |
-| 7 | Long press | ⏸️ Not started; pinned in §11, since Settings is now on the selection screen |
+| 7 | Long press | ❌ Dropped (2026-10-10): Settings is now on the selection screen |
 | 8 | Status screen | ✅ Done (PR #3); some checks still to test, see below |
 | 9 | LPE switch + SVG icons | ✅ Done (PR #2), plus the drawn running screen (PR #4) |
 | 10 | MQTT direction | 📋 Later (`roadmap.MD`); the `endsAt` part is done |
@@ -24,7 +24,7 @@ Prep notes written before Caturday (2026-10-08), then kept up to date as the wor
 **Still to do**
 
 1. **Workshop running message** (§3): add a message entry to `src/i18n/{en,af,de}.h` and to the name-based lookup in `Timer::getRunningMessage()`.
-2. **Pinned decisions** (§11): break screen decorations, and whether to keep the long press (§7).
+2. **Pinned decision** (§11): break screen decorations.
 3. **Later** (`roadmap.MD`): MQTT publishing, the QR code on the status screen, fully removing LPE, tests (Phase 2).
 
 **Still to test**
@@ -164,8 +164,8 @@ Presets are matched **by name string** in three places, and none of them knows a
 | Commands over WebSocket or REST? | **WebSocket**, so no new REST endpoints |
 | Clicking a preset tab | **Select only**, then confirm with Start |
 | Restart | **Keep the cycle count** |
-| Long-press time | **3 s** (`LONG_PRESS_MS 3000`) |
-| Long-press behaviour | **`ESP.restart()`** back to the start/settings screen |
+| Long-press time | ~~**3 s** (`LONG_PRESS_MS 3000`)~~ superseded: long press dropped |
+| Long-press behaviour | ~~**`ESP.restart()`** back to the start/settings screen~~ superseded: long press dropped |
 | Short presses | **Act on release**, and only if held for less than `LONG_PRESS_MS` |
 | Status screen contents | **All items** from §8; sizing and layout reviewed during development |
 | Status screen exit | **Press** → back to the start screen |
@@ -173,6 +173,7 @@ Presets are matched **by name string** in three places, and none of them knows a
 | LPE / meme assets | **Drop eventually.** For now, a build switch `INCLUDE_MEME_ASSETS`, **off by default** (see §9) |
 | Neutral screens | **Drawn in code** (shapes + Bootstrap icons), not stored as bitmaps |
 | Start screen | **"Pomodoro" + Bootstrap `stopwatch` icon**, drawn in code |
+| Long press (§7) | **Dropped** (2026-10-10): Settings is on the preset selection screen now |
 | Status screen QR code | **Future feature**, revisit once the images are redone and the flash budget is known |
 
 ---
@@ -184,7 +185,7 @@ Presets are matched **by name string** in three places, and none of them knows a
 3. ✅ Command queue + `select` / `start` / `stop` only, end-to-end with minimal frontend buttons.
 4. ✅ The rest of the commands + full frontend render.
 5. ✅ Graphics swap, within the flash budget.
-6. ⏸️ Long-press → back to the splash/settings screen ([§7](#7-long-press-encoder--back-to-the-startsettings-screen-added-2026-10-08)). It's independent of the web work, so it can also be the warm-up.
+6. ❌ *(dropped, see §7)* Long-press → back to the splash/settings screen ([§7](#7-long-press-encoder--back-to-the-startsettings-screen-added-2026-10-08)). It's independent of the web work, so it can also be the warm-up.
 7. ✅ Status screen on the start screen ([§8](#8-status-screen-on-the-start-screen-added-2026-10-08)). Once §7 is done, a long press gets you straight to it.
 
 ---
@@ -210,7 +211,7 @@ Expect Saturday's web code plus any new images to set off the flash warning. Tha
 
 ## 7. Long-press encoder → back to the start/settings screen (added 2026-10-08)
 
-> **Not started; pinned (see §11).** Settings is now reachable from the preset selection screen, so the original reason for this is gone.
+> **Dropped (2026-10-10).** Its purpose was reaching Settings without a power cycle, and Settings is now on the preset selection screen (§11). The plan below is kept for reference only.
 
 **Goal:** holding the encoder button for more than *X* seconds, from any state, stops everything and returns to the boot "Start / Settings" screen. Today the only way back to it is a power cycle.
 
@@ -245,14 +246,14 @@ Settings already restart the device, so a restart is what "go back to the start 
 6. **Clean shutdown before the restart (optional):** `timer.stop()`, then a short `delay()` so any in-flight web response finishes.
 7. **Web freebie:** the same function can back a `{"cmd":"menu"}` WebSocket command (see §1), so the web UI can send the device back to the start screen too.
 
-### Test checklist
+### Test checklist (not applicable: dropped)
 
-- [ ] Long-press in each state: SelectingPreset, Running, paused, RunningBreak, WaitingConfirm*, display blanked
-- [ ] A short press still works normally in each state, and acts on release
-- [ ] A long press does **not** also trigger the short-press action (e.g. no extra cycle counted on "Break now")
-- [ ] Fast double presses aren't lost now that the debounce is shorter, and contact bounce doesn't register as two presses
-- [ ] A hold just under `LONG_PRESS_MS` does *not* restart
-- [ ] After the restart, the splash screen appears, and Settings is reachable and saves
+- Long-press in each state: SelectingPreset, Running, paused, RunningBreak, WaitingConfirm*, display blanked
+- A short press still works normally in each state, and acts on release
+- A long press does **not** also trigger the short-press action (e.g. no extra cycle counted on "Break now")
+- Fast double presses aren't lost now that the debounce is shorter, and contact bounce doesn't register as two presses
+- A hold just under `LONG_PRESS_MS` does *not* restart
+- After the restart, the splash screen appears, and Settings is reachable and saves
 
 ---
 
@@ -486,4 +487,4 @@ It's a small addition to `buildStatusJson()`, but decide before building the cou
 **Pinned (decide later):**
 
 - **Break screen decorations.** Breaks are already fully drawn in code (statistics box, header, menu). The idea on the table: a large Bootstrap icon in the free space left of the statistics box, e.g. `cup-hot` for short breaks and `moon-stars` for long ones, ~2 KB each at 128 px.
-- **The long press (§7).** Its purpose was reaching Settings without a power cycle, and Settings is now on the selection screen. Options: drop it, keep it as "return to preset selection from anywhere", or keep the original restart.
+- ~~**The long press (§7).**~~ **Decided: dropped.** Its purpose was reaching Settings without a power cycle, and Settings is now on the selection screen.
