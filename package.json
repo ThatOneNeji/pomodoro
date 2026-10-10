@@ -23,6 +23,8 @@
         "clang": "find ./src -type f \\( -iname \"*.cpp\" -o -iname \"*.h\" \\) -print | xargs -r -n1 clang-format-20 -i",
         "test": "npm run piotests && npm run cppcheck",
         "doxygen": "doxygen Doxyfile",
+        "case": "scripts/freecad.sh cad/build_case.py",
+        "case:check": "CASE_CHECK=1 scripts/freecad.sh cad/build_case.py",
         "piotests": "pio test -e native"
     },
     "dependencies": {

@@ -21,7 +21,7 @@ The project has a solid foundation: a state machine in `src/timer.cpp`, an i18n 
 | mDNS hostname | ✅ Done | `http://pomodoro.local/` (PR #14) |
 | Refresh trivia facts | 📋 Undecided | Options A/B/C below |
 | Battery power | ❌ Not started | Measuring waits for a USB power meter or INA219; the power path decides the case (added 2026-10-10) |
-| Case changes | ❌ Not started | Needs part choices, sizes and an editable model |
+| Case changes | 🟡 Pipeline ready | Edits are code in `cad/build_case.py`, `npm run case` rebuilds `stl/`; needs part choices and sizes |
 | Branding | ❌ Not started | Name in `config.h`; nice to have: language stub script, web colour theme |
 
 Flash: 83.6% at the start of 2026-10-10 → **56.4%** (~892 KB free) after it. See `caturday.md` for the day's details.
@@ -184,11 +184,7 @@ Whatever the option, the script must: convert or skip characters outside 7-bit A
 - **Battery level.** A voltage divider to an **ADC1** pin (ADC2 doesn't work while WiFi is on) lets the Status screen and status page show the charge. Cheap to wire in now, awkward to add after the case is printed.
 - **Charging.** If the LiPo charges over USB, the charger board needs a place in the case too.
 
-**Case changes** — ❌ not started. The case exists only as STL files, which are triangle meshes, not editable CAD models. Ways to edit them, best first:
-
-1. **Find the original source.** Printables and Thingiverse projects often include STEP or Fusion files, which are properly editable.
-2. **OpenSCAD.** It imports the STL as-is and adds or subtracts shapes from it, which covers every change below. It's code-based, so the files can be written and adjusted in the repo; the hands-on part is measuring parts and checking the result in the viewer.
-3. **FreeCAD's mesh-to-solid conversion.** Works, but fiddly.
+**Case changes** — 🟡 the editing pipeline is ready (2026-10-10); no edits yet. The original design is a public Onshape document, but exporting from it needs an Onshape account with working WebGL (or API keys, which a new account can't create), and its design history can't leave Onshape anyway. So the original STLs are the source instead: they're in `cad/original/` and never edited. `cad/build_case.py` turns them into solids with FreeCAD, applies our edits as code, and writes the printable files to `stl/` (`npm run case`). The round trip is lossless (`npm run case:check`). See `cad/README.md`.
 
 Changes, each needing the part's sizes (calipers) and product page or datasheet:
 
