@@ -110,13 +110,21 @@ With tests passing and Doxygen comments in place, automation is straightforward.
 - **Buffer size:** PubSubClient's default maximum message is **256 bytes**. The `presets` message is already ~340 bytes and would be silently dropped. Call `mqttClient.setBufferSize(1024)` (or larger) in `setupMqtt()`.
 - **Later, optional:** Home Assistant MQTT discovery, so the timer appears in HA as entities without manual YAML.
 
-**Image redo** — `scripts/gen_assets.py` already handles the source → C header pipeline. The blocker is sourcing or redrawing the original artwork, which is a design task independent of the code.
+**Image redo** — ✅ done (2026-10-10). Icons come from the Bootstrap SVGs via `assets/manifest.json` and `scripts/gen_assets.py`; the splash, running and break screens are drawn in code. A default build has no full-screen bitmaps. See `caturday.md` §9 and §11.
 
 ---
 
 **Drop LPE entirely** — LPE/meme art was the original author's choice. Step one (Caturday) is the `INCLUDE_MEME_ASSETS` build switch, off by default. Once the neutral, code-drawn screens are settled, remove the switch and every LPE touchpoint (listed in `caturday.md` §9), the `lpe` preference key and the source art.
 
-**QR code on the status screen** — show a QR code of `http://<ip>/` on the start-screen Status page (see `caturday.md` §8), so a phone can open the web UI without typing the IP. Needs a small QR library (e.g. `ricmoo/QRCode`) plus some flash. Revisit once the image redo is done and the flash budget is clearer (CI reports it, see `scripts/check_size.py`).
+**QR code on the status screen** — show a QR code of `http://<ip>/` on the Status screen (reached from preset selection; see `caturday.md` §8), so a phone can open the web UI without typing the IP. Needs a small QR library (e.g. `ricmoo/QRCode`) plus some flash. The flash budget is no longer a blocker: 55.1% used, ~920 KB free (2026-10-10).
+
+**Refresh the trivia facts** — replace `Msgs::CHAT_GPT_FACTS` with new facts from the internet now and then. Messages wrap automatically since 2026-10-10, so facts are plain sentences. Options (decide later; the user leans towards A):
+
+- **A.** A script (`scripts/fetch_facts.py`) fetches facts from an API and rewrites the list in `src/i18n/`; review the diff, commit, reflash.
+- **B.** Facts move to `data/facts.txt` on LittleFS, refreshed by the same script and uploaded with `npm run uploadfs`: no firmware rebuild for new facts, and ~3.5 KB of flash freed.
+- **C.** The device fetches a fact live over HTTPS, with the built-in list as the offline fallback: always new, but unreviewed, and needs TLS (affordable now).
+
+Whatever the option, the script must: convert or skip characters outside 7-bit ASCII (the GFX fonts can't draw them, e.g. curly quotes, accents, ß); cap the length so a fact fits the bubble's 4 lines (`STRINGS_TEST` checks this); check the source's accuracy, tone and licence terms; and keep the af/de lists as they are (fetched facts would be English only).
 
 ---
 
