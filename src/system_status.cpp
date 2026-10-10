@@ -18,6 +18,7 @@ SystemStatus collectSystemStatus() {
     s.ip = s.wifiConnected ? WiFi.localIP().toString() : String();
     s.rssi = s.wifiConnected ? WiFi.RSSI() : 0;
     s.mac = WiFi.macAddress();
+    s.hostname = strlen(MDNS_HOSTNAME) > 0 ? String(MDNS_HOSTNAME) + ".local" : String();
 
     s.timeSynced = isTimeSynced();
     s.currentTime = getCurrentTimeString();
@@ -59,6 +60,7 @@ void systemStatusToJson(const SystemStatus &s, JsonDocument &doc) {
     doc["ip"] = s.ip;
     doc["rssi"] = s.rssi;
     doc["mac"] = s.mac;
+    doc["hostname"] = s.hostname;
 
     doc["timeSynced"] = s.timeSynced;
     doc["currentTime"] = s.currentTime;

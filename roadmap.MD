@@ -116,7 +116,7 @@ With tests passing and Doxygen comments in place, automation is straightforward.
 
 **Drop LPE entirely** — LPE/meme art was the original author's choice. Step one (Caturday) is the `INCLUDE_MEME_ASSETS` build switch, off by default. Once the neutral, code-drawn screens are settled, remove the switch and every LPE touchpoint (listed in `caturday.md` §9), the `lpe` preference key and the source art.
 
-**mDNS hostname (`pomodoro.local`)** — announce the device on the local network so the web UI is at `http://pomodoro.local/` instead of an IP that can change when the router reassigns it. Uses `ESPmDNS` from the ESP32 Arduino core: a few lines in `onWiFiGotIP()` (`src/web_server.cpp`) and very little flash. Show the name on the Status screen and status page next to the IP. Laptops (Linux, macOS, Windows) and iPhones resolve `.local` names; Android support varies by version and browser, so keep showing the IP too.
+**mDNS hostname (`pomodoro.local`)** — ✅ done (2026-10-10; `MDNS_HOSTNAME` in `config.h`, +27.8 KB flash). Announce the device on the local network so the web UI is at `http://pomodoro.local/` instead of an IP that can change when the router reassigns it. Uses `ESPmDNS` from the ESP32 Arduino core: a few lines in `onWiFiGotIP()` (`src/web_server.cpp`) and very little flash. Show the name on the Status screen and status page next to the IP. Laptops (Linux, macOS, Windows) and iPhones resolve `.local` names; Android support varies by version and browser, so keep showing the IP too.
 
 *Replaces the earlier QR-code idea (dropped 2026-10-10): the Status screen already shows the IP and web address, so a QR code would only have saved typing it, for a library and drawing code.*
 

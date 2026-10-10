@@ -99,6 +99,7 @@
                     ["Network", [
                         ["WiFi", function (d) { return { text: d.wifiConnected ? "Connected" : "Connecting to " + d.ssid + "…", ok: d.wifiConnected }; }],
                         ["IP address", function (d) { return d.ip || "—"; }],
+                        ["Hostname", function (d) { return d.hostname || "Disabled"; }],
                         ["Network", function (d) { return d.ssid; }],
                         ["Signal", function (d) { return d.wifiConnected ? d.rssi + " dBm" : "—"; }],
                         ["MAC address", function (d) { return d.mac; }]
