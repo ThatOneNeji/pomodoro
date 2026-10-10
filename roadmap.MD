@@ -116,7 +116,9 @@ With tests passing and Doxygen comments in place, automation is straightforward.
 
 **Drop LPE entirely** — LPE/meme art was the original author's choice. Step one (Caturday) is the `INCLUDE_MEME_ASSETS` build switch, off by default. Once the neutral, code-drawn screens are settled, remove the switch and every LPE touchpoint (listed in `caturday.md` §9), the `lpe` preference key and the source art.
 
-**QR code on the status screen** — show a QR code of `http://<ip>/` on the Status screen (reached from preset selection; see `caturday.md` §8), so a phone can open the web UI without typing the IP. Needs a small QR library (e.g. `ricmoo/QRCode`) plus some flash. The flash budget is no longer a blocker: 55.1% used, ~920 KB free (2026-10-10).
+**mDNS hostname (`pomodoro.local`)** — announce the device on the local network so the web UI is at `http://pomodoro.local/` instead of an IP that can change when the router reassigns it. Uses `ESPmDNS` from the ESP32 Arduino core: a few lines in `onWiFiGotIP()` (`src/web_server.cpp`) and very little flash. Show the name on the Status screen and status page next to the IP. Laptops (Linux, macOS, Windows) and iPhones resolve `.local` names; Android support varies by version and browser, so keep showing the IP too.
+
+*Replaces the earlier QR-code idea (dropped 2026-10-10): the Status screen already shows the IP and web address, so a QR code would only have saved typing it, for a library and drawing code.*
 
 **Refresh the trivia facts** — replace `Msgs::CHAT_GPT_FACTS` with new facts from the internet now and then. Messages wrap automatically since 2026-10-10, so facts are plain sentences. Options (decide later; the user leans towards A):
 
