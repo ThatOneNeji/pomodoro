@@ -1,0 +1,35 @@
+name: Test
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-native-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      # credentials.h is gitignored; the example's placeholder values are enough to compile.
+      - name: Use placeholder credentials
+        run: cp src/credentials.example.h src/credentials.h
+
+      # Builds the timer for the laptop against test/fakes/ and runs test/test_*/ (see test/README.md).
+      - name: Run host tests
+        run: pio test -e native

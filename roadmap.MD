@@ -8,19 +8,19 @@ The project has a solid foundation: a state machine in `src/timer.cpp`, an i18n 
 | --- | --- | --- |
 | 1.1 Add languages | 🟡 Partial | The `LANG_AF`/`LANG_DE` switch works, but both files are mostly English placeholders (`af.h` holds the German facts). Needs real translations. |
 | 1.2 Blank display when idle | ✅ Done | `IDLE_BLANK_TIMEOUT` / `PAUSE_BLANK_TIMEOUT`; works from boot since the splash auto-advances (PR #5) |
-| 2.1 Host tests (`env:native`) | ❌ Not started | **The biggest gap**, see "What's next" |
+| 2.1 Host tests (`env:native`) | 🟡 Started | `pio test -e native` runs the timer tests (TMR-01 to TMR-10); the rest are listed in `test/README.md` |
 | 2.2 On-device smoke tests | ❌ Not started | `STRINGS_TEST` is a manual debug build, not an automated test |
 | 3.1 WiFi + web server | ✅ Done | Credentials in Preferences; timer, settings and status pages |
 | 3.2 Control endpoints | ✅ Done differently | WebSocket commands instead of REST (PR #1); `/wifi` and `/system` stay REST |
 | 3.3 WebSocket live state | ✅ Done | Status on change + `endsAt`; documented in `websocket.md` |
 | 4.1 Doxygen comments | ✅ Mostly | `Doxyfile` exists; public headers are documented |
-| 4.2 GitHub Actions | 🟡 1 of 4 | `build.yml` (build + flash size budget) done; `lint.yml`, `test.yml`, `docs.yml` not |
+| 4.2 GitHub Actions | 🟡 2 of 4 | `build.yml` (build + flash size budget) and `test.yml` (host tests) done; `lint.yml`, `docs.yml` not |
 | MQTT publish/subscribe | ❌ Not started | Plan ready below |
 | Image redo | ✅ Done | SVG icons, screens drawn in code |
 | Drop LPE entirely | 🟡 Step 1 of 2 | `INCLUDE_MEME_ASSETS` switch done; removal pending |
 | mDNS hostname | ✅ Done | `http://pomodoro.local/` (PR #14) |
 | Refresh trivia facts | 📋 Undecided | Options A/B/C below |
-| Battery power | ❌ Not started | Measure first; the power path decides the case (added 2026-10-10) |
+| Battery power | ❌ Not started | Measuring waits for a USB power meter or INA219; the power path decides the case (added 2026-10-10) |
 | Case changes | ❌ Not started | Needs part choices, sizes and an editable model |
 | Branding | ❌ Not started | Name in `config.h`; nice to have: language stub script, web colour theme |
 
@@ -34,13 +34,13 @@ Flash: 83.6% at the start of 2026-10-10 → **56.4%** (~892 KB free) after it. S
 
 > **Partial.** The switch works, but `af.h` and `de.h` are mostly English placeholders (`af.h` holds the German facts). Translating them is what's left; messages wrap automatically, so translations need no manual line breaks, but must stay plain 7-bit ASCII (the fonts have no accents or ß).
 
-The infrastructure is in place. Each language is a header (e.g. `src/i18n/af.h`) defining a `Msgs` struct of strings and `std::array` message lists (their size is counted by the compiler, and `strings.cpp` static-asserts none has an empty slot); `src/config.h` selects the active one via `#define LANG_XX`.
+The infrastructure is in place. Each language is a header (e.g. `src/i18n/af.h`) defining a `Msgs` struct of strings and `std::array` message lists (their size is counted by the compiler, and `messages.cpp` static-asserts none has an empty slot); `src/config.h` selects the active one via `#define LANG_XX`.
 
 Steps:
 
 - Copy an existing language file as the template
 - Translate the macro values
-- Add a `#ifdef LANG_XX` block in `src/strings.h` matching the existing pattern
+- Add a `#ifdef LANG_XX` block in `src/messages.h` matching the existing pattern
 
 ### 1.2 — Display timeout / blank on idle
 
@@ -62,7 +62,9 @@ PlatformIO supports Unity-based tests. Tests that don't touch hardware can run n
 
 ### 2.1 — Set up host test environment
 
-> **Not started, and the most valuable next step.** Two bugs fixed on 2026-10-10 would have been caught by simple tests: a message array with an empty slot (a crash risk) and "Unknown preset" for new presets. Good first candidates: `Timer::handleCommand()` state transitions, `wrapText()` line breaking, `formatDuration()`, and the per-state command rules in `websocket.md`. `wrapText()` and `Timer` use the display class, so they need a small fake display or a pure-logic seam for host builds.
+> **Started (2026-10-10).** `[env:native]` builds the real timer sources against stand-ins for the hardware in `test/fakes/` (a display that draws nothing, fake time, settings in memory), so no firmware code had to change for testing. `test/test_timer/` covers the state machine (TMR-01 to TMR-10), and CI runs it on every PR (`test.yml`). The full list of tests, with why each one exists, is `test/README.md`; next up there: messages (MSG), `wrapText()` (WRP) and formatting (FMT).
+>
+> Getting it to build turned up one real problem: `src/strings.h` had the same name as the C library's `<strings.h>`, so the system's own `string.h` included ours by mistake. It's now `src/messages.h` (no flash change).
 
 - Add a `[env:native]` section to `platformio.ini`
 - Write tests for pure-logic units: timer state transitions, i18n macro resolution, statistics calculations
@@ -109,12 +111,12 @@ With tests passing and Doxygen comments in place, automation is straightforward.
 
 > **Mostly done.** `Doxyfile` exists (`npm run doxygen`) and the public headers carry `///` / `@brief` docs. Publishing them is `docs.yml` in 4.2.
 
-- Add `///` doc comments to all public headers (start with `src/timer.h`, `src/config.h`, `src/strings.h`)
+- Add `///` doc comments to all public headers (start with `src/timer.h`, `src/config.h`, `src/messages.h`)
 - Add a `Doxyfile` at the repo root
 
 ### 4.2 — GitHub Actions workflows (create `.github/workflows/`)
 
-> **1 of 4 done.** `build.yml` builds the firmware and the web files and enforces the flash/RAM/LittleFS budget (`scripts/check_size.py`); it's the required `firmware` check in the branch ruleset for `main` and `develop`. Next cheapest: `lint.yml` (`clang-format --dry-run`, already enforced locally by the pre-commit hook).
+> **2 of 4 done.** `build.yml` builds the firmware and the web files and enforces the flash/RAM/LittleFS budget (`scripts/check_size.py`); it's the required `firmware` check in the branch ruleset for `main` and `develop`. `test.yml` runs the host tests (job `host-tests`); it can be added to the ruleset as a required check too. Next cheapest: `lint.yml` (`clang-format --dry-run`, already enforced locally by the pre-commit hook).
 
 | Workflow | Trigger | Steps |
 | --- | --- | --- |
@@ -218,10 +220,10 @@ Future   (images, mDNS)            ─── done
 
 **Suggested next, by value:**
 
-1. **Measure power on USB.** A quick baseline before any battery hardware goes in.
-2. **Choose the power path**: booster or a 3.3 V regulator, plus the battery-level divider. This decides the case changes.
-3. **Tests (2.1).** The biggest gap, and the safety net for the MQTT rework; see the note there for first candidates.
-4. **`lint.yml` (4.2).** Cheap: CI repeats the clang-format check every PR already gets locally.
-5. **The shared "state changed" notification, then MQTT.** The larger feature; the plan above is ready.
+1. **More tests (2.1).** The timer tests are in; next the messages, `wrapText()` and formatting tests listed in `test/README.md`. They're the safety net for the MQTT rework.
+2. **`lint.yml` (4.2).** Cheap: CI repeats the clang-format check every PR already gets locally.
+3. **The shared "state changed" notification, then MQTT.** The larger feature; the plan above is ready.
+4. **Choose the power path**: booster or a 3.3 V regulator, plus the battery-level divider. Doesn't need measurements, and it decides the case changes.
+5. **Measure power** (PWR-01 to PWR-05 in `test/README.md`), once there's a USB power meter or an INA219 to measure with.
 6. **Case changes**, once the parts are chosen.
 7. **Branding**, **translations (1.1)**, **dropping LPE**, and **refreshing the facts**, as and when wanted.

@@ -2,7 +2,7 @@
 
 The list of tests for the Pomodoro timer: what each one checks, and **why it exists**. Many rows trace back to a real bug, so the reason column records which one, and the test keeps it from coming back.
 
-Most of these tests are planned, not written yet (roadmap §2.1 and §2.2). Update the **Status** column as they land.
+The timer tests run; most others are still planned (roadmap §2.1 and §2.2). Update the **Status** column as they land.
 
 | Status | Meaning |
 | --- | --- |
@@ -11,10 +11,15 @@ Most of these tests are planned, not written yet (roadmap §2.1 and §2.2). Upda
 | ❌ | Not written yet |
 | 👀 | Manual check, not yet done |
 
-**How the tests will run:**
+**How the tests run:**
 
-- **Host tests** run on the laptop and in CI with `pio test -e native`, once `[env:native]` exists. `Timer` and `wrapText()` use the display class, so they need a small fake display, or the logic split away from the drawing.
-- **On-device tests** drive the ESP32 over the WebSocket (`websocket.md`) from a script on the laptop.
+- **Host tests** run on the laptop with `pio test -e native`, and in CI on every PR (`.github/workflows/test.yml`). They build the real firmware sources (the list is `build_src_filter` in the `[env:native]` section of `platformio.ini`) against stand-ins for the hardware in `test/fakes/`:
+  - **Time** only moves when a test moves it: `fake::now` is what `millis()` returns.
+  - **The display** draws nothing, and measures text as 10 px per character.
+  - **Settings** go to an in-memory map instead of flash, and `fake::prefWrites` counts the writes.
+  - **The button** is pressed by setting `button.pressed = true`. The LED does nothing, and the Status and Settings screens close straight away.
+- Each suite is a folder named `test/test_<name>/`. A firmware source a new suite needs goes into `build_src_filter`; a hardware library it needs gets a stand-in in `test/fakes/`.
+- **On-device tests** will drive the ESP32 over the WebSocket (`websocket.md`) from a script on the laptop.
 
 **Adding a test:** add a row with the next free ID in its section. If the test comes from a bug, say so in **Why**, with the date or PR.
 
@@ -26,19 +31,19 @@ Most of these tests are planned, not written yet (roadmap §2.1 and §2.2). Upda
 
 | ID | What it checks | Why | Status |
 | --- | --- | --- | --- |
-| TMR-01 | Each state accepts exactly the commands in the `websocket.md` table and rejects the rest, leaving the state unchanged | That table is the contract the web page (and later MQTT) relies on. The encoder and remote commands share the same transition code, so this covers both. | ❌ |
-| TMR-02 | Stop returns to `SelectingPreset` with the **same** preset still selected | Bug fixed 2026-10-10: stopping always jumped to preset index 1 | ❌ |
-| TMR-03 | Pausing and resuming a break: the break still runs for its full length, with the pause time left out | Bug fixed 2026-10-10: a paused break ended early | ❌ |
-| TMR-04 | Pausing and resuming work: the pause time is left out of elapsed | Same timekeeping as TMR-03, for work intervals | ❌ |
-| TMR-05 | A long break comes after every `longPauseAfter` cycles, and a short break otherwise (e.g. Coding: long after 2) | The long-break rule is easy to get off by one, and is slow to check by hand | ❌ |
-| TMR-06 | Restart sets the interval back to zero but keeps the cycle count | Decided in Caturday planning: restarting shouldn't cost you your long break | ❌ |
-| TMR-07 | Remaining and interval time are 0 outside the running states, and remaining never wraps around to a huge number after the end | The values are unsigned, and the status JSON and web countdown read them | ❌ |
-| TMR-08 | A `select` command with an out-of-range index is rejected | Remote input is untrusted, and the index goes straight into the preset list | ❌ |
-| TMR-09 | The selection cursor steps through the presets, then Status, then Settings, wrapping both ways; landing on a preset selects it | Status and Settings were added to the selection screen on 2026-10-10 (PR #5) | ❌ |
-| TMR-10 | A 24-hour preset runs and finishes correctly | The planned battery tests use a 24-hour session; check that the timer copes before measuring power | ❌ |
-| TMR-11 | An interval running across the `millis()` wraparound (~49.7 days of uptime) doesn't end early or late | The unsigned subtraction should handle it, but nothing proves it, and a wrong answer only shows after weeks of uptime | ❌ |
+| TMR-01 | Each state accepts exactly the commands in the `websocket.md` table and rejects the rest, leaving the state unchanged | That table is the contract the web page (and later MQTT) relies on. The encoder and remote commands share the same transition code, so this covers both. | ✅ |
+| TMR-02 | Stop returns to `SelectingPreset` with the **same** preset still selected | Bug fixed 2026-10-10: stopping always jumped to preset index 1 | ✅ |
+| TMR-03 | Pausing and resuming a break: the break still runs for its full length, with the pause time left out | Bug fixed 2026-10-10: a paused break ended early | ✅ |
+| TMR-04 | Pausing and resuming work: the pause time is left out of elapsed | Same timekeeping as TMR-03, for work intervals | ✅ |
+| TMR-05 | A long break comes after every `longPauseAfter` cycles, and a short break otherwise (e.g. Coding: long after 2) | The long-break rule is easy to get off by one, and is slow to check by hand | ✅ |
+| TMR-06 | Restart sets the interval back to zero but keeps the cycle count | Decided in Caturday planning: restarting shouldn't cost you your long break | ✅ |
+| TMR-07 | Remaining and interval time are 0 outside the running states, and remaining never wraps around to a huge number after the end | The values are unsigned, and the status JSON and web countdown read them | ✅ |
+| TMR-08 | A `select` command with an out-of-range index is rejected | Remote input is untrusted, and the index goes straight into the preset list | ✅ |
+| TMR-09 | The selection cursor steps through the presets, then Status, then Settings, wrapping both ways; landing on a preset selects it | Status and Settings were added to the selection screen on 2026-10-10 (PR #5) | ✅ |
+| TMR-10 | A 24-hour preset runs and finishes correctly | The planned battery tests use a 24-hour session; check that the timer copes before measuring power | ✅ |
+| TMR-11 | An interval running across the `millis()` wraparound (~49.7 days of uptime) doesn't end early or late | The unsigned subtraction should handle it, but nothing proves it, and a wrong answer only shows after weeks of uptime. **Can't run as a host test:** `unsigned long` is 64 bits on the laptop but 32 on the ESP32, so the laptop never wraps. Needs a 32-bit host build (`-m32`) or the device. | ❌ |
 
-### Messages and presets (`src/i18n/`, `src/strings.cpp`)
+### Messages and presets (`src/i18n/`, `src/messages.cpp`)
 
 | ID | What it checks | Why | Status |
 | --- | --- | --- | --- |
@@ -133,3 +138,4 @@ For the planned LiPo battery (roadmap: Battery power). These are readings from a
 | --- | --- | --- | --- |
 | BLD-01 | Flash use: CI warns at 85% and fails at 95% (`scripts/check_size.py`) | Flash was at 83.6% before Caturday; one stream include alone cost 200 KB | ✅ |
 | BLD-02 | Source formatting, by `clang-format` in the pre-commit hook | Keeps diffs clean. Local only for now; `lint.yml` (roadmap §4.2) would repeat it in CI. | ✅ |
+| BLD-03 | The host tests pass, in CI on every PR (`.github/workflows/test.yml`) | Tests only protect what they're run against | ✅ |
