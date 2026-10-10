@@ -29,8 +29,10 @@ class SplashScreen {
     Menu buttons = Menu(display, new MenuItem[2]{MenuItem("Start"), MenuItem(Msgs::SETTINGS)}, 2);
 
     std::vector<Checkbox> checkboxes = {
-        Checkbox(&icon_lpehacker, Msgs::MODE, "lpe", true),
-        Checkbox(&icon_lpenote, Msgs::MISCMSG, "msgs", true),
+#if INCLUDE_MEME_ASSETS
+        Checkbox(&icon_lpehacker, Msgs::MODE, "lpe", false),
+#endif
+        Checkbox(&icon_messages, Msgs::MISCMSG, "msgs", true),
         Checkbox(nullptr, Msgs::RSTDEVICE, "reset"),
     };
 

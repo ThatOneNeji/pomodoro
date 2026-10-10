@@ -93,7 +93,7 @@ String formatDuration(unsigned long minutes) {
 void Timer::drawRunningBreak() {
     display.fillScreen(GxEPD_WHITE);
 
-    if (isLongBreak) {
+    if (isLongBreak && breakImage) {
         display.drawBitmap(0, 8 + 48 + 4 + 8, breakImage, display.width(), display.height() - 8 - 48 - 4 - 8 - 64 - 4,
                            GxEPD_BLACK);
     } else {

@@ -1,7 +1,7 @@
 /// @file timer.cpp
 #include "timer.h"
 #include "strings.h"
-#include "images.h"
+#include "icon_provider.h"
 #include "led.h"
 #include "preferences_manager.h"
 #include "esp_log.h"
@@ -249,18 +249,14 @@ void Timer::startBreak() {
         isLongBreak = true;
         longestEarnedPauseInShortCycles = 0;
 
-        const std::vector<const unsigned char *> breakImages = {
-            image_bg_cat,
-            image_bg_stonks,
-            image_bg_pablo,
-            image_bg_what_a_week,
-        };
+        // nullptr in the neutral set: the long break then uses the short break's statistics layout.
+        breakImage = IconProvider::getInstance()->getLongBreakImage();
 
-        breakImage = breakImages.at(random(0, breakImages.size()));
-
-        // HACK: The display doesn't like drawing images in one go
-        drawRunningBreak();
-        display.display(true);
+        if (breakImage) {
+            // HACK: The display doesn't like drawing images in one go
+            drawRunningBreak();
+            display.display(true);
+        }
     } else {
         ESP_LOGI(TAG, "startBreak: short break");
         currentBreakDuration = currentPreset->getPauseDuration();

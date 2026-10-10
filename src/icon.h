@@ -6,6 +6,7 @@
 #define ICON_H
 
 #include <Arduino.h>
+#include "esp_log.h"
 
 /// One concrete bitmap of an Icon, picked out at a specific pixel size.
 class ScaledIcon {
@@ -22,47 +23,61 @@ class ScaledIcon {
 };
 
 /**
- * @brief A square icon pre-rasterized at four fixed sizes.
+ * @brief A square icon pre-rasterized at up to four fixed sizes.
  *
- * Only 192/128/64/48px variants exist (generated ahead of time, since the ESP32 has no
- * runtime image-scaling); scaled() picks the matching bitmap rather than resizing on the fly.
+ * Bitmaps are generated ahead of time by scripts/gen_assets.py, since the ESP32 has no runtime
+ * image scaling, and only at the sizes assets/manifest.json lists for that icon (each size costs
+ * flash). Sizes that weren't generated are nullptr; scaled() picks the matching bitmap.
  */
 class Icon {
    public:
     /**
-     * @brief Wrap the four pre-rasterized bitmap variants of one icon.
-     * @param icon192 Bitmap at 192x192px.
-     * @param icon128 Bitmap at 128x128px.
-     * @param icon64 Bitmap at 64x64px.
-     * @param icon48 Bitmap at 48x48px.
+     * @brief Wrap the pre-rasterized bitmap variants of one icon.
+     * @param icon192 Bitmap at 192x192px, or nullptr if not generated.
+     * @param icon128 Bitmap at 128x128px, or nullptr if not generated.
+     * @param icon64 Bitmap at 64x64px, or nullptr if not generated.
+     * @param icon48 Bitmap at 48x48px, or nullptr if not generated.
      */
     Icon(const unsigned char *icon192, const unsigned char *icon128, const unsigned char *icon64,
          const unsigned char *icon48)
         : icon192(icon192), icon128(icon128), icon64(icon64), icon48(icon48) {}
 
-    const unsigned char *icon192;  ///< Bitmap at 192x192px.
-    const unsigned char *icon128;  ///< Bitmap at 128x128px.
-    const unsigned char *icon64;   ///< Bitmap at 64x64px.
-    const unsigned char *icon48;   ///< Bitmap at 48x48px.
+    const unsigned char *icon192;  ///< Bitmap at 192x192px, or nullptr.
+    const unsigned char *icon128;  ///< Bitmap at 128x128px, or nullptr.
+    const unsigned char *icon64;   ///< Bitmap at 64x64px, or nullptr.
+    const unsigned char *icon48;   ///< Bitmap at 48x48px, or nullptr.
 
     /**
      * @brief Look up the pre-rasterized bitmap for a given size.
-     * @param size One of 192, 128, 64, or 48. Any other value falls back to the 48px bitmap.
-     * @return The matching ScaledIcon.
+     *
+     * If that size wasn't generated (a missing entry in assets/manifest.json), falls back to the
+     * closest generated size and logs a warning, so the mistake shows on the serial console
+     * rather than as a crash. The returned ScaledIcon::size is always the bitmap's real size.
+     * @param size One of 192, 128, 64, or 48.
+     * @return The matching (or closest available) ScaledIcon.
      */
     ScaledIcon scaled(uint16_t size) {
-        switch (size) {
-            case 192:
-                return ScaledIcon(icon192, 192);
-            case 128:
-                return ScaledIcon(icon128, 128);
-            case 64:
-                return ScaledIcon(icon64, 64);
-            case 48:
-                return ScaledIcon(icon48, 48);
-            default:
-                return ScaledIcon(icon48, 48);
+        const ScaledIcon variants[] = {ScaledIcon(icon192, 192), ScaledIcon(icon128, 128), ScaledIcon(icon64, 64),
+                                       ScaledIcon(icon48, 48)};
+        const ScaledIcon *closest = nullptr;
+        for (const auto &variant : variants) {
+            if (variant.data == nullptr) {
+                continue;
+            }
+            if (variant.size == size) {
+                return variant;
+            }
+            if (closest == nullptr || abs(variant.size - size) < abs(closest->size - size)) {
+                closest = &variant;
+            }
         }
+
+        if (closest == nullptr) {
+            ESP_LOGE("ICON", "scaled(%u): icon has no bitmaps at all", size);
+            return ScaledIcon(nullptr, 0);
+        }
+        ESP_LOGW("ICON", "scaled(%u): size not generated (see assets/manifest.json), using %u", size, closest->size);
+        return *closest;
     }
 };
 

@@ -46,8 +46,8 @@ volatile bool buttonPressed = false;             ///< Unused.
 volatile unsigned long lastButtonPressTime = 0;  ///< Unused.
 
 #if CHECKBOX_TEST
-Checkbox checkbox(&icon_lpehacker, "A test", "test");
-Checkbox checkbox2(&icon_lpetantrum, "Another test", "test2");
+Checkbox checkbox(&icon_messages, "A test", "test");
+Checkbox checkbox2(&icon_messages, "Another test", "test2");
 #endif
 
 /**
@@ -147,8 +147,9 @@ void setup() {
     display.init(115200, true, 2, false);
     display.setRotation(0);
 
-    // Load LPE mode setting from checkbox
-    IconProvider::getInstance()->setLpeMode(pref_getCheckbox("lpe", true));
+    // Load LPE mode setting from checkbox. Defaults to off, matching MessageCache::isLpeModeEnabled()
+    // and the settings checkbox; IconProvider ignores it unless INCLUDE_MEME_ASSETS is enabled.
+    IconProvider::getInstance()->setLpeMode(pref_getCheckbox("lpe", false));
 
 #ifdef DEBUG
 #if ICON_SCALING_TEST
@@ -157,10 +158,11 @@ void setup() {
     const auto sizes = {48, 64, 128, 192};
     uint16_t xOffset = padding;
     for (const auto size : sizes) {
-        const auto icon = icon_lpesip.scaled(size);
+        // Only the sizes listed in assets/manifest.json exist; others show the closest one.
+        const auto icon = icon_stopwatch.scaled(size);
         const uint16_t yOffset = padding + 192 - size;
         // draw each icon size side by side left to right
-        display.drawBitmap(xOffset, padding, icon.data, size, size, GxEPD_BLACK);
+        display.drawBitmap(xOffset, padding, icon.data, icon.size, icon.size, GxEPD_BLACK);
         drawCenteredText(display, String(size).c_str(), xOffset + size / 2, size + 2 * padding, &SUB_FONT, GxEPD_BLACK);
 
         drawCenteredText(display, "#autoscaling", display.width() / 2, display.height() / 2 + 48, &MAIN_FONT,
@@ -197,7 +199,7 @@ void setup() {
 
 #endif
 
-#if IMAGE_CYCLE_TEST
+#if IMAGE_CYCLE_TEST && INCLUDE_MEME_ASSETS
     std::vector<const unsigned char *> images = {
         // image_bg_cat,
         image_bg_stonks,

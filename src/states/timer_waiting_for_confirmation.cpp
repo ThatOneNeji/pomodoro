@@ -4,6 +4,7 @@
  * TimerState::WaitingConfirmStartOfBreak / WaitingConfirmEndOfBreak screen.
  */
 #include "../timer.h"
+#include "../icon_provider.h"
 #include "esp_log.h"
 
 /// Log tag for this file, used by ESP_LOGx() calls.
@@ -48,7 +49,7 @@ void Timer::drawWaitingForConfirmation() {
 
     display.fillScreen(background);
 
-    ScaledIcon icon = icon_lpetantrum.scaled(128);
+    ScaledIcon icon = IconProvider::getInstance()->getConfirmationIcon()->scaled(128);
 
     const char *text = state == TimerState::WaitingConfirmStartOfBreak
                            ? messageCache.getMessage(Messages::TimerWaitingForConfirmationStartOfBreak_Header)
