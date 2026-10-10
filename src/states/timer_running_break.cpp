@@ -86,6 +86,12 @@ void Timer::drawRunningBreak() {
         uint16_t yOffset = boxBounds.y + innerPadding;
         Bounds statistics = getBounds(display, messageCache.getMessage(Messages::Statistics), &MAIN_FONT);
         display.drawRoundRect(boxBounds.x, boxBounds.y, boxBounds.w, boxBounds.h, 10, GxEPD_BLACK);
+
+        // In the free space left of the box: a steaming cup for a short break, a moon for a long
+        // one, so the two are easy to tell apart at a glance.
+        const ScaledIcon breakIcon = (isLongBreak ? icon_moon : icon_coffee).scaled(128);
+        display.drawBitmap(boxBounds.x / 2 - breakIcon.size / 2, boxBounds.y + boxBounds.h / 2 - breakIcon.size / 2,
+                           breakIcon.data, breakIcon.size, breakIcon.size, GxEPD_BLACK);
         yOffset += statistics.h;
         drawText(display, Msgs::STATISTICS, boxBounds.x + innerPadding, yOffset, &MAIN_FONT, GxEPD_BLACK);
         yOffset += innerPadding;

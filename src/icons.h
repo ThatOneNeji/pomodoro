@@ -21,8 +21,9 @@ extern Icon
 extern Icon
     icon_messages;  ///< Settings: the running-messages checkbox. Bootstrap Icons "chat-quote-fill" (MIT). Sizes: [64].
 extern Icon icon_checkmark;  ///< Draws a checked Checkbox. Bootstrap Icons "check-lg" (MIT). Sizes: [48].
-extern Icon icon_coffee;     ///< Break duration marker on the preset selection screen. Bootstrap Icons "cup-hot-fill"
-                             ///< (MIT). Sizes: [48].
+extern Icon icon_coffee;     ///< Short break screen decoration (128), and the break duration marker on the preset
+                             ///< selection screen (48). Bootstrap Icons "cup-hot-fill" (MIT). Sizes: [128, 48].
+extern Icon icon_moon;       ///< Long break screen decoration. Bootstrap Icons "moon-stars-fill" (MIT). Sizes: [128].
 extern Icon icon_back;       ///< Settings: the Back row. Bootstrap Icons "arrow-left" (MIT). Sizes: [64].
 extern Icon icon_person;     ///< Running screen: the speaker next to the speech bubble. Bootstrap Icons "person-fill"
                              ///< (MIT). Sizes: [128].
