@@ -13,7 +13,7 @@ The timer tests run; most others are still planned (roadmap §2.1 and §2.2). Up
 
 **How the tests run:**
 
-- **Host tests** run on the laptop with `pio test -e native`, and in CI on every PR (`.github/workflows/test.yml`). They build the real firmware sources (the list is `build_src_filter` in the `[env:native]` section of `platformio.ini`) against stand-ins for the hardware in `test/fakes/`:
+- **Host tests** run on the laptop with `pio test -e native` (or `npm run piotests`), and in CI on every PR (`.github/workflows/test.yml`). They build the real firmware sources (the list is `build_src_filter` in the `[env:native]` section of `platformio.ini`) against stand-ins for the hardware in `test/fakes/`:
   - **Time** only moves when a test moves it: `fake::now` is what `millis()` returns.
   - **The display** draws nothing, and measures text as 10 px per character.
   - **Settings** go to an in-memory map instead of flash, and `fake::prefWrites` counts the writes.
