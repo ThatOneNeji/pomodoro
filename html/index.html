@@ -30,57 +30,29 @@
         </header>
 
         <main class="timer-card">
-            <nav class="mode-tabs" role="tablist">
-                <button class="mode-tab active" type="button" data-mode="pomodoro" role="tab" aria-selected="true">Pomodoro</button>
-                <button class="mode-tab" type="button" data-mode="short-break" role="tab" aria-selected="false">Short Break</button>
-                <button class="mode-tab" type="button" data-mode="long-break" role="tab" aria-selected="false">Long Break</button>
-            </nav>
+            <nav class="mode-tabs" id="preset-tabs" role="tablist" aria-label="Presets"></nav>
 
-            <div class="time-display" id="time-display">25:00</div>
+            <p class="phase-label" id="phase-label">Connecting…</p>
+            <div class="time-display" id="time-display">--:--</div>
+            <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
 
             <div class="controls">
-                <button id="start-pause-btn" class="btn-primary" type="button">Start</button>
-                <button id="reset-btn" class="btn-secondary" type="button" aria-label="Reset timer" title="Reset">↺</button>
+                <button id="primary-btn" class="btn-primary" type="button" disabled>Start</button>
+            </div>
+            <div class="controls secondary-controls">
+                <button id="restart-btn" class="btn-secondary btn-labeled" type="button" hidden>Restart</button>
+                <button id="break-btn" class="btn-secondary btn-labeled" type="button" hidden>Break now</button>
+                <button id="stop-btn" class="btn-secondary btn-labeled" type="button" hidden>Stop</button>
             </div>
 
-            <p class="session-count" id="session-count">Session #1</p>
+            <p class="session-count" id="session-count"></p>
+            <p class="connection-status" id="connection-status" role="status"></p>
         </main>
         <footer class="app-footer">
             <p>Pomodoro running on ESP32</p>
         </footer>
 
         <script>
-            const gateway = `ws://${globalThis.location.hostname}/ws`;
-            const RECONNECT_DELAY_MAX = 30000;
-            let websocket;
-            let reconnectDelay = 1000;
-
-            function initWebSocket() {
-                websocket = new WebSocket(gateway);
-
-                websocket.onopen = function () {
-                    reconnectDelay = 1000;
-                };
-
-                websocket.onmessage = function (event) {
-                    const incomingData = JSON.parse(event.data);
-                    console.log(incomingData);
-                };
-
-                // onclose also fires after a connection error (the WebSocket spec always follows
-                // an error with a close), so reconnecting here alone covers both cases. Backing
-                // off geometrically avoids hammering the device while it's rebooting (e.g. after
-                // a WiFi settings save) or unreachable.
-                websocket.onclose = function () {
-                    setTimeout(initWebSocket, reconnectDelay);
-                    reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_DELAY_MAX);
-                };
-            }
-
-            document.addEventListener('DOMContentLoaded', function () {
-                initWebSocket();
-            });
-
             (function () {
                 'use strict';
 
@@ -104,96 +76,266 @@
                     localStorage.setItem('theme', next);
                 });
 
-                // ---- Timer ----
-                var MODES = {
-                    pomodoro: { label: 'pomodoro', seconds: 25 * 60, color: 'var(--accent)' },
-                    'short-break': { label: 'short break', seconds: 5 * 60, color: 'var(--accent-short-break)' },
-                    'long-break': { label: 'long break', seconds: 15 * 60, color: 'var(--accent-long-break)' }
+                // ---- Connection ----
+                // Served by the device, the page talks to its own host. During local development
+                // (e.g. VS Code Live Server on 127.0.0.1) there is no device there: open the page
+                // once with ?device=<device-ip>, and that address is remembered in this browser.
+                // ?device= always takes priority, so it also works for pointing at another unit.
+                var params = new URLSearchParams(location.search);
+                var isLocalDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                var deviceHost = params.get('device');
+                try {
+                    if (deviceHost) {
+                        localStorage.setItem('device', deviceHost);
+                    } else if (isLocalDev) {
+                        deviceHost = localStorage.getItem('device');
+                    }
+                } catch (e) {
+                    // Storage blocked (e.g. private mode): ?device= still works for this load.
+                }
+                deviceHost = deviceHost || location.hostname;
+                var gateway = 'ws://' + deviceHost + '/ws';
+                var RECONNECT_DELAY_MAX = 30000;
+                // A command that isn't valid in the current state is silently ignored by the
+                // device (see websocket.md), so give up waiting for its status change after this.
+                var COMMAND_TIMEOUT = 6000;
+
+                var websocket = null;
+                var reconnectDelay = 1000;
+                var connected = false;
+
+                // ---- State (from the device; see websocket.md) ----
+                var presets = [];
+                var status = null;
+                var statusReceivedAt = 0; // Date.now() when `status` arrived, for the remainingMs fallback
+                var clockOffset = 0; // device clock minus browser clock, in ms
+                var pending = null; // {state, presetIndex, endsAt, timer} while waiting for a command to take effect
+                var notice = '';
+
+                var presetTabs = document.getElementById('preset-tabs');
+                var phaseLabel = document.getElementById('phase-label');
+                var timeDisplay = document.getElementById('time-display');
+                var progressBar = document.getElementById('progress-bar');
+                var primaryBtn = document.getElementById('primary-btn');
+                var restartBtn = document.getElementById('restart-btn');
+                var breakBtn = document.getElementById('break-btn');
+                var stopBtn = document.getElementById('stop-btn');
+                var sessionCount = document.getElementById('session-count');
+                var connectionStatus = document.getElementById('connection-status');
+
+                // Keep ?device= when moving between pages.
+                document.querySelectorAll('a.icon-link').forEach(function (link) {
+                    link.search = location.search;
+                });
+
+                // Per-state UI: phase label, primary action, which secondary actions are offered, and
+                // the accent colour. Mirrors the "valid commands per state" table in websocket.md.
+                var STATES = {
+                    SelectingPreset: { phase: 'Ready', primary: ['Start', 'start'], secondary: [], mode: 'work' },
+                    Running: { phase: 'Working', primary: ['Pause', 'pause'], secondary: ['restart', 'break', 'stop'], mode: 'work' },
+                    UserInitiatedPause: { phase: 'Paused', primary: ['Resume', 'resume'], secondary: ['restart', 'break', 'stop'], mode: 'work' },
+                    WaitingConfirmStartOfBreak: { phase: 'Time for a break', primary: ['Start break', 'break'], secondary: [], mode: 'break' },
+                    RunningBreak: { phase: 'Break', primary: ['Pause', 'pause'], secondary: ['stop'], mode: 'break' },
+                    UserInitiatedBreakPause: { phase: 'Break paused', primary: ['Resume', 'resume'], secondary: ['stop'], mode: 'break' },
+                    WaitingConfirmEndOfBreak: { phase: 'Break over', primary: ['Start next', 'start'], secondary: ['stop'], mode: 'break' }
                 };
 
-                var timeDisplay = document.getElementById('time-display');
-                var startPauseBtn = document.getElementById('start-pause-btn');
-                var resetBtn = document.getElementById('reset-btn');
-                var sessionCountEl = document.getElementById('session-count');
-                var modeTabs = document.querySelectorAll('.mode-tab');
+                function send(command) {
+                    if (!connected) return;
+                    websocket.send(JSON.stringify(command));
+                    clearTimeout(pending && pending.timer);
+                    pending = {
+                        state: status && status.state,
+                        presetIndex: status && status.presetIndex,
+                        endsAt: status && status.endsAt,
+                        timer: setTimeout(function () {
+                            pending = null;
+                            notice = 'The device didn’t respond to that.';
+                            render();
+                        }, COMMAND_TIMEOUT)
+                    };
+                    notice = '';
+                    render();
+                }
 
-                var currentMode = 'pomodoro';
-                var remainingSeconds = MODES[currentMode].seconds;
-                var running = false;
-                var intervalId = null;
-                var completedSessions = 1;
+                function remainingMs() {
+                    if (!status) return 0;
+                    if (status.endsAt !== null && status.endsAt !== undefined) {
+                        return Math.max(0, status.endsAt - (Date.now() + clockOffset));
+                    }
+                    // Paused/idle, or the device clock isn't synced yet: count down locally from the
+                    // last report only while actually running, so a dropped connection keeps going.
+                    var running = status.state === 'Running' || status.state === 'RunningBreak';
+                    var since = running ? Date.now() - statusReceivedAt : 0;
+                    return Math.max(0, status.remainingMs - since);
+                }
 
-                function formatTime(totalSeconds) {
+                function formatTime(ms) {
+                    var totalSeconds = Math.ceil(ms / 1000);
                     var m = Math.floor(totalSeconds / 60);
                     var s = totalSeconds % 60;
                     return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
                 }
 
-                function render() {
-                    timeDisplay.textContent = formatTime(remainingSeconds);
-                    startPauseBtn.textContent = running ? 'Pause' : 'Start';
-                    sessionCountEl.textContent = 'Session #' + completedSessions;
-                    root.style.setProperty('--mode-color', MODES[currentMode].color);
-                }
-
-                function stopTicking() {
-                    if (intervalId !== null) {
-                        clearInterval(intervalId);
-                        intervalId = null;
-                    }
-                    running = false;
-                }
-
-                function tick() {
-                    remainingSeconds -= 1;
-                    if (remainingSeconds <= 0) {
-                        stopTicking();
-                        remainingSeconds = 0;
-                        if (currentMode === 'pomodoro') {
-                            completedSessions += 1;
-                        }
-                        render();
-                        return;
-                    }
-                    render();
-                }
-
-                function setMode(mode) {
-                    currentMode = mode;
-                    stopTicking();
-                    remainingSeconds = MODES[mode].seconds;
-
-                    modeTabs.forEach(function (tab) {
-                        var isActive = tab.getAttribute('data-mode') === mode;
-                        tab.classList.toggle('active', isActive);
-                        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                function renderTabs() {
+                    presetTabs.textContent = '';
+                    presets.forEach(function (preset, index) {
+                        var tab = document.createElement('button');
+                        tab.type = 'button';
+                        tab.className = 'mode-tab';
+                        tab.setAttribute('role', 'tab');
+                        tab.textContent = preset.name;
+                        tab.addEventListener('click', function () {
+                            if (status && index === status.presetIndex) return;
+                            send({ cmd: 'select', preset: index });
+                        });
+                        presetTabs.appendChild(tab);
                     });
-
-                    render();
                 }
 
-                startPauseBtn.addEventListener('click', function () {
-                    if (running) {
-                        stopTicking();
+                function renderTime() {
+                    if (!status) return;
+                    var ms;
+                    var duration = status.durationMs;
+                    var timeUp = status.state === 'WaitingConfirmStartOfBreak' || status.state === 'WaitingConfirmEndOfBreak';
+                    if (status.state === 'SelectingPreset') {
+                        // Idle: preview the selected preset's work length.
+                        var preset = presets[status.presetIndex];
+                        ms = preset ? preset.durationMs : 0;
+                        duration = 0;
                     } else {
-                        running = true;
-                        intervalId = setInterval(tick, 1000);
+                        ms = remainingMs();
+                    }
+                    timeDisplay.textContent = formatTime(ms);
+                    // The device reports no duration once an interval has run out; show it as complete.
+                    progressBar.style.width = timeUp ? '100%' : duration > 0 ? (100 * (1 - ms / duration)).toFixed(2) + '%' : '0%';
+                    document.title = status.state === 'SelectingPreset' ? 'Pomodoro' : formatTime(ms) + ' · ' + status.presetName;
+                }
+
+                function render() {
+                    var ui = status && STATES[status.state];
+                    var busy = !connected || !status || pending !== null;
+
+                    Array.prototype.forEach.call(presetTabs.children, function (tab, index) {
+                        var active = status && index === status.presetIndex;
+                        tab.classList.toggle('active', !!active);
+                        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+                        // Presets can only be changed while idle.
+                        tab.disabled = busy || !status || status.state !== 'SelectingPreset';
+                    });
+
+                    if (ui) {
+                        var phase = ui.phase;
+                        if (ui.mode === 'break' && status.state !== 'WaitingConfirmEndOfBreak') {
+                            phase = (status.isLongBreak ? 'Long ' : 'Short ') + phase.toLowerCase();
+                        }
+                        phaseLabel.textContent = phase;
+                        root.style.setProperty('--mode-color', ui.mode === 'work' ? 'var(--accent)' : status.isLongBreak ? 'var(--accent-long-break)' : 'var(--accent-short-break)');
+
+                        primaryBtn.textContent = ui.primary[0];
+                        primaryBtn.disabled = busy;
+                        restartBtn.hidden = ui.secondary.indexOf('restart') < 0;
+                        breakBtn.hidden = ui.secondary.indexOf('break') < 0;
+                        stopBtn.hidden = ui.secondary.indexOf('stop') < 0;
+                        stopBtn.textContent = status.state === 'WaitingConfirmEndOfBreak' ? 'Back to presets' : 'Stop';
+                        restartBtn.disabled = breakBtn.disabled = stopBtn.disabled = busy;
+
+                        sessionCount.textContent = 'Cycles completed: ' + status.cycles;
+                    } else {
+                        primaryBtn.disabled = true;
+                    }
+
+                    var text = notice;
+                    if (!connected) {
+                        if (status) {
+                            text = 'Connection lost, reconnecting… (the countdown keeps running)';
+                        } else if (isLocalDev && deviceHost === location.hostname) {
+                            text = 'Local copy: open this page with ?device=<device-ip> to connect.';
+                        } else {
+                            text = 'Connecting to ' + deviceHost + '…';
+                        }
+                    } else if (pending) {
+                        text = 'Waiting for the device…';
+                    } else if (!status) {
+                        // The device only sends status once its start screen has been dismissed.
+                        text = 'Connected. If the device is on its start screen, press Start on it.';
+                    }
+                    connectionStatus.textContent = text;
+                    connectionStatus.classList.toggle('is-warning', !connected || text === notice && notice !== '');
+
+                    renderTime();
+                }
+
+                primaryBtn.addEventListener('click', function () {
+                    var ui = status && STATES[status.state];
+                    if (ui) send({ cmd: ui.primary[1] });
+                });
+                restartBtn.addEventListener('click', function () {
+                    send({ cmd: 'restart' });
+                });
+                breakBtn.addEventListener('click', function () {
+                    send({ cmd: 'break' });
+                });
+                stopBtn.addEventListener('click', function () {
+                    send({ cmd: 'stop' });
+                });
+
+                function handleMessage(message) {
+                    if (message.type === 'presets') {
+                        presets = message.presets;
+                        renderTabs();
+                    } else if (message.type === 'status') {
+                        status = message;
+                        statusReceivedAt = Date.now();
+                        if (message.deviceTime !== null && message.deviceTime !== undefined) {
+                            clockOffset = message.deviceTime - statusReceivedAt;
+                        }
+                        // A command has taken effect once the state or selected preset changes, or,
+                        // for restart (same state and preset), once endsAt jumps.
+                        var endsAtMoved = message.endsAt !== null && pending && pending.endsAt !== null && Math.abs(message.endsAt - pending.endsAt) > 1500;
+                        if (pending && (message.state !== pending.state || message.presetIndex !== pending.presetIndex || endsAtMoved)) {
+                            clearTimeout(pending.timer);
+                            pending = null;
+                        }
+                    } else if (message.type === 'error') {
+                        clearTimeout(pending && pending.timer);
+                        pending = null;
+                        notice = message.error === 'not ready' ? 'The device is on its start screen. Press Start on the device first.' : 'Device error: ' + message.error;
                     }
                     render();
-                });
+                }
 
-                resetBtn.addEventListener('click', function () {
-                    stopTicking();
-                    remainingSeconds = MODES[currentMode].seconds;
-                    render();
-                });
+                function initWebSocket() {
+                    websocket = new WebSocket(gateway);
 
-                modeTabs.forEach(function (tab) {
-                    tab.addEventListener('click', function () {
-                        setMode(tab.getAttribute('data-mode'));
-                    });
-                });
+                    websocket.onopen = function () {
+                        connected = true;
+                        reconnectDelay = 1000;
+                        notice = '';
+                        render();
+                    };
 
+                    websocket.onmessage = function (event) {
+                        handleMessage(JSON.parse(event.data));
+                    };
+
+                    // onclose also fires after a connection error (the WebSocket spec always follows
+                    // an error with a close), so reconnecting here alone covers both cases. Backing
+                    // off geometrically avoids hammering the device while it's rebooting (e.g. after
+                    // a WiFi settings save) or unreachable.
+                    websocket.onclose = function () {
+                        connected = false;
+                        clearTimeout(pending && pending.timer);
+                        pending = null;
+                        render();
+                        setTimeout(initWebSocket, reconnectDelay);
+                        reconnectDelay = Math.min(reconnectDelay * 2, RECONNECT_DELAY_MAX);
+                    };
+                }
+
+                // The countdown runs locally from endsAt between (and without) device messages.
+                setInterval(renderTime, 250);
+                initWebSocket();
                 render();
             })();
         </script>
