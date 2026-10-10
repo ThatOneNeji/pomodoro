@@ -33,8 +33,9 @@ SettingsScreen::SettingsScreen(DISPLAY_CLASS &display) : display(display) {
 void SettingsScreen::draw() {
     const int16_t margin = 16;
     const unsigned int rows = checkboxes.size() + 1;  // + the Back / Shut down row
-    const int16_t rowHeight = 96;
-    const int16_t gap = rows <= 3 ? 32 : 16;  // 4 rows (with INCLUDE_MEME_ASSETS) need a tighter gap
+    // Fewer rows get more air; 5 rows (with INCLUDE_MEME_ASSETS) also need shorter rows to fit.
+    const int16_t gap = rows <= 3 ? 32 : rows == 4 ? 16 : 8;
+    const int16_t rowHeight = min<int16_t>(96, (display.height() - 2 * margin - (rows - 1) * gap) / rows);
     const int16_t width = display.width() - 2 * margin;
 
     display.fillScreen(GxEPD_WHITE);

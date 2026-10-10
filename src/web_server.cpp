@@ -295,6 +295,7 @@ static void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsE
 static void handleGetWifi(AsyncWebServerRequest *request) {
     JsonDocument doc;
     doc["ssid"] = getWifiSSID();
+    doc["enabled"] = isWifiEnabled();
 
     String json;
     serializeJson(doc, json);
@@ -315,9 +316,13 @@ static void handleGetSystem(AsyncWebServerRequest *request) {
 }
 
 /**
- * @brief POST /wifi: save new WiFi credentials, then restart so they take effect.
+ * @brief POST /wifi: save new WiFi credentials, or switch WiFi off, then restart so it takes effect.
  *
- * Body: `{"ssid": "...", "password": "..."}`. `password` may be omitted (or empty) to keep the
+ * `{"enabled": false}` switches WiFi off (see isWifiEnabled()); the rest of the body is then
+ * ignored. Only the device's Settings screen can switch it back on, since this page is
+ * unreachable without WiFi.
+ *
+ * Otherwise the body is `{"ssid": "...", "password": "..."}`. `password` may be omitted (or empty) to keep the
  * currently saved password unchanged, so the settings page never has to know/display it. `ssid`
  * is required and rejected with 400 if blank, to avoid saving a configuration that can never
  * reconnect. On success, responds first and restarts a second later via ::restartTicker. The
@@ -326,6 +331,14 @@ static void handleGetSystem(AsyncWebServerRequest *request) {
  * fires while a blocking screen (e.g. Status) is up.
  */
 static void handleSaveWifi(AsyncWebServerRequest *request, const JsonVariant &json) {
+    if (json["enabled"].is<bool>() && !json["enabled"].as<bool>()) {
+        setWifiEnabled(false);
+        ESP_LOGI(TAG, "WiFi switched off from the web page; restarting");
+        request->send(200, "application/json", "{\"ok\":true}");
+        restartTicker.once_ms(1000, []() { ESP.restart(); });
+        return;
+    }
+
     String ssid = json["ssid"] | "";
     if (ssid.length() == 0) {
         request->send(400, "application/json", "{\"error\":\"ssid must not be empty\"}");
@@ -473,6 +486,14 @@ void setupWebServer() {
         ESP_LOGI(TAG, "LittleFS mounted");
     } else {
         ESP_LOGW(TAG, "LittleFS mount failed; static files won't be served. Did you run 'pio run -t uploadfs'?");
+    }
+
+    if (!isWifiEnabled()) {
+        // The radio is off from boot, which also saves power. Nothing below runs, so there's no
+        // web page, mDNS, time sync or MQTT; Settings → WiFi on the device switches it back on.
+        WiFi.mode(WIFI_OFF);
+        ESP_LOGI(TAG, "WiFi is switched off in Settings; not connecting");
+        return;
     }
 
     WiFi.onEvent(onWiFiGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);

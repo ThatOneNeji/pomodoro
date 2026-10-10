@@ -14,9 +14,10 @@
  *     Client → server: `{"cmd": "select", "preset": <index>}`, or `{"cmd": "<name>"}` for
  *     start/pause/resume/restart/stop/break (see TimerCommand). Commands are queued and applied
  *     from loop(); a command that isn't valid in the current state is logged and ignored.
- *   - GET  /wifi: the currently configured SSID (never the password).
+ *   - GET  /wifi: the currently configured SSID (never the password), and whether WiFi is enabled.
  *   - POST /wifi: save new WiFi credentials ({"ssid": "...", "password": "..."}, password
- *     optional to keep the existing one) and restart to apply them.
+ *     optional to keep the existing one) and restart to apply them; or `{"enabled": false}` to
+ *     switch WiFi off (only the device's Settings screen can switch it back on).
  *   - GET  /system: read-only device status (network, time, MQTT, hardware, firmware, storage,
  *     statistics); see system_status.h. Nothing here is editable.
  *   - static files from data/ (e.g. /, /settings.html) once LittleFS is mounted.

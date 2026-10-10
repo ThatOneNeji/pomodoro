@@ -12,6 +12,7 @@
 /// Everything the Status screens show. Collected by collectSystemStatus().
 struct SystemStatus {
     // Network
+    bool wifiEnabled;    ///< Whether WiFi is switched on in Settings (see wifi_manager.h).
     bool wifiConnected;  ///< Whether WiFi is connected with an IP address.
     String ssid;         ///< Configured network name.
     String ip;           ///< IP address, or "" while not connected.
