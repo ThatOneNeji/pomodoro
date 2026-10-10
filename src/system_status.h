@@ -35,7 +35,9 @@ struct SystemStatus {
     uint8_t chipRevision;  ///< Silicon revision.
     uint32_t cpuMhz;
     unsigned long uptimeSeconds;
-    uint32_t freeHeapBytes;
+    uint32_t freeHeapBytes;     ///< Free heap (RAM) now.
+    uint32_t totalHeapBytes;    ///< Total heap size, for context on the free amount.
+    uint32_t minFreeHeapBytes;  ///< Lowest free heap since boot: the health indicator (falling over time = a leak).
 
     // Firmware
     const char *firmwareVersion;  ///< See version.h.

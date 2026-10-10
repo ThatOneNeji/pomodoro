@@ -34,6 +34,8 @@ SystemStatus collectSystemStatus() {
     s.cpuMhz = ESP.getCpuFreqMHz();
     s.uptimeSeconds = millis() / 1000;
     s.freeHeapBytes = ESP.getFreeHeap();
+    s.totalHeapBytes = ESP.getHeapSize();
+    s.minFreeHeapBytes = ESP.getMinFreeHeap();
 
     s.firmwareVersion = getFirmwareVersion();
     s.firmwareBuildTime = getFirmwareBuildTime();
@@ -73,6 +75,8 @@ void systemStatusToJson(const SystemStatus &s, JsonDocument &doc) {
     doc["cpuMhz"] = s.cpuMhz;
     doc["uptimeSeconds"] = s.uptimeSeconds;
     doc["freeHeapBytes"] = s.freeHeapBytes;
+    doc["totalHeapBytes"] = s.totalHeapBytes;
+    doc["minFreeHeapBytes"] = s.minFreeHeapBytes;
 
     doc["firmwareVersion"] = s.firmwareVersion;
     doc["firmwareBuildTime"] = s.firmwareBuildTime;

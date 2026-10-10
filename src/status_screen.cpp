@@ -53,7 +53,9 @@ std::vector<Row> rowsFor(unsigned int page, const SystemStatus &s) {
                 {"Chip", s.chipModel + " rev " + String(s.chipRevision)},
                 {"CPU", String(s.cpuMhz) + " MHz"},
                 {"Uptime", formatUptime(s.uptimeSeconds)},
-                {"Free memory", formatBytes(s.freeHeapBytes)},
+                {"Free memory", formatBytes(s.freeHeapBytes) + " of " + formatBytes(s.totalHeapBytes) + " (" +
+                                    String(s.totalHeapBytes ? 100UL * s.freeHeapBytes / s.totalHeapBytes : 0) + "%)"},
+                {"Lowest free", formatBytes(s.minFreeHeapBytes)},
             };
         case 3: {
             const unsigned int percent =
