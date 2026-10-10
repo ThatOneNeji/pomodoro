@@ -302,7 +302,7 @@ static void handleGetWifi(AsyncWebServerRequest *request) {
 
 /**
  * @brief GET /system: read-only device status for the web status page; see system_status.h for
- * the fields. The same snapshot drives the start screen's Status page.
+ * the fields. The same snapshot drives the device's Status screen.
  */
 static void handleGetSystem(AsyncWebServerRequest *request) {
     JsonDocument doc;
@@ -322,7 +322,7 @@ static void handleGetSystem(AsyncWebServerRequest *request) {
  * reconnect. On success, responds first and restarts a second later via ::restartTicker. The
  * restart can't happen in this handler: send() only queues the response, which goes out after
  * the handler returns, so restarting here would drop it. A Ticker (rather than loop()) still
- * fires while the blocking splash screen is up.
+ * fires while a blocking screen (e.g. Status) is up.
  */
 static void handleSaveWifi(AsyncWebServerRequest *request, const JsonVariant &json) {
     String ssid = json["ssid"] | "";

@@ -113,10 +113,9 @@ Timer timer(display);
 /**
  * @brief Arduino setup(): bring up hardware, run the splash screen, and register the timer presets.
  *
- * Order matters here: button/LED/encoder/preferences are initialized before the display, and
- * the splash screen's blocking loop() (see SplashScreen::loop()) runs to completion — either
- * starting the timer or falling into the settings screen and restarting the device — before
- * this function returns and the main loop() begins driving Timer::loop().
+ * Order matters here: button/LED/encoder/preferences are initialized before the display. The
+ * splash screen shows the logo for SPLASH_DURATION_MS, then setup() registers the presets and
+ * hands over to preset selection, where Status and Settings are also reachable.
  */
 void setup() {
     Serial.begin(115200);
@@ -316,9 +315,7 @@ void setup() {
 
     setLedMode(LedMode::Splashscreen);
 
-    SplashScreen splashScreen(display, timer);
-    splashScreen.draw();
-    splashScreen.loop(&debouncedCount);
+    SplashScreen(display).show();
     setLedMode(LedMode::Off);
 
     auto iconProvider = IconProvider::getInstance();

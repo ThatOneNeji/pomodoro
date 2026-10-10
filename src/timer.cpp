@@ -103,6 +103,17 @@ void Timer::addPreset(Icon *icon, const unsigned char *background, const char *n
 void Timer::selectPreset(int index) {
     currentPreset = &presets[index];
     presetIndex = index;
+    selectionCursor = index;
+}
+
+void Timer::moveSelectionCursor(int direction) {
+    const unsigned int positions = presets.size() + 2;  // presets, then Status and Settings
+    selectionCursor = (selectionCursor + positions + direction) % positions;
+    // The preset stays selected while the cursor is on Status/Settings, so the web UI (and Start
+    // from the web) still see the last preset.
+    if (selectionCursor < presets.size()) {
+        selectPreset(selectionCursor);
+    }
 }
 
 void Timer::nextPreset() {

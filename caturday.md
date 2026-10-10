@@ -433,3 +433,20 @@ The full plan is in `roadmap.MD` → Future → **MQTT publish/subscribe**. In s
 - **Without it:** the browser shows `remainingMs` from the once-a-second broadcast, as it works today.
 
 It's a small addition to `buildStatusJson()`, but decide before building the countdown in §2, because it changes how the frontend draws the timer.
+
+---
+
+## 11. Splash, selection menu and drawn running screen (added 2026-10-10)
+
+**Done** on `feature/drawn-backgrounds` and `feature/selection-menu`:
+
+- **Running screen:** the person and speech bubble are drawn in code (Bootstrap `person-fill` + `drawSpeechBubble()`) instead of the 48 KB `bg_bubble` bitmap. A default build now has no full-screen bitmaps.
+- **Splash:** no menu any more. It shows the logo for `SPLASH_DURATION_MS` (`config.h`, 3 s), then goes to preset selection by itself, so idle blanking works from boot and testing needs no button press after flashing.
+- **Preset selection:** a **Status | Settings** row at the top; the knob cycles presets → Status → Settings. Preset icons went from 192 to 128 px to make room.
+- **Settings:** its own screen with a **Back** row, since it's now reachable during normal use. Fixed: every redraw used to rewrite every setting to flash.
+- Flash: 67.0% → **64.6%**.
+
+**Pinned (decide later):**
+
+- **Break screen decorations.** Breaks are already fully drawn in code (statistics box, header, menu). The idea on the table: a large Bootstrap icon in the free space left of the statistics box, e.g. `cup-hot` for short breaks and `moon-stars` for long ones, ~2 KB each at 128 px.
+- **The long press (§7).** Its purpose was reaching Settings without a power cycle, and Settings is now on the selection screen. Options: drop it, keep it as "return to preset selection from anywhere", or keep the original restart.

@@ -1,86 +1,31 @@
 /**
  * @file splashscreen.h
- * @brief The boot-time "Start / Settings" screen, and the settings sub-screen it leads to.
- *
- * Both loop() and loopSettings() block the caller (they run their own `while (true)` polling
- * loop) until the user makes a choice, rather than being driven from the main Arduino loop().
+ * @brief The boot-time splash screen: the "Pomodoro" logo, shown for ::SPLASH_DURATION_MS.
  */
 #ifndef SPLASHSCREEN_H
 #define SPLASHSCREEN_H
 
 #include <Arduino.h>
-#include <GxEPD2_BW.h>
-#include <GxEPD2_GFX.h>
-#include "gfx_utils.h"
-#include "icons.h"
-#include "icon.h"
-#include "timer.h"
-#include "checkbox.h"
-#include "debug.h"
-#include "images.h"
-#include <vector>
+#include "config.h"
 
-/// Boot-time screen offering "Start" (begins the Timer), "Settings" (persisted Checkbox options) or "Status".
+/**
+ * @brief Shows the logo at boot, then hands over to preset selection.
+ *
+ * It has no menu: Status and Settings live on the preset selection screen. Moving straight on
+ * also means the idle display blanking (which only runs once the timer has taken over) works
+ * from boot, rather than after someone has pressed Start.
+ */
 class SplashScreen {
    private:
     DISPLAY_CLASS &display;
-    Timer &timer;
-
-    Menu buttons =
-        Menu(display, new MenuItem[3]{MenuItem(Msgs::START), MenuItem(Msgs::SETTINGS), MenuItem(Msgs::STATUS)}, 3);
-
-    std::vector<Checkbox> checkboxes = {
-#if INCLUDE_MEME_ASSETS
-        Checkbox(&icon_lpehacker, Msgs::MODE, "lpe", false),
-#endif
-        Checkbox(&icon_messages, Msgs::MISCMSG, "msgs", true),
-        Checkbox(nullptr, Msgs::RSTDEVICE, "reset"),
-    };
-
-    Checkbox *selectedCheckbox;
-    int16_t selectedSettingsIndex = 0;
-    int16_t lastEncoderCount = 0;
 
    public:
-    /**
-     * @brief Construct the splash screen, loading persisted checkbox settings immediately.
-     * @param display Shared e-paper display reference.
-     * @param timer Timer instance to start() when "Start" is chosen.
-     */
-    SplashScreen(DISPLAY_CLASS &display, Timer &timer);
-    ~SplashScreen();  ///< Destructor.
+    /// @param display Shared e-paper display reference.
+    explicit SplashScreen(DISPLAY_CLASS &display);
 
-    /**
-     * @brief Declared but not yet implemented anywhere, and currently unused.
-     * @param count Unused.
-     */
-    void setLastEncoderCount(int16_t count);
-
-    /// Draw the "Start / Settings" screen.
-    void draw();
-
-    /**
-     * @brief Block until the user picks "Start" or "Settings", handling the choice before returning.
-     *
-     * Picking "Start" calls `timer.start()` and returns; picking "Settings" runs drawSettings()
-     * and loopSettings() (which itself blocks, and restarts the device). Picking "Status" shows
-     * the StatusScreen and comes back to this menu when it's dismissed.
-     * @param encoderCount Pointer to the shared, debounced encoder count.
-     */
-    void loop(volatile const int *encoderCount);
-
-    /// Draw the settings screen, listing each persisted Checkbox with the selected one highlighted.
-    void drawSettings();
-
-    /**
-     * @brief Block, handling settings navigation/toggling until the device restarts.
-     *
-     * A button press toggles and saves the selected checkbox (or, for the "Reset Device" entry,
-     * clears all persisted preferences) and then calls `ESP.restart()` — this function does not
-     * return under normal use.
-     * @param encoderCount Pointer to the shared, debounced encoder count.
-     */
-    void loopSettings(volatile const int *encoderCount);
+    /// Draw the logo, wait ::SPLASH_DURATION_MS, and discard any button press made meanwhile, so
+    /// it can't carry over and start a preset.
+    void show();
 };
 
 #endif

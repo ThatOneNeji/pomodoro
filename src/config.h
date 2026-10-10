@@ -40,6 +40,9 @@
 #define LARGE_FONT FunnelDisplay_Bold60pt7b       ///< Largest text (e.g. the countdown display).
 /// @}
 
+/// How long the boot splash screen (logo) is shown before preset selection, in milliseconds.
+#define SPLASH_DURATION_MS 3000
+
 /// Slow display redraw interval, in milliseconds.
 #define REDRAW_INTERVAL_SLOW 1000
 
