@@ -20,3 +20,10 @@ package-lock.json
 node_modules/
 docs/api-docs
 data/
+
+# Python bytecode (e.g. from cad/build_case.py)
+__pycache__/
+
+# FreeCAD documents and backups: viewing copies only, the case source is cad/ (see cad/README.md)
+*.FCStd
+*.FCBak
