@@ -25,10 +25,6 @@
 #include "web_server.h"
 #include "mqtt_manager.h"
 
-#if STRINGS_TEST
-#include <sstream>
-#endif
-
 /// Log tag for this file, used by ESP_LOGx() calls.
 [[maybe_unused]] static const char *TAG = "MAIN";
 
@@ -263,44 +259,21 @@ void setup() {
 #endif
 
 #if STRINGS_TEST
-
-    // Space for message: 221,330 until 649,409
-    const uint16_t messageMinX = 221;
-    const uint16_t messageMaxX = 649;
-    const uint16_t messageMinY = 330;
-    const uint16_t messageMaxY = 409;
-    const uint16_t messageW = messageMaxX - messageMinX;
-    const uint16_t messageH = messageMaxY - messageMinY;
-
+    // Wraps every message exactly as the running screen does (see Timer::drawRunning()) and logs
+    // any that don't fit the speech bubble's 4 lines.
     ESP_LOGI(TAG, "--- Messages ---");
-
+    unsigned int tooLong = 0;
     for (auto msg : messageCache.getMessages()) {
-        // Split message by lines and print individually
-        std::string messageStr(msg);
-        std::istringstream iss(messageStr);
-        std::string line;
-        int lineIndex = 0;
-        while (std::getline(iss, line, '\n')) {
-            if (lineIndex >= 3) {
-                ESP_LOGW(TAG, "Too many lines in message \"%s\"", msg);
-                break;
-            }
-
-            int yPos = messageMinY + lineIndex * 18 + 18;  // + 18 because of the first line
-            Bounds b = drawText(display, line.c_str(), messageMinX, yPos, &SMALL_FONT, GxEPD_BLACK);
-            ++lineIndex;
-
-            if (b.w > messageW || b.y + b.h > messageMaxY) {
-                auto wOver = b.w - messageW;
-                auto hOver = b.y + b.h - messageMaxY;
-
-                ESP_LOGW(TAG, "Line too long: \"%s\" {x: %d, y: %d, w: %d (+%d), h: %d (+%d)}", line.c_str(), b.x, b.y,
-                         b.w, wOver > 0 ? wOver : 0, b.h, hOver > 0 ? hOver : 0);
-            } else {
-                ESP_LOGI(TAG, "\"%s\" {x: %d, y: %d, w: %d, h: %d}", line.c_str(), b.x, b.y, b.w, b.h);
-            }
+        bool truncated = false;
+        const auto lines = wrapText(display, msg, &SMALL_FONT, 649 - 221, 4, &truncated);
+        if (truncated) {
+            ++tooLong;
+            ESP_LOGW(TAG, "Too long for 4 lines: \"%s\"", msg);
+        } else {
+            ESP_LOGI(TAG, "%u line(s): \"%s\"", (unsigned) lines.size(), msg);
         }
     }
+    ESP_LOGI(TAG, "--- %u message(s) too long ---", tooLong);
 #endif
 
 #if ANNIVERSARY_MODE
