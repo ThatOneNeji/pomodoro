@@ -89,6 +89,25 @@ static String buildStatusJson() {
     doc["isLongBreak"] = timer.isOnLongBreak();
     doc["cycles"] = timer.getCycles();
 
+    // endsAt lets clients keep counting down on their own between messages (or through a dropped
+    // connection); deviceTime lets them correct for their own clock differing from the device's.
+    // Both are null until SNTP has synced, and endsAt is also null unless an interval is actively
+    // counting down (paused or idle), in which case clients should show remainingMs as-is.
+    int64_t nowMillis;
+    const bool synced = getEpochMillis(nowMillis);
+    const TimerState state = timer.getState();
+    const bool countingDown = state == TimerState::Running || state == TimerState::RunningBreak;
+    if (synced) {
+        doc["deviceTime"] = nowMillis;
+    } else {
+        doc["deviceTime"] = nullptr;
+    }
+    if (synced && countingDown) {
+        doc["endsAt"] = nowMillis + (int64_t) timer.getRemainingMillis();
+    } else {
+        doc["endsAt"] = nullptr;
+    }
+
     String json;
     serializeJson(doc, json);
     return json;

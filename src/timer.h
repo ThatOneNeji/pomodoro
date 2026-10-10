@@ -246,6 +246,15 @@ class Timer {
     const char *getRunningMessage();
     unsigned long lastMessageUpdate;  ///< millis() timestamp the running speech-bubble message was last rotated.
 
+    /**
+     * @brief Milliseconds elapsed in the current interval, computed from millis() while counting down.
+     *
+     * ::elapsed is only refreshed at the start of each loop(), and a display redraw can then block
+     * for a second or more, so it can be stale when read from outside the state handlers (e.g. by
+     * the /ws status broadcast). While paused, this is the frozen ::elapsed.
+     */
+    unsigned long getLiveElapsed();
+
     /// Reset per-interval timekeeping (startTime/elapsed/totalPausedTime) and the menu bar, shared by
     /// start()/stop()/startBreak().
     void reset();

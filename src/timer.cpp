@@ -562,15 +562,24 @@ TimerState Timer::getState() { return state; }
 
 const char *Timer::getCurrentPresetName() { return currentPreset ? currentPreset->getName() : nullptr; }
 
+unsigned long Timer::getLiveElapsed() {
+    if (state == TimerState::Running || state == TimerState::RunningBreak) {
+        return millis() - startTime - totalPausedTime;
+    }
+    return elapsed;
+}
+
 unsigned long Timer::getRemainingMillis() {
+    const unsigned long liveElapsed = getLiveElapsed();
     switch (state) {
         case TimerState::Running:
         case TimerState::UserInitiatedPause:
-            return (currentPreset && elapsed < currentPreset->getDuration()) ? currentPreset->getDuration() - elapsed
-                                                                             : 0;
+            return (currentPreset && liveElapsed < currentPreset->getDuration())
+                       ? currentPreset->getDuration() - liveElapsed
+                       : 0;
         case TimerState::RunningBreak:
         case TimerState::UserInitiatedBreakPause:
-            return elapsed < currentBreakDuration ? currentBreakDuration - elapsed : 0;
+            return liveElapsed < currentBreakDuration ? currentBreakDuration - liveElapsed : 0;
         default:
             return 0;
     }
