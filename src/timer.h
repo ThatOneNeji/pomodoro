@@ -36,7 +36,7 @@ class Preset {
      * @param icon Icon representing this preset.
      * @param background Full-screen background bitmap shown while this preset is running, or nullptr
      *                   to draw the neutral person and speech bubble instead.
-     * @param name Preset name (also used to look up its running-message strings; see Timer::getRunningMessage()).
+     * @param name Preset name, shown on screen (and used by IconProvider to pick its icon).
      * @param duration Work interval duration, in milliseconds.
      * @param pauseDuration Short break duration, in milliseconds.
      * @param longPauseDuration Long break duration, in milliseconds.
@@ -250,7 +250,7 @@ class Timer {
     /// Draw the RunningBreak/UserInitiatedBreakPause screen. See src/states/timer_running_break.cpp.
     void drawRunningBreak();
 
-    /// @return A running-message string appropriate for ::currentPreset (e.g. Messages::Preset_Coding_Message).
+    /// @return The current speech-bubble message (Messages::Preset_RunningMessage; the same pool for every preset).
     const char *getRunningMessage();
     unsigned long lastMessageUpdate;  ///< millis() timestamp the running speech-bubble message was last rotated.
 
@@ -287,7 +287,7 @@ class Timer {
      * @param icon Icon representing this preset.
      * @param background Full-screen background bitmap shown while this preset is running, or nullptr
      *                   to draw the neutral person and speech bubble instead.
-     * @param name Preset name (also used to look up its running-message strings; see getRunningMessage()).
+     * @param name Preset name, shown on screen (and used by IconProvider to pick its icon).
      * @param duration Work interval duration, in milliseconds.
      * @param pauseDuration Short break duration, in milliseconds.
      * @param longPauseDuration Long break duration, in milliseconds.

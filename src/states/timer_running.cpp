@@ -22,9 +22,7 @@ void Timer::handleRunning(volatile const int *encoderCount) {
 
     if (state == TimerState::Running && millis() - lastMessageUpdate >= RUNNING_MESSAGE_REFRESH_INTERVAL) {
         lastMessageUpdate = millis();
-        messageCache.clearCache(Messages::Preset_Email_Message);
-        messageCache.clearCache(Messages::Preset_Coding_Message);
-        messageCache.clearCache(Messages::Preset_Focus_Message);
+        messageCache.clearCache(Messages::Preset_RunningMessage);
 
         needsRedraw = true;
     }
@@ -176,17 +174,8 @@ const char *Timer::getRunningMessage() {
         return "No preset selected";
     }
 
-    if (currentPreset->getName() == nullptr) {
-        return "No name";
-    }
-
-    if (strcmp(currentPreset->getName(), "Emails") == 0) {
-        return messageCache.getMessage(Messages::Preset_Email_Message);
-    } else if (strcmp(currentPreset->getName(), "Coding") == 0) {
-        return messageCache.getMessage(Messages::Preset_Coding_Message);
-    } else if (strcmp(currentPreset->getName(), "Focus") == 0) {
-        return messageCache.getMessage(Messages::Preset_Focus_Message);
-    }
-
-    return "Unknown preset";
+    // Every preset shares one message pool, so presets added to PRESETS (config.h) need nothing
+    // here. (This used to match "Emails"/"Coding"/"Focus" by name and show "Unknown preset" for
+    // anything else, such as "Workshop".)
+    return messageCache.getMessage(Messages::Preset_RunningMessage);
 }

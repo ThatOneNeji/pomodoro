@@ -54,10 +54,8 @@ enum class Messages {
     TimeFormat_Minutes,
     TimeFormat_Seconds,
 
-    // Preset specific messages
-    Preset_Email_Message,
-    Preset_Coding_Message,
-    Preset_Focus_Message,
+    // The speech-bubble message while any preset is running (the same pool for every preset).
+    Preset_RunningMessage,
 
     Statistics,
     Statistics_CurrentCycle,
