@@ -11,21 +11,19 @@ Prep notes written before Caturday (2026-10-08), then kept up to date as the wor
 | 0 | Before Saturday | ✅ Done |
 | 1 | Backend: WebSocket commands | ✅ Done (PR #1) |
 | 2 | Frontend: controls and countdown | ✅ Done (PR #1) |
-| 3 | Preset graphics / Workshop | 🟡 Workshop icon done (PR #2); **its running message still says "Unknown preset"** |
+| 3 | Preset graphics / Workshop | ✅ Done: icon (PR #2), running message (PR #7) |
 | 4 | Decisions | ✅ All recorded |
-| 5 | Suggested order | 🟡 5 of 7 steps done, 1 dropped (the long press); the Workshop message remains |
+| 5 | Suggested order | ✅ 6 of 7 steps done, 1 dropped (the long press) |
 | 6 | CI size budget | ✅ Done; runs on every PR |
 | 7 | Long press | ❌ Dropped (2026-10-10): Settings is now on the selection screen |
 | 8 | Status screen | ✅ Done (PR #3); some checks still to test, see below |
 | 9 | LPE switch + SVG icons | ✅ Done (PR #2), plus the drawn running screen (PR #4) |
 | 10 | MQTT direction | 📋 Later (`roadmap.MD`); the `endsAt` part is done |
-| 11 | Splash + selection menu | ✅ Done (PR #4, #5); two decisions pinned |
+| 11 | Splash + selection menu | ✅ Done (PR #4, #5); break icons decided and done (PR #8) |
 
-**Still to do**
+**Still to do:** nothing from the Caturday plan. **Later** (`roadmap.MD`): MQTT publishing, the QR code on the status screen, fully removing LPE, tests (Phase 2).
 
-1. **Workshop running message** (§3): add a message entry to `src/i18n/{en,af,de}.h` and to the name-based lookup in `Timer::getRunningMessage()`.
-2. **Pinned decision** (§11): break screen decorations.
-3. **Later** (`roadmap.MD`): MQTT publishing, the QR code on the status screen, fully removing LPE, tests (Phase 2).
+**Also fixed along the way (PR #7):** the trivia list had 42 slots but 41 facts, so ~1 in 50 running messages could be a null pointer and crash the device. The message arrays now size themselves, and the build fails if a slot is ever empty.
 
 **Still to test**
 
@@ -180,7 +178,7 @@ Presets are matched **by name string** in three places, and none of them knows a
 
 ## 5. Suggested Saturday order
 
-1. 🟡 Fix Workshop wiring (or move to config-driven presets). Small, and it unblocks the graphics work.
+1. ✅ Fix Workshop wiring (or move to config-driven presets). Small, and it unblocks the graphics work.
 2. ✅ Status JSON additions + `presets` on connect. Check with the browser console, since `console.log` is already there.
 3. ✅ Command queue + `select` / `start` / `stop` only, end-to-end with minimal frontend buttons.
 4. ✅ The rest of the commands + full frontend render.
@@ -484,7 +482,7 @@ It's a small addition to `buildStatusJson()`, but decide before building the cou
 - **Settings:** its own screen with a **Back** row, since it's now reachable during normal use. Fixed: every redraw used to rewrite every setting to flash.
 - Flash: 67.0% → **64.6%**.
 
-**Pinned (decide later):**
+**Decided:**
 
-- **Break screen decorations.** Breaks are already fully drawn in code (statistics box, header, menu). The idea on the table: a large Bootstrap icon in the free space left of the statistics box, e.g. `cup-hot` for short breaks and `moon-stars` for long ones, ~2 KB each at 128 px.
+- **Break screen decorations: done (PR #8).** A 128 px cup (`cup-hot-fill`) for short breaks and a moon (`moon-stars-fill`) for long ones, left of the statistics box. The original idea: Breaks are already fully drawn in code (statistics box, header, menu). The idea on the table: a large Bootstrap icon in the free space left of the statistics box, e.g. `cup-hot` for short breaks and `moon-stars` for long ones, ~2 KB each at 128 px.
 - ~~**The long press (§7).**~~ **Decided: dropped.** Its purpose was reaching Settings without a power cycle, and Settings is now on the selection screen.
