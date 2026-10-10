@@ -327,7 +327,7 @@ void setup() {
                         preset.longPauseAfter);
     }
 
-    // enterPresetSelection() (rather than selectPreset(1) alone) also resets the idle-blank
+    // enterPresetSelection() (rather than selectPreset() alone) also resets the idle-blank
     // timer, which otherwise would have been ticking since Timer's construction near boot —
     // through however long setup() and the splash screen took — causing an immediate blank
     // on the very first tick of real interaction.
@@ -336,6 +336,12 @@ void setup() {
 
 /// Arduino loop(): drive the timer state machine each iteration with the current encoder count.
 void loop() {
+    TimerCommand command;
+    int commandArg;
+    while (webServerNextCommand(command, commandArg)) {
+        timer.handleCommand(command, commandArg, &debouncedCount);
+    }
+
     timer.loop(&debouncedCount);
     lastCount = debouncedCount;
 

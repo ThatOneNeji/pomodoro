@@ -9,7 +9,7 @@
     </head>
     <body>
         <header class="app-header">
-            <a class="back-link" href="/">&larr; Back</a>
+            <a class="back-link" href="index.html">&larr; Back</a>
             <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
                 <svg class="icon icon-sun" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="4"></circle>
@@ -107,6 +107,28 @@
                     localStorage.setItem("theme", next);
                 });
 
+                // ---- Device address (same logic as index.html) ----
+                // Served by the device, requests go to its own host. From a local dev server
+                // (e.g. VS Code Live Server on 127.0.0.1) they go to the device remembered from
+                // ?device=<device-ip>; the device allows those cross-origin requests (see
+                // localDevCorsMiddleware() in web_server.cpp).
+                var params = new URLSearchParams(location.search);
+                var isLocalDev = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+                var deviceHost = params.get("device");
+                try {
+                    if (deviceHost) {
+                        localStorage.setItem("device", deviceHost);
+                    } else if (isLocalDev) {
+                        deviceHost = localStorage.getItem("device");
+                    }
+                } catch (e) {
+                    // Storage blocked (e.g. private mode): ?device= still works for this load.
+                }
+                var apiBase = deviceHost && deviceHost !== location.host ? "http://" + deviceHost : "";
+
+                // Keep ?device= when going back to the timer page.
+                document.querySelector("a.back-link").search = location.search;
+
                 // ---- WiFi settings form ----
                 var form = document.getElementById("wifi-form");
                 var ssidInput = document.getElementById("ssid");
@@ -119,7 +141,7 @@
                     statusEl.className = "form-status" + (kind ? " " + kind : "");
                 }
 
-                fetch("/wifi")
+                fetch(apiBase + "/wifi")
                     .then(function (res) {
                         return res.json();
                     })
@@ -142,7 +164,7 @@
                     saveBtn.disabled = true;
                     setStatus("Saving...", "");
 
-                    fetch("/wifi", {
+                    fetch(apiBase + "/wifi", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ ssid: ssid, password: passwordInput.value }),
@@ -174,7 +196,7 @@
                 }
 
                 function refreshSystemStatus() {
-                    fetch("/system")
+                    fetch(apiBase + "/system")
                         .then(function (res) {
                             return res.json();
                         })

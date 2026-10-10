@@ -9,9 +9,9 @@ RAM 30.7%, **Flash 83.6% (~336 KB free)**. CI now enforces this, see [§6](#6-ci
 
 ## 0. Before Saturday (5 minutes, no code)
 
-- [ ] Commit the current WIP (`config.h` presets + MQTT disabled, README heading fix, `.vscode/extensions.json`) so Saturday starts from a clean tree
-- [ ] `git switch -c feature/web-control` off `develop`
-- [ ] Have the replacement artwork ready as PNGs (see [§3](#3-backend--preset-graphics))
+- [x] Commit the current WIP (`config.h` presets + MQTT disabled, README heading fix, `.vscode/extensions.json`) so Saturday starts from a clean tree
+- [x] `git switch -c feature/web-control` off `develop`
+- [x] Have the replacement artwork ready as PNGs (see [§3](#3-backend--preset-graphics))
 
 ---
 
@@ -384,3 +384,18 @@ This is bigger than one day, together with the web work. A realistic first slice
 3. Add a Workshop icon (fixes the §3 fallback). Bootstrap has `tools` and `hammer`.
 4. Delete the dead `src/lpe.h` and `image_bg_lpehacker_bubble.h`
 5. Follow-up session: the code-drawn running bubble, long-break and splash screens
+
+---
+
+## 10. MQTT: decided direction, not for Caturday (added 2026-10-10)
+
+The full plan is in `roadmap.MD` → Future → **MQTT publish/subscribe**. In short: the same JSON as `websocket.md`, topics instead of the `type` field, retained status/presets, a last-will availability topic, and status published on change only.
+
+**Decided (2026-10-10): yes, `status` includes `endsAt`** (plus `deviceTime`, to correct for the browser's clock differing from the device's). The web countdown keeps running through a dropped connection, and the next message re-syncs it. Implemented; see `websocket.md` → *Showing the countdown*.
+
+~~One open decision affects today's frontend work:~~ whether `status` gets an **`endsAt`** field (the epoch ms when the interval ends, from SNTP time).
+
+- **With it:** the browser counts down smoothly by itself, the WebSocket can send `status` on changes only, and MQTT later gets it for free.
+- **Without it:** the browser shows `remainingMs` from the once-a-second broadcast, as it works today.
+
+It's a small addition to `buildStatusJson()`, but decide before building the countdown in §2, because it changes how the frontend draws the timer.

@@ -5,8 +5,14 @@
  * LittleFS. Never blocks startup — the device works the same fully offline.
  *
  * Routes:
- *   - WS    /ws: pushes {state, presetName, remainingMs} on connect and then on every change,
- *     replacing what used to be a polled GET /status endpoint.
+ *   - WS    /ws: two-way. Server → client messages all carry a `type`:
+ *       - `presets`: `{presets: [{name, durationMs, pauseMs, longPauseMs, longPauseAfter}]}`, on connect.
+ *       - `status`: `{state, presetIndex, presetName, remainingMs, durationMs, isLongBreak, cycles}`,
+ *         on connect, immediately on any state/preset change, and otherwise once a second.
+ *       - `error`: `{error}`, in reply to a malformed or unknown command.
+ *     Client → server: `{"cmd": "select", "preset": <index>}`, or `{"cmd": "<name>"}` for
+ *     start/pause/resume/restart/stop/break (see TimerCommand). Commands are queued and applied
+ *     from loop(); a command that isn't valid in the current state is logged and ignored.
  *   - GET  /wifi: the currently configured SSID (never the password).
  *   - POST /wifi: save new WiFi credentials ({"ssid": "...", "password": "..."}, password
  *     optional to keep the existing one) and restart to apply them.
@@ -16,6 +22,8 @@
  */
 #ifndef WEB_SERVER_H
 #define WEB_SERVER_H
+
+enum class TimerCommand;  // timer.h; forward-declared so this header doesn't pull in the display stack.
 
 /**
  * @brief Mount LittleFS, start connecting to WiFi (see wifi_manager.h), and register the
@@ -40,5 +48,16 @@ void setupWebServer();
  * handler in web_server.cpp), so it doesn't have to wait out the throttle to see current state.
  */
 void webServerLoop();
+
+/**
+ * @brief Take the next queued /ws control command, if any.
+ *
+ * Call from loop() and apply each one with Timer::handleCommand(), before Timer::loop() so any
+ * redraw it requests happens in the same iteration.
+ * @param[out] command The command.
+ * @param[out] arg Its argument (preset index for TimerCommand::Select, otherwise -1).
+ * @return true if a command was dequeued, false if the queue is empty.
+ */
+bool webServerNextCommand(TimerCommand &command, int &arg);
 
 #endif

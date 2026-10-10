@@ -20,7 +20,8 @@ void Timer::handleRunningBreak(volatile const int *encoderCount) {
         elapsed = millis() - startTime - totalPausedTime;
     }
 
-    if (state == TimerState::RunningBreak && millis() - startTime >= currentBreakDuration) {
+    // elapsed excludes time spent paused, so a paused break still runs its full length.
+    if (state == TimerState::RunningBreak && elapsed >= currentBreakDuration) {
         setLedMode(LedMode::ConfirmationFlash);
         state = TimerState::WaitingConfirmEndOfBreak;
 
@@ -46,19 +47,9 @@ void Timer::handleRunningBreak(volatile const int *encoderCount) {
                     // Resume
                     resume();
                 }
-            } else if (topMenu->getSelectedIndex() == 1) {
-                // Skip break
-                incrementTotalBreakTime(elapsed);
-                minutesOnBreak += elapsed / 1000 / 60;
-                reset();
-                enterPresetSelection();
-            } else if (topMenu->getSelectedIndex() == 2) {
-                // Cancel
-                incrementTotalBreakTime(elapsed);
-                minutesOnBreak += elapsed / 1000 / 60;
-                stop();
-                selectPreset(1);
-                enterPresetSelection();
+            } else if (topMenu->getSelectedIndex() == 1 || topMenu->getSelectedIndex() == 2) {
+                // Skip break / Cancel
+                cancelBreakInterval();
             }
 
             needsFullRedraw = true;

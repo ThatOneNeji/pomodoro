@@ -1,8 +1,8 @@
 /**
  * @file sntp_manager.h
  * @brief Thin wrapper around the ESP32 Arduino core's built-in SNTP client (configTzTime()), so
- * the device clock stays roughly correct while WiFi is connected. Purely informational for now —
- * nothing in the UI depends on the synced time yet.
+ * the device clock stays roughly correct while WiFi is connected. Used for the settings page's
+ * time display and the `endsAt`/`deviceTime` fields of the /ws status message.
  */
 #ifndef SNTP_MANAGER_H
 #define SNTP_MANAGER_H
@@ -23,5 +23,12 @@ bool isTimeSynced();
 
 /// @return The current local time as "YYYY-MM-DD HH:MM:SS", or "not synced yet" if isTimeSynced() is false.
 String getCurrentTimeString();
+
+/**
+ * @brief The current time as Unix epoch milliseconds (UTC, unaffected by ::SNTP_TIMEZONE).
+ * @param[out] epochMillis Set to the current time if synced; left unchanged otherwise.
+ * @return false if the clock hasn't been synced yet (see isTimeSynced()).
+ */
+bool getEpochMillis(int64_t &epochMillis);
 
 #endif
