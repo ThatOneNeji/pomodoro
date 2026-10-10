@@ -1,0 +1,31 @@
+{
+    "_comment": [
+        "Every bitmap compiled into the firmware. scripts/gen_assets.py turns this into src/icons.h,",
+        "src/icons/icons.cpp, src/images.h and src/images/*.h.",
+        "icons: 'svg' is a Bootstrap Icons name from assets/svg/ (rendered crisp, no dithering);",
+        "'png' is a path under assets/ (dithered, for drawn art). 'sizes' lists only the pixel sizes",
+        "the code draws the icon at; each size costs size*size/8 bytes of flash.",
+        "'meme': true compiles the asset only when INCLUDE_MEME_ASSETS is enabled in src/config.h."
+    ],
+    "icons": {
+        "coding": { "svg": "code-slash", "sizes": [192], "doc": "Coding preset icon." },
+        "focus": { "svg": "bullseye", "sizes": [192], "doc": "Focus preset icon." },
+        "workshop": { "svg": "tools", "sizes": [192], "doc": "Workshop preset icon." },
+        "stopwatch": { "svg": "stopwatch", "sizes": [192], "doc": "Start screen icon, and the fallback icon for presets without their own." },
+        "bell": { "svg": "bell-fill", "sizes": [128], "doc": "Shown on the \"time's up\" confirmation screens." },
+        "messages": { "svg": "chat-quote-fill", "sizes": [64], "doc": "Settings: the running-messages checkbox." },
+        "checkmark": { "svg": "check-lg", "sizes": [48], "doc": "Draws a checked Checkbox." },
+        "coffee": { "svg": "cup-hot-fill", "sizes": [48], "doc": "Break duration marker on the preset selection screen." },
+        "lpehacker": { "png": "icons/lpehacker.png", "sizes": [192, 64], "meme": true, "doc": "LPE mode: Coding preset icon, and the LPE Mode checkbox." },
+        "lpethink": { "png": "icons/lpethink.png", "sizes": [192], "meme": true, "doc": "LPE mode: Focus preset icon." },
+        "lpetantrum": { "png": "icons/lpetantrum.png", "sizes": [128], "meme": true, "doc": "LPE mode: \"time's up\" confirmation icon." }
+    },
+    "images": {
+        "bg_bubble": { "png": "images/bg_bubble.png", "doc": "Running screen background: person + speech bubble." },
+        "bg_lpe_bubble": { "png": "images/bg_lpe_bubble.png", "meme": true, "doc": "LPE mode: running screen background." },
+        "bg_cat": { "png": "images/bg_cat.png", "meme": true, "doc": "LPE mode: long break image." },
+        "bg_stonks": { "png": "images/bg_stonks.png", "meme": true, "doc": "LPE mode: long break image." },
+        "bg_pablo": { "png": "images/bg_pablo.png", "meme": true, "doc": "LPE mode: long break image." },
+        "bg_what_a_week": { "png": "images/bg_what_a_week.png", "meme": true, "doc": "LPE mode: long break image." }
+    }
+}

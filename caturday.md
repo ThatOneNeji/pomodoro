@@ -355,21 +355,45 @@ The full Bootstrap Icons set is now in `assets/svg/`: **2,078 icons, ~1.2 MB** p
    - This also fixes the LPE default mismatch from problem 1, since nobody can turn LPE on in a default build
 4. **Start screen:** "Pomodoro" + Bootstrap `stopwatch`, drawn in code. `bg_splash` (48 KB) goes.
 
-### Every LPE touchpoint (for the switch now, and for removal later)
+### Graphics changes and their flash cost (done 2026-10-10, `feature/lpe-switch-svg-icons`)
 
-| File | What |
-| --- | --- |
-| `src/icon_provider.h` | `lpeModeEnabled`, LPE icon/background branches, `icon_lpehacker` as the fallback icon |
-| `src/main.cpp:49-50, 151, 160` | DEBUG test checkboxes + icon-scaling test use LPE icons; `setLpeMode(pref_getCheckbox("lpe", true))` |
-| `src/splashscreen.h:32-33` | "LPE Mode" checkbox with `icon_lpehacker`; "msgs" checkbox uses `icon_lpenote` (needs a neutral icon, e.g. `chat-quote`) |
-| `src/states/timer_waiting_for_confirmation.cpp:66` | Hard-coded `icon_lpetantrum` (needs a neutral icon, e.g. `bell` or `check-circle`) |
-| `src/strings.cpp` / `src/strings.h` | `isLpeModeEnabled()`, `lpe*Messages` vectors, ~8 `if (lpeModeEnabled)` branches |
-| `src/i18n/{en,af,de}.h` | `MODE = "LPE Mode"`, `RESTARTTIMERMSGLPE` |
-| `src/timer.cpp` `startBreak()` | Meme long-break images |
-| `src/icons.h`, `src/icons/icons.cpp`, `src/images.h`, `src/images/` | Generated LPE / meme assets |
-| `assets/icons/lpe*.png`, `assets/images/bg_{lpe_bubble,cat,stonks,pablo,what_a_week,splash}.png` | Source art |
+*Current Size* is the source file on disk. *ESP Size* is what the asset costs in the firmware's flash: an icon costs `size × size / 8` bytes per generated size, and an 800×480 image costs 48,000 B. Before this change every icon was generated at all four sizes (192/128/64/48 = 7,456 B). "Meme only" assets cost 0 B in a default build and the shown amount with `INCLUDE_MEME_ASSETS`.
 
-**Dead files to delete regardless:** `src/lpe.h` (340 KB of LPE bitmaps, not included anywhere) and `src/images/image_bg_lpehacker_bubble.h` (not included in `images.h`). They cost no flash, but they're clutter and confuse searches.
+| File | What | Current Size | ESP Size | Replaced with | Current Size | ESP Size | Size diff |
+| --- | --- | ---: | ---: | --- | ---: | ---: | ---: |
+| `assets/icons/coding.png` | Coding preset icon | 20,974 B | 7,456 B | `assets/svg/code-slash.svg` @192 | 455 B | 4,608 B | −2,848 B |
+| `assets/icons/focus.png` | Focus preset icon | 64,873 B | 7,456 B | `assets/svg/bullseye.svg` @192 | 434 B | 4,608 B | −2,848 B |
+| — | Workshop preset icon (was the LPE fallback) | — | 0 B | `assets/svg/tools.svg` @192 | 922 B | 4,608 B | +4,608 B |
+| `assets/icons/checkmark.png` | Checked checkbox | 16,136 B | 7,456 B | `assets/svg/check-lg.svg` @48 | 321 B | 288 B | −7,168 B |
+| `assets/icons/coffee.png` | Break marker, preset screen | 20,191 B | 7,456 B | `assets/svg/cup-hot-fill.svg` @48 | 2,113 B | 288 B | −7,168 B |
+| `assets/icons/email.png` | Emails preset icon (preset removed) | 31,219 B | 7,456 B | removed | — | 0 B | −7,456 B |
+| `assets/icons/warning.png` | Unused | 21,722 B | 7,456 B | removed | — | 0 B | −7,456 B |
+| `assets/icons/lpesip.png` | Debug icon-scaling test only | 160,734 B | 7,456 B | removed (test uses `stopwatch`) | — | 0 B | −7,456 B |
+| `assets/icons/lpenote.png` | "Messages" setting icon | 192,499 B | 7,456 B | `assets/svg/chat-quote-fill.svg` @64 | 941 B | 512 B | −6,944 B |
+| `assets/icons/lpetantrum.png` | "Time's up" confirmation icon | 147,454 B | 7,456 B | `assets/svg/bell-fill.svg` @128 (+ `lpetantrum.png` @128, meme only) | 295 B | 2,048 B (+2,048) | −5,408 B |
+| `assets/icons/lpehacker.png` | LPE Coding icon, LPE Mode setting, fallback icon | 108,030 B | 7,456 B | meme only, @192 + @64 | 108,030 B | 0 B (5,120) | −7,456 B |
+| `assets/icons/lpethink.png` | LPE Focus icon | 155,422 B | 7,456 B | meme only, @192 | 155,422 B | 0 B (4,608) | −7,456 B |
+| `assets/images/bg_splash.png` | Start screen ("Zenlina" + LPE character) | 74,075 B | 48,000 B | drawn in code: "Pomodoro" + `assets/svg/stopwatch.svg` @192 | 487 B | 4,608 B | −43,392 B |
+| `assets/images/bg_bubble.png` | Running screen background | 78,274 B | 48,000 B | unchanged (neutral; drawing it in code is a follow-up) | 78,274 B | 48,000 B | 0 B |
+| `assets/images/bg_lpe_bubble.png` | LPE running background | 105,480 B | 48,000 B | meme only | 105,480 B | 0 B (48,000) | −48,000 B |
+| `assets/images/bg_cat.png` | Long break image | 316,368 B | 48,000 B | meme only; neutral long breaks use the statistics layout | 316,368 B | 0 B (48,000) | −48,000 B |
+| `assets/images/bg_stonks.png` | Long break image | 558,703 B | 48,000 B | meme only | 558,703 B | 0 B (48,000) | −48,000 B |
+| `assets/images/bg_pablo.png` | Long break image | 676,518 B | 48,000 B | meme only | 676,518 B | 0 B (48,000) | −48,000 B |
+| `assets/images/bg_what_a_week.png` | Long break image | 491,292 B | 48,000 B | meme only | 491,292 B | 0 B (48,000) | −48,000 B |
+| `src/lpe.h` | Old LPE bitmaps, not included anywhere | 339,659 B | 0 B | deleted | — | 0 B | 0 B |
+| `src/images/image_bg_lpehacker_bubble.h` | Not included in `images.h` | 298,277 B | 0 B | deleted | — | 0 B | 0 B |
+| **Total assets** | | | **418,016 B** | | | **69,568 B** (+251,776 meme) | **−348,448 B** |
+
+**Measured firmware size** (`pio run`, whole binary): **1,762,641 B (84.0%) → 1,428,629 B (68.1%), −334,012 B.** That's ~14 KB less than the asset total, because of the new code (the start screen drawing, `IconProvider` changes, the icon size fallback). With `INCLUDE_MEME_ASSETS=1` the firmware is 1,681,321 B (80.2%).
+
+**Code that still mentions LPE** (all behind `INCLUDE_MEME_ASSETS` now; for the later full removal):
+
+- `src/icon_provider.h`: LPE branches for the running background, long-break images, confirmation icon and preset icons
+- `src/splashscreen.h`: the "LPE Mode" checkbox
+- `src/strings.cpp` / `src/strings.h`: `isLpeModeEnabled()` (constant `false` when the switch is off), `lpe*Messages` vectors, `if (lpeModeEnabled)` branches
+- `src/i18n/{en,af,de}.h`: `MODE = "LPE Mode"`, `RESTARTTIMERMSGLPE`
+- `src/main.cpp`: `setLpeMode(...)` and the `IMAGE_CYCLE_TEST` debug test
+- `assets/manifest.json`: the `"meme": true` entries, plus the source art in `assets/icons/lpe*.png` and `assets/images/bg_*.png`
 
 ### Expected flash result
 

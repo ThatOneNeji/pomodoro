@@ -21,7 +21,11 @@ SplashScreen::~SplashScreen() {}
 void SplashScreen::draw() {
     display.fillScreen(GxEPD_WHITE);
 
-    display.drawBitmap(0, 0, image_bg_splash, display.width(), display.height(), GxEPD_BLACK);
+    // Drawn in code rather than stored as a full-screen bitmap: costs ~4.6 KB (the icon) instead of 48 KB.
+    const ScaledIcon logo = icon_stopwatch.scaled(192);
+    const int16_t logoY = 110;
+    display.drawBitmap(display.width() / 2 - logo.size / 2, logoY, logo.data, logo.size, logo.size, GxEPD_BLACK);
+    drawCenteredText(display, "Pomodoro", display.width() / 2, logoY + logo.size + 60, &TITLE_FONT, GxEPD_BLACK);
 
     const uint16_t padding = 20;
     const uint16_t menuY = padding;

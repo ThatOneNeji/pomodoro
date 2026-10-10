@@ -4,7 +4,13 @@
 
 MessageCache messageCache;
 
-bool MessageCache::isLpeModeEnabled() { return pref_getCheckbox("lpe", false); }
+bool MessageCache::isLpeModeEnabled() {
+#if INCLUDE_MEME_ASSETS
+    return pref_getCheckbox("lpe", false);
+#else
+    return false;  // LPE mode doesn't exist in this build; see INCLUDE_MEME_ASSETS in config.h.
+#endif
+}
 
 static const char *randomMessage(const std::vector<const char *> &messages) {
     if (messages.empty())

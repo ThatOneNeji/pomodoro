@@ -21,6 +21,19 @@
 /// Whether the one-off Anniversary presentation (see anniversary.h) is compiled in. Currently unimplemented.
 #define ANNIVERSARY_MODE false
 
+/**
+ * @brief Whether the "LPE" meme art (alternate preset icons, running background and long-break
+ * images) is compiled in, along with the "LPE Mode" setting that switches to it.
+ *
+ * Off by default: it costs ~250 KB of flash, and some of the images are third-party works. When
+ * off, the setting is hidden and only the neutral assets exist. Which assets count as meme art
+ * is marked in assets/manifest.json. Can also be set from platformio.ini with
+ * `-DINCLUDE_MEME_ASSETS=1`.
+ */
+#ifndef INCLUDE_MEME_ASSETS
+#define INCLUDE_MEME_ASSETS 0
+#endif
+
 /// @name Named font aliases
 /// Semantic names for the GFXfont bitmap fonts, used throughout the UI drawing code.
 /// @{
