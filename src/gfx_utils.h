@@ -9,6 +9,7 @@
 #include "config.h"
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
+#include <string>
 #include <vector>
 
 /// Visual style for drawProgressBar().
@@ -159,5 +160,22 @@ Bounds drawCenteredText(DISPLAY_CLASS &display, const char *text, int16_t x, int
  * @param h Box height (the tail and shadow extend 14px/10px below it).
  */
 void drawSpeechBubble(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t w, int16_t h);
+
+/**
+ * @brief Word-wrap @p text into lines no wider than @p maxWidth pixels in @p font.
+ *
+ * Breaks between words; '\n' in the text forces a break (for deliberate line breaks). A single
+ * word wider than the line is split between characters. If the text needs more than
+ * @p maxLines lines, the last line ends in "..." and @p truncated is set.
+ * @param display Display used to measure text (nothing is drawn).
+ * @param text Text to wrap.
+ * @param font Font it will be drawn in.
+ * @param maxWidth Maximum line width in pixels, measured from the x the text is drawn at.
+ * @param maxLines Maximum number of lines.
+ * @param[out] truncated Set to whether the text had to be cut short; may be nullptr.
+ * @return The lines, at most @p maxLines.
+ */
+std::vector<std::string> wrapText(DISPLAY_CLASS &display, const char *text, const GFXfont *font, uint16_t maxWidth,
+                                  unsigned int maxLines, bool *truncated = nullptr);
 
 #endif

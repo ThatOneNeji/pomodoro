@@ -188,3 +188,81 @@ void drawSpeechBubble(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t w, i
         display.drawLine(bottomX, bottomY + i - 1, tipX, tipY + i - 1, GxEPD_BLACK);
     }
 }
+
+/// @return The rightmost pixel @p text reaches when drawn at x = 0 in the current font.
+static int16_t textRightEdge(DISPLAY_CLASS &display, const std::string &text) {
+    if (text.empty()) {
+        return 0;
+    }
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(text.c_str(), 0, 0, &x1, &y1, &w, &h);
+    return x1 + w;
+}
+
+std::vector<std::string> wrapText(DISPLAY_CLASS &display, const char *text, const GFXfont *font, uint16_t maxWidth,
+                                  unsigned int maxLines, bool *truncated) {
+    display.setTextSize(1);
+    display.setFont(font);
+
+    // Pass 1: wrap everything, ignoring maxLines.
+    std::vector<std::string> lines;
+    std::string line;
+    const std::string input(text ? text : "");
+    size_t pos = 0;
+    while (pos <= input.size()) {
+        // Next word: up to a space, a newline, or the end.
+        const size_t end = input.find_first_of(" \n", pos);
+        const std::string word = input.substr(pos, end == std::string::npos ? std::string::npos : end - pos);
+
+        if (!word.empty()) {
+            const std::string candidate = line.empty() ? word : line + " " + word;
+            if (textRightEdge(display, candidate) <= maxWidth) {
+                line = candidate;
+            } else {
+                if (!line.empty()) {
+                    lines.push_back(line);
+                }
+                // A word too long for a line on its own: split it between characters.
+                std::string rest = word;
+                while (textRightEdge(display, rest) > maxWidth && rest.size() > 1) {
+                    size_t fit = 1;
+                    while (fit < rest.size() && textRightEdge(display, rest.substr(0, fit + 1)) <= maxWidth) {
+                        fit++;
+                    }
+                    lines.push_back(rest.substr(0, fit));
+                    rest = rest.substr(fit);
+                }
+                line = rest;
+            }
+        }
+
+        if (end == std::string::npos) {
+            break;
+        }
+        if (input[end] == '\n') {
+            lines.push_back(line);  // forced break (may be an intentionally empty line)
+            line.clear();
+        }
+        pos = end + 1;
+    }
+    if (!line.empty()) {
+        lines.push_back(line);
+    }
+
+    // Pass 2: enforce maxLines, ending the last kept line in "..." if anything was cut.
+    const bool cut = lines.size() > maxLines;
+    if (truncated) {
+        *truncated = cut;
+    }
+    if (cut) {
+        lines.resize(maxLines);
+        std::string &last = lines.back();
+        while (!last.empty() && textRightEdge(display, last + "...") > maxWidth) {
+            const size_t space = last.find_last_of(' ');
+            last = space == std::string::npos ? last.substr(0, last.size() - 1) : last.substr(0, space);
+        }
+        last += "...";
+    }
+    return lines;
+}

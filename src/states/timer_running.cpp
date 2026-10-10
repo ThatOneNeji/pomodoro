@@ -5,7 +5,6 @@
 #include "../timer.h"
 #include "../strings.h"
 #include "../config.h"
-#include <sstream>
 
 void Timer::handleRunning(volatile const int *encoderCount) {
     if (state == TimerState::UserInitiatedPause && displayBlanked) {
@@ -147,25 +146,25 @@ void Timer::drawRunning() {
 
     drawDebugCrosshair(display, display.width() / 2, display.height() / 2, 48);
 
-    // Space for message: 221,330 until 649,409
+    // Message area inside the speech bubble: 221,330 to 649,~425 (see drawSpeechBubble() above).
     const uint16_t messageMinX = 221;
-    // REMOVE if TESTING PASSES -> const uint16_t messageMaxX = 649;
+    const uint16_t messageWidth = 649 - messageMinX;
     const uint16_t messageMinY = 330;
-    // REMOVE if TESTING PASSES -> const uint16_t messageMaxY = 409;
-    // REMOVE if TESTING PASSES -> const uint16_t messageW = messageMaxX - messageMinX;
-    // REMOVE if TESTING PASSES -> const uint16_t messageH = messageMaxY - messageMinY;
+    const uint16_t lineHeight = 20;
+    const unsigned int maxLines = 4;
 
-    drawDebugCrosshair(display, 221, 330);
+    drawDebugCrosshair(display, messageMinX, messageMinY);
 
-    // Split message by lines and print individually
-    std::string messageStr(getRunningMessage());
-    std::istringstream iss(messageStr);
-    std::string line;
-    int lineIndex = 0;
-    while (std::getline(iss, line, '\n')) {
-        int yPos = messageMinY + lineIndex * 18 + 18 + lineIndex * 2;  // + 18 because of the first line
-        drawText(display, line.c_str(), messageMinX, yPos, &SMALL_FONT, GxEPD_BLACK);
-        ++lineIndex;
+    // Wrapped to the bubble's width at draw time, so messages need no hand-placed line breaks.
+    bool truncated = false;
+    const char *message = getRunningMessage();
+    const std::vector<std::string> lines = wrapText(display, message, &SMALL_FONT, messageWidth, maxLines, &truncated);
+    if (truncated) {
+        ESP_LOGW("TIMER", "drawRunning: message too long for %u lines, cut short: \"%s\"", maxLines, message);
+    }
+    for (unsigned int i = 0; i < lines.size(); i++) {
+        const int16_t baseline = messageMinY + 18 + i * lineHeight;  // + 18: the first line's ascent
+        drawText(display, lines[i].c_str(), messageMinX, baseline, &SMALL_FONT, GxEPD_BLACK);
     }
 }
 
