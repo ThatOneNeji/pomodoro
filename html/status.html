@@ -117,7 +117,9 @@
                         ["Chip", function (d) { return d.chipModel + " rev " + d.chipRevision; }],
                         ["CPU", function (d) { return d.cpuMhz + " MHz"; }],
                         ["Uptime", function (d) { return minutes(Math.floor(d.uptimeSeconds / 60)); }],
-                        ["Free memory", function (d) { return bytes(d.freeHeapBytes); }]
+                        ["Free memory", function (d) { return bytes(d.freeHeapBytes) + " of " + bytes(d.totalHeapBytes) + " (" + Math.round((100 * d.freeHeapBytes) / d.totalHeapBytes) + "%)"; }],
+                        // The low point since boot: if this keeps sinking over days, something is leaking.
+                        ["Lowest free memory", function (d) { return bytes(d.minFreeHeapBytes) + " (since boot)"; }]
                     ]],
                     ["Firmware", [
                         ["Version", function (d) { return d.firmwareVersion; }],
