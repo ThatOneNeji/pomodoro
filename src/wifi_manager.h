@@ -22,4 +22,16 @@ String getWifiPassword();
  */
 void setWifiCredentials(const String &ssid, const String &password);
 
+/// Settings key for whether WiFi is on: the Settings screen's WiFi checkbox and POST /wifi share it.
+#define WIFI_ENABLED_KEY "wifi"
+
+/**
+ * @return Whether WiFi is switched on (the default). When off, the radio never starts: no web
+ * page, mDNS, time sync or MQTT. Changing it takes effect after a restart.
+ */
+bool isWifiEnabled();
+
+/// Switch WiFi on or off from the next start. See isWifiEnabled().
+void setWifiEnabled(bool enabled);
+
 #endif

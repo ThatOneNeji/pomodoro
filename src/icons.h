@@ -26,6 +26,7 @@ extern Icon icon_coffee;     ///< Short break screen decoration (128), and the b
 extern Icon icon_moon;       ///< Long break screen decoration. Bootstrap Icons "moon-stars-fill" (MIT). Sizes: [128].
 extern Icon icon_back;       ///< Settings: the Back row. Bootstrap Icons "arrow-left" (MIT). Sizes: [64].
 extern Icon icon_power;      ///< Settings: the Shut down button. Bootstrap Icons "power" (MIT). Sizes: [64].
+extern Icon icon_wifi;       ///< Settings: the WiFi checkbox. Bootstrap Icons "wifi" (MIT). Sizes: [64].
 extern Icon icon_person;     ///< Running screen: the speaker next to the speech bubble. Bootstrap Icons "person-fill"
                              ///< (MIT). Sizes: [128].
 
