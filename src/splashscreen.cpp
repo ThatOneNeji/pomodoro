@@ -2,6 +2,7 @@
 #include "splashscreen.h"
 #include "button.h"
 #include "icon_provider.h"
+#include "status_screen.h"
 #include "esp_log.h"
 
 /// Log tag for this file, used by ESP_LOGx() calls.
@@ -74,9 +75,16 @@ void SplashScreen::loop(volatile const int *encoderCount) {
             } else if (buttons.getSelectedIndex() == 1) {
                 display.fillScreen(GxEPD_WHITE);
                 drawSettings();
-                loopSettings(encoderCount);
+                loopSettings(encoderCount);  // Saving a setting restarts the device; this never returns.
+                return;
+            } else {
+                // Status returns on a press; come back to this menu, ignoring the knob turns that
+                // paged through the status screens.
+                StatusScreen(display).run(encoderCount);
+                buttons.setEncoderCount(*encoderCount);
+                lastEncoderCount = *encoderCount;
+                draw();
             }
-            return;
         }
     }
 }

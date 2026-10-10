@@ -34,4 +34,11 @@ void getStatistics(unsigned int *totalCycles, unsigned long *totalTime, unsigned
 /// Reset all persisted statistics (cycles, time, break time) back to zero.
 void resetStatistics();
 
+/**
+ * @brief Format a minute count as "Xh Ym" (or just "Ym" under an hour), for statistics display.
+ * @param minutes Duration in minutes.
+ * @return The formatted string.
+ */
+String formatDuration(unsigned long minutes);
+
 #endif

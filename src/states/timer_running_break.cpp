@@ -71,25 +71,6 @@ void Timer::handleRunningBreak(volatile const int *encoderCount) {
     }
 }
 
-/**
- * @brief Format a minute count as "Xh Ym" (or just "Ym" under an hour), for statistics display.
- * @param minutes Duration in minutes.
- * @return The formatted string.
- */
-String formatDuration(unsigned long minutes) {
-    unsigned long hours = minutes / 60;
-    minutes = minutes % 60;
-
-    char buffer[32];
-    if (hours > 0) {
-        sprintf(buffer, "%luh %lum", hours, minutes);
-    } else {
-        sprintf(buffer, "%lum", minutes);
-    }
-
-    return String(buffer);
-}
-
 void Timer::drawRunningBreak() {
     display.fillScreen(GxEPD_WHITE);
 

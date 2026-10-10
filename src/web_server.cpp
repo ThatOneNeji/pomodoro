@@ -13,6 +13,7 @@
 #include "wifi_manager.h"
 #include "sntp_manager.h"
 #include "mqtt_manager.h"
+#include "system_status.h"
 #include "esp_log.h"
 #include <atomic>
 #include <freertos/FreeRTOS.h>
@@ -300,22 +301,12 @@ static void handleGetWifi(AsyncWebServerRequest *request) {
 }
 
 /**
- * @brief GET /system: read-only SNTP/MQTT configuration and current status, for settings.html's
- * info panels. Nothing here is editable yet (see roadmap.MD) — this just surfaces the config.h
- * defaults and current sync/connection state.
+ * @brief GET /system: read-only device status for the web status page; see system_status.h for
+ * the fields. The same snapshot drives the start screen's Status page.
  */
 static void handleGetSystem(AsyncWebServerRequest *request) {
     JsonDocument doc;
-    doc["sntpServer"] = SNTP_SERVER;
-    doc["sntpTimezone"] = SNTP_TIMEZONE;
-    doc["timeSynced"] = isTimeSynced();
-    doc["currentTime"] = getCurrentTimeString();
-
-    bool mqttEnabled = strlen(MQTT_BROKER_ADDRESS) > 0;
-    doc["mqttEnabled"] = mqttEnabled;
-    doc["mqttBrokerAddress"] = MQTT_BROKER_ADDRESS;
-    doc["mqttBrokerPort"] = MQTT_BROKER_PORT;
-    doc["mqttConnected"] = isMqttConnected();
+    systemStatusToJson(collectSystemStatus(), doc);
 
     String json;
     serializeJson(doc, json);

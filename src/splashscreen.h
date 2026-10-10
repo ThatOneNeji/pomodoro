@@ -20,13 +20,14 @@
 #include "images.h"
 #include <vector>
 
-/// Boot-time screen offering "Start" (begins the Timer) or "Settings" (persisted Checkbox options).
+/// Boot-time screen offering "Start" (begins the Timer), "Settings" (persisted Checkbox options) or "Status".
 class SplashScreen {
    private:
     DISPLAY_CLASS &display;
     Timer &timer;
 
-    Menu buttons = Menu(display, new MenuItem[2]{MenuItem("Start"), MenuItem(Msgs::SETTINGS)}, 2);
+    Menu buttons =
+        Menu(display, new MenuItem[3]{MenuItem(Msgs::START), MenuItem(Msgs::SETTINGS), MenuItem(Msgs::STATUS)}, 3);
 
     std::vector<Checkbox> checkboxes = {
 #if INCLUDE_MEME_ASSETS
@@ -62,7 +63,8 @@ class SplashScreen {
      * @brief Block until the user picks "Start" or "Settings", handling the choice before returning.
      *
      * Picking "Start" calls `timer.start()` and returns; picking "Settings" runs drawSettings()
-     * and loopSettings() (which itself blocks) before returning.
+     * and loopSettings() (which itself blocks, and restarts the device). Picking "Status" shows
+     * the StatusScreen and comes back to this menu when it's dismissed.
      * @param encoderCount Pointer to the shared, debounced encoder count.
      */
     void loop(volatile const int *encoderCount);
