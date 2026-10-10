@@ -16,12 +16,12 @@
         "messages": { "svg": "chat-quote-fill", "sizes": [64], "doc": "Settings: the running-messages checkbox." },
         "checkmark": { "svg": "check-lg", "sizes": [48], "doc": "Draws a checked Checkbox." },
         "coffee": { "svg": "cup-hot-fill", "sizes": [48], "doc": "Break duration marker on the preset selection screen." },
+        "person": { "svg": "person-fill", "sizes": [128], "doc": "Running screen: the speaker next to the speech bubble." },
         "lpehacker": { "png": "icons/lpehacker.png", "sizes": [192, 64], "meme": true, "doc": "LPE mode: Coding preset icon, and the LPE Mode checkbox." },
         "lpethink": { "png": "icons/lpethink.png", "sizes": [192], "meme": true, "doc": "LPE mode: Focus preset icon." },
         "lpetantrum": { "png": "icons/lpetantrum.png", "sizes": [128], "meme": true, "doc": "LPE mode: \"time's up\" confirmation icon." }
     },
     "images": {
-        "bg_bubble": { "png": "images/bg_bubble.png", "doc": "Running screen background: person + speech bubble." },
         "bg_lpe_bubble": { "png": "images/bg_lpe_bubble.png", "meme": true, "doc": "LPE mode: running screen background." },
         "bg_cat": { "png": "images/bg_cat.png", "meme": true, "doc": "LPE mode: long break image." },
         "bg_stonks": { "png": "images/bg_stonks.png", "meme": true, "doc": "LPE mode: long break image." },

@@ -34,7 +34,8 @@ class Preset {
     /**
      * @brief Construct a preset.
      * @param icon Icon representing this preset.
-     * @param background Full-screen background image shown while this preset is running.
+     * @param background Full-screen background bitmap shown while this preset is running, or nullptr
+     *                   to draw the neutral person and speech bubble instead.
      * @param name Preset name (also used to look up its running-message strings; see Timer::getRunningMessage()).
      * @param duration Work interval duration, in milliseconds.
      * @param pauseDuration Short break duration, in milliseconds.
@@ -48,7 +49,7 @@ class Preset {
     /// @return This preset's icon.
     Icon *getIcon();
 
-    /// @return This preset's full-screen running background image.
+    /// @return This preset's full-screen running background bitmap, or nullptr (see the constructor).
     const unsigned char *getBackground();
 
     /// @return Work interval duration. In DEBUG builds this is divided by 60, for fast iteration.
@@ -277,7 +278,8 @@ class Timer {
     /**
      * @brief Append a preset to the end of the preset list.
      * @param icon Icon representing this preset.
-     * @param background Full-screen background image shown while this preset is running.
+     * @param background Full-screen background bitmap shown while this preset is running, or nullptr
+     *                   to draw the neutral person and speech bubble instead.
      * @param name Preset name (also used to look up its running-message strings; see getRunningMessage()).
      * @param duration Work interval duration, in milliseconds.
      * @param pauseDuration Short break duration, in milliseconds.

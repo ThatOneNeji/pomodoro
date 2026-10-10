@@ -37,14 +37,18 @@ class IconProvider {
     /// @return Whether the alternate ("LPE") icon/background set is currently active.
     bool isLpeModeEnabled() const { return lpeModeEnabled; }
 
-    /// @return The full-screen background image to draw behind a running timer, for the active mode.
+    /**
+     * @brief The full-screen background bitmap to draw behind a running timer, for the active mode.
+     * @return LPE mode's bitmap, or nullptr in the neutral set, whose person and speech bubble
+     * are drawn in code instead (see Timer::drawRunning()).
+     */
     const unsigned char *getTimerRunningBackgroundImage() {
 #if INCLUDE_MEME_ASSETS
         if (lpeModeEnabled) {
             return image_bg_lpe_bubble;
         }
 #endif
-        return image_bg_bubble;
+        return nullptr;
     }
 
     /**

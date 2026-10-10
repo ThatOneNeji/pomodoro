@@ -23,6 +23,8 @@ extern Icon
 extern Icon icon_checkmark;  ///< Draws a checked Checkbox. Bootstrap Icons "check-lg" (MIT). Sizes: [48].
 extern Icon icon_coffee;     ///< Break duration marker on the preset selection screen. Bootstrap Icons "cup-hot-fill"
                              ///< (MIT). Sizes: [48].
+extern Icon icon_person;     ///< Running screen: the speaker next to the speech bubble. Bootstrap Icons "person-fill"
+                             ///< (MIT). Sizes: [128].
 
 #if INCLUDE_MEME_ASSETS
 extern Icon icon_lpehacker;  ///< LPE mode: Coding preset icon, and the LPE Mode checkbox. From
