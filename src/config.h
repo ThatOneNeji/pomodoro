@@ -9,14 +9,7 @@
 #include <GxEPD2_BW.h>
 #include <GxEPD2_GFX.h>
 
-#include "fonts/FunnelDisplay_Bold24pt7b.h"
-#include "fonts/FunnelDisplay_Bold18pt7b.h"
-#include "fonts/FunnelDisplay_Regular14pt7b.h"
-#include "fonts/HelvetiPixel24pt7b.h"
-#include "fonts/HelvetiPixel16pt7b.h"
-#include "fonts/FunnelDisplay_Bold48pt7b.h"
-#include "fonts/FunnelDisplay_Bold32pt7b.h"
-#include "fonts/FunnelDisplay_Bold60pt7b.h"
+#include "fonts.h"  // declarations only; see fonts.h for why
 
 /// Whether the one-off Anniversary presentation (see anniversary.h) is compiled in. Currently unimplemented.
 #define ANNIVERSARY_MODE false

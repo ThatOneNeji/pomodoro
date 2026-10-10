@@ -44,3 +44,17 @@ void resetStatistics() {
     pref_putStatistic("tt", (unsigned long) 0);
     pref_putStatistic("tbt", (unsigned long) 0);
 }
+
+String formatDuration(unsigned long minutes) {
+    unsigned long hours = minutes / 60;
+    minutes = minutes % 60;
+
+    char buffer[32];
+    if (hours > 0) {
+        sprintf(buffer, "%luh %lum", hours, minutes);
+    } else {
+        sprintf(buffer, "%lum", minutes);
+    }
+
+    return String(buffer);
+}

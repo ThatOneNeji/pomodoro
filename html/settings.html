@@ -9,7 +9,12 @@
     </head>
     <body>
         <header class="app-header">
-            <a class="back-link" href="index.html">&larr; Back</a>
+            <a class="back-link icon-link" href="index.html" aria-label="Back" title="Back">
+                <!-- Bootstrap Icons "arrow-left" (MIT) -->
+                <svg class="icon icon-filled" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"></path>
+                </svg>
+            </a>
             <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle theme">
                 <svg class="icon icon-sun" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="4"></circle>
@@ -39,44 +44,6 @@
                 <button id="save-btn" class="btn-primary" type="submit">Save &amp; Restart</button>
                 <p id="form-status" class="form-status" role="status"></p>
             </form>
-        </main>
-
-        <main class="settings-card">
-            <h1 class="settings-title">System</h1>
-
-            <section class="info-section">
-                <h2>Time sync (SNTP)</h2>
-                <div class="info-row">
-                    <span class="info-label">Server</span>
-                    <span class="info-value" id="sntp-server">&mdash;</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Timezone</span>
-                    <span class="info-value" id="sntp-timezone">&mdash;</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Status</span>
-                    <span class="info-value" id="sntp-status">&mdash;</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Current time</span>
-                    <span class="info-value" id="sntp-time">&mdash;</span>
-                </div>
-            </section>
-
-            <section class="info-section">
-                <h2>MQTT</h2>
-                <div class="info-row">
-                    <span class="info-label">Broker</span>
-                    <span class="info-value" id="mqtt-broker">&mdash;</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Status</span>
-                    <span class="info-value" id="mqtt-status">&mdash;</span>
-                </div>
-            </section>
-
-            <p class="form-hint">These are set at build time (config.h/credentials.h) and read-only for now.</p>
         </main>
 
         <footer class="app-footer">
@@ -182,49 +149,6 @@
                             setStatus(err.message, "error");
                         });
                 });
-
-                // ---- System status (SNTP/MQTT), read-only ----
-                var sntpServerEl = document.getElementById("sntp-server");
-                var sntpTimezoneEl = document.getElementById("sntp-timezone");
-                var sntpStatusEl = document.getElementById("sntp-status");
-                var sntpTimeEl = document.getElementById("sntp-time");
-                var mqttBrokerEl = document.getElementById("mqtt-broker");
-                var mqttStatusEl = document.getElementById("mqtt-status");
-
-                function setStatusClass(el, ok) {
-                    el.className = "info-value" + (ok ? " status-ok" : " status-pending");
-                }
-
-                function refreshSystemStatus() {
-                    fetch(apiBase + "/system")
-                        .then(function (res) {
-                            return res.json();
-                        })
-                        .then(function (data) {
-                            sntpServerEl.textContent = data.sntpServer;
-                            sntpTimezoneEl.textContent = data.sntpTimezone;
-                            sntpStatusEl.textContent = data.timeSynced ? "Synced" : "Not synced yet";
-                            setStatusClass(sntpStatusEl, data.timeSynced);
-                            sntpTimeEl.textContent = data.currentTime;
-
-                            mqttBrokerEl.textContent = data.mqttEnabled
-                                ? data.mqttBrokerAddress + ":" + data.mqttBrokerPort
-                                : "Disabled (no broker configured)";
-                            mqttStatusEl.textContent = !data.mqttEnabled
-                                ? "Disabled"
-                                : data.mqttConnected
-                                  ? "Connected"
-                                  : "Not connected";
-                            setStatusClass(mqttStatusEl, data.mqttEnabled && data.mqttConnected);
-                        })
-                        .catch(function () {
-                            sntpStatusEl.textContent = "Unavailable";
-                            mqttStatusEl.textContent = "Unavailable";
-                        });
-                }
-
-                refreshSystemStatus();
-                setInterval(refreshSystemStatus, 5000);
             })();
         </script>
     </body>

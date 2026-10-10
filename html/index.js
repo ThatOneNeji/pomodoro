@@ -63,3 +63,4 @@ async function buildPage(htmlFile) {
 
 buildPage('./html/index.html');
 buildPage('./html/settings.html');
+buildPage('./html/status.html');

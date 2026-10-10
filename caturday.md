@@ -223,6 +223,16 @@ Settings already restart the device, so a restart is what "go back to the start 
 
 **Goal:** after a power cycle or restart, the start screen offers **Start · Settings · Status**. Status shows the unit's IP address and other basic device info.
 
+> **Done (2026-10-10, `feature/status-screen`).** How it ended up:
+>
+> - **Device:** five pages turned with the knob (Network, Time & MQTT, Device, Firmware, Storage & stats); a press returns to the start screen menu. It redraws immediately when WiFi, the IP, time sync or MQTT change, otherwise every 30 s. It calls `mqttLoop()` while open, so MQTT shows its real state.
+> - **Shared data:** `collectSystemStatus()` (`src/system_status.h`) feeds both the device screen and `GET /system`.
+> - **Web:** `status.html`, reached from an info-circle icon on the timer page. The read-only System card moved there from `settings.html`, and Back is now an arrow icon.
+> - **Firmware version:** `git describe` via `scripts/fw_version.py`, as planned below.
+> - **Firmware size** is measured against the running app partition: with `no_ota.csv`, `ESP.getFreeSketchSpace()` reports an OTA partition that doesn't exist.
+> - **Found on the way: fonts were duplicated per source file** (`const` arrays in headers, included from `config.h`): 34,418 B of duplicate font data, and the status screen would have added ~21 KB more. Fonts are now defined once in `src/fonts.cpp`. Net flash with the whole status screen: **68.1% → 67.0%**.
+> - **Not done:** the QR code (still in `roadmap.MD` → Future), and `fetch-depth: 0` in CI (only needed once the repo has tags).
+
 ### How it works today
 
 - The start screen menu is built in `src/splashscreen.h:29`, with 2 items: `"Start"` (hard-coded English) and `Msgs::SETTINGS`.
