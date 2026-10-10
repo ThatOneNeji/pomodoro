@@ -3,6 +3,8 @@
  * @brief Timer::handleSelectingPreset() / Timer::drawPresetSelection(): the TimerState::SelectingPreset screen.
  */
 #include "../timer.h"
+#include "../status_screen.h"
+#include "../settings_screen.h"
 #include "esp_log.h"
 
 /// Log tag for this file, used by ESP_LOGx() calls.
@@ -20,9 +22,22 @@ void Timer::handleSelectingPreset(volatile const int *encoderCount) {
     }
 
     if (Button::instance->checkAndClearButtonPress()) {
-        ESP_LOGI(TAG, "handleSelectingPreset: starting with preset %u", presetIndex);
-        start();
-        topMenu->setEncoderCount(*encoderCount);
+        if (selectionCursor < presets.size()) {
+            ESP_LOGI(TAG, "handleSelectingPreset: starting with preset %u", presetIndex);
+            start();
+            topMenu->setEncoderCount(*encoderCount);
+        } else {
+            // Status and Settings block until dismissed (Settings may restart the device instead).
+            if (selectionCursor == presets.size()) {
+                ESP_LOGI(TAG, "handleSelectingPreset: opening Status");
+                StatusScreen(display).run(encoderCount);
+            } else {
+                ESP_LOGI(TAG, "handleSelectingPreset: opening Settings");
+                SettingsScreen(display).run(encoderCount);
+            }
+            // Back on this screen: ignore the knob turns made in there.
+            lastEncoderCount = *encoderCount;
+        }
         needsFullRedraw = true;
         lastActivityTime = millis();
     }
@@ -31,13 +46,10 @@ void Timer::handleSelectingPreset(volatile const int *encoderCount) {
         int change = *encoderCount - lastEncoderCount;
         ESP_LOGD(TAG, "handleSelectingPreset: encoder delta %d", change);
 
-        if (change < 0) {
-            previousPreset();
-        } else {
-            nextPreset();
-        }
+        moveSelectionCursor(change < 0 ? -1 : 1);
 
-        ESP_LOGI(TAG, "handleSelectingPreset: selected preset %u (%s)", presetIndex, currentPreset->getName());
+        ESP_LOGI(TAG, "handleSelectingPreset: cursor %u (preset %u, %s)", selectionCursor, presetIndex,
+                 currentPreset->getName());
         needsRedraw = true;
         lastEncoderCount = *encoderCount;
         lastActivityTime = millis();
@@ -59,27 +71,45 @@ void Timer::drawPresetSelection() {
 
     display.fillScreen(GxEPD_WHITE);
 
+    // Top row: Status and Settings, after the presets in the knob's cycle (see moveSelectionCursor()).
+    const unsigned int menuTop = 10;
+    const unsigned int menuHeight = 44;
+    const char *menuItems[] = {Msgs::STATUS, Msgs::SETTINGS};
+    const unsigned int menuWidth = (totalWidth - paddingBetweenBoxes) / 2;
+    for (unsigned int m = 0; m < 2; m++) {
+        const unsigned int x = padding + m * (menuWidth + paddingBetweenBoxes);
+        if (selectionCursor == presets.size() + m) {
+            drawPatternInRoundedArea(display, x, menuTop, menuWidth, menuHeight, 10, Pattern::SparseDots);
+            display.drawRoundRect(x + 1, menuTop + 1, menuWidth - 2, menuHeight - 2, 10, GxEPD_BLACK);
+        }
+        display.drawRoundRect(x, menuTop, menuWidth, menuHeight, 10, GxEPD_BLACK);
+        drawCenteredText(display, menuItems[m], x + menuWidth / 2, menuTop + menuHeight / 2, &SUB_FONT, GxEPD_BLACK);
+    }
+
+    // Preset cards below it.
+    const unsigned int cardTop = menuTop + menuHeight + 10;
+    const unsigned int cardHeight = display.height() - cardTop - padding;
+
     for (int i = 0; i < presets.size(); i++) {
         auto &preset = presets[i];
         const unsigned int xOffset = padding + (i * (boxWidth + paddingBetweenBoxes));
         const unsigned int hCenter = xOffset + (boxWidth / 2);
 
-        ScaledIcon icon = preset.getIcon()->scaled(192);
+        ScaledIcon icon = preset.getIcon()->scaled(128);
         const unsigned int iconSize = icon.size;
 
 #ifdef DEBUG
         display.drawLine(hCenter, 0, hCenter, display.height(), GxEPD_BLACK);
 #endif
 
-        unsigned int yOffset = padding;
+        unsigned int yOffset = cardTop;
 
-        display.drawRoundRect(xOffset, padding, boxWidth, display.height() - (padding * 2), 10, GxEPD_BLACK);
+        display.drawRoundRect(xOffset, cardTop, boxWidth, cardHeight, 10, GxEPD_BLACK);
 
-        if (currentPreset == &preset) {
-            display.drawRoundRect(xOffset + 1, padding + 1, boxWidth - 2, display.height() - (padding * 2) - 2, 10,
-                                  GxEPD_BLACK);
-            drawPatternInRoundedArea(display, xOffset + 2, padding + 2, boxWidth - 4,
-                                     display.height() - (padding * 2) - 4, 10, Pattern::VerySparseDots);
+        if (selectionCursor == (unsigned int) i) {
+            display.drawRoundRect(xOffset + 1, cardTop + 1, boxWidth - 2, cardHeight - 2, 10, GxEPD_BLACK);
+            drawPatternInRoundedArea(display, xOffset + 2, cardTop + 2, boxWidth - 4, cardHeight - 4, 10,
+                                     Pattern::VerySparseDots);
         }
 
         yOffset += paddingInsideBox;

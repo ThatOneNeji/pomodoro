@@ -106,6 +106,9 @@ class Timer {
     std::vector<Preset> presets;
     Preset *currentPreset;
     unsigned int presetIndex;
+    /// Selection screen cursor: 0..presets.size()-1 is a preset (and equals ::presetIndex), then
+    /// presets.size() is the Status button and presets.size()+1 the Settings button.
+    unsigned int selectionCursor = 0;
     TimerState state;
     unsigned long startTime;  ///< millis() timestamp the current interval began at (set by reset()).
     unsigned long elapsed;    ///< Milliseconds elapsed in the current interval, refreshed each loop() while running.
@@ -205,8 +208,12 @@ class Timer {
     void drawWaitingForConfirmation();
     /// Draw the full preset-selection screen. See src/states/timer_selecting_preset.cpp.
     void drawPresetSelection();
-    /// Draw only the parts of the preset-selection screen that changed since the last redraw.
-    void drawPartialPresetSelection();
+    /**
+     * @brief Move the selection screen cursor one step through the presets, then Status and
+     * Settings, wrapping around. Landing on a preset also selects it.
+     * @param direction +1 or -1.
+     */
+    void moveSelectionCursor(int direction);
     /// Draw the persistent top menu bar. @return The Y coordinate just below the drawn bar.
     int drawMenuBar();
     /// Draw the Running/UserInitiatedPause screen. See src/states/timer_running.cpp.

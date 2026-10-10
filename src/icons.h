@@ -11,11 +11,11 @@
 #include "config.h"
 #include "icon.h"
 
-extern Icon icon_coding;     ///< Coding preset icon. Bootstrap Icons "code-slash" (MIT). Sizes: [192].
-extern Icon icon_focus;      ///< Focus preset icon. Bootstrap Icons "bullseye" (MIT). Sizes: [192].
-extern Icon icon_workshop;   ///< Workshop preset icon. Bootstrap Icons "tools" (MIT). Sizes: [192].
+extern Icon icon_coding;     ///< Coding preset icon. Bootstrap Icons "code-slash" (MIT). Sizes: [128].
+extern Icon icon_focus;      ///< Focus preset icon. Bootstrap Icons "bullseye" (MIT). Sizes: [128].
+extern Icon icon_workshop;   ///< Workshop preset icon. Bootstrap Icons "tools" (MIT). Sizes: [128].
 extern Icon icon_stopwatch;  ///< Start screen icon, and the fallback icon for presets without their own. Bootstrap
-                             ///< Icons "stopwatch" (MIT). Sizes: [192].
+                             ///< Icons "stopwatch" (MIT). Sizes: [192, 128].
 extern Icon
     icon_bell;  ///< Shown on the "time's up" confirmation screens. Bootstrap Icons "bell-fill" (MIT). Sizes: [128].
 extern Icon
@@ -23,13 +23,14 @@ extern Icon
 extern Icon icon_checkmark;  ///< Draws a checked Checkbox. Bootstrap Icons "check-lg" (MIT). Sizes: [48].
 extern Icon icon_coffee;     ///< Break duration marker on the preset selection screen. Bootstrap Icons "cup-hot-fill"
                              ///< (MIT). Sizes: [48].
+extern Icon icon_back;       ///< Settings: the Back row. Bootstrap Icons "arrow-left" (MIT). Sizes: [64].
 extern Icon icon_person;     ///< Running screen: the speaker next to the speech bubble. Bootstrap Icons "person-fill"
                              ///< (MIT). Sizes: [128].
 
 #if INCLUDE_MEME_ASSETS
 extern Icon icon_lpehacker;  ///< LPE mode: Coding preset icon, and the LPE Mode checkbox. From
-                             ///< assets/icons/lpehacker.png. Sizes: [192, 64].
-extern Icon icon_lpethink;   ///< LPE mode: Focus preset icon. From assets/icons/lpethink.png. Sizes: [192].
+                             ///< assets/icons/lpehacker.png. Sizes: [128, 64].
+extern Icon icon_lpethink;   ///< LPE mode: Focus preset icon. From assets/icons/lpethink.png. Sizes: [128].
 extern Icon
     icon_lpetantrum;  ///< LPE mode: "time's up" confirmation icon. From assets/icons/lpetantrum.png. Sizes: [128].
 #endif                // INCLUDE_MEME_ASSETS

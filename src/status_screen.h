@@ -1,6 +1,7 @@
 /**
  * @file status_screen.h
- * @brief The start screen's Status pages: network, time/MQTT, device, firmware and storage/statistics.
+ * @brief The Status pages (from the preset selection screen): network, time/MQTT, device, firmware and
+ * storage/statistics.
  */
 #ifndef STATUS_SCREEN_H
 #define STATUS_SCREEN_H
@@ -10,9 +11,9 @@
 #include "system_status.h"
 
 /**
- * @brief Read-only device status, shown from the start screen.
+ * @brief Read-only device status, opened from the preset selection screen's top row.
  *
- * run() blocks like the rest of the start screen: turning the knob pages through the groups, and
+ * run() blocks until dismissed: turning the knob pages through the groups, and
  * a press returns. The content refreshes once a second, but the e-paper is only redrawn when
  * something important changes (WiFi connects, the clock syncs, MQTT connects), and otherwise
  * every ::SLOW_REDRAW_INTERVAL for slowly drifting values like uptime and free memory.
@@ -40,7 +41,7 @@ class StatusScreen {
     /**
      * @brief Show the Status pages until the button is pressed.
      *
-     * Also keeps MQTT serviced while open (the start screen otherwise blocks mqttLoop()), so the
+     * Also keeps MQTT serviced while open (this screen blocks loop() and so mqttLoop()), so the
      * MQTT row shows the real connection state.
      * @param encoderCount Pointer to the shared, debounced encoder count.
      */

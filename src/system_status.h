@@ -1,7 +1,7 @@
 /**
  * @file system_status.h
  * @brief One snapshot of the device's network, time, MQTT, hardware, firmware, storage and
- * statistics state, shared by the start screen's Status page and GET /system.
+ * statistics state, shared by the device's Status screen and GET /system.
  */
 #ifndef SYSTEM_STATUS_H
 #define SYSTEM_STATUS_H
