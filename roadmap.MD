@@ -91,7 +91,24 @@ With tests passing and Doxygen comments in place, automation is straightforward.
 
 ## Future (Post Near-Term)
 
-**MQTT client** — straightforward once the webserver WiFi stack is in place. `PubSubClient` is the standard PlatformIO library. Publishes the same state JSON the WebSocket uses, so most of the serialisation work is already done.
+**MQTT publish/subscribe** — the client already connects (`src/mqtt_manager.cpp`) but publishes and subscribes to nothing. Plan:
+
+- **Reuse the WebSocket payloads** documented in `websocket.md`. First move `buildStatusJson()` / `buildPresetsJson()` out of `src/web_server.cpp` into a shared file (e.g. `src/status_json.cpp`), so both transports always send identical JSON.
+- **Reuse the command path.** Incoming commands use the same JSON (`{"cmd": "start"}`) and go through the same parser and queue into `Timer::handleCommand()`. The command parsing in `web_server.cpp` moves to the shared file too. The rules about which commands are valid in which state then stay identical.
+- **Topics** (`<id>` = a per-device ID, e.g. derived from the MAC address, so several units can share one broker):
+
+  | Topic | Direction | Retained | Payload |
+  | --- | --- | --- | --- |
+  | `pomodoro/<id>/status` | device → broker | yes | `status` JSON |
+  | `pomodoro/<id>/presets` | device → broker | yes | `presets` JSON |
+  | `pomodoro/<id>/availability` | device → broker | yes | `online` / `offline` (last will) |
+  | `pomodoro/<id>/cmd` | broker → device | no | command JSON |
+  | `pomodoro/<id>/error` | device → broker | no | `error` JSON (MQTT has no reply channel) |
+
+  The topic says what a message is, so the `type` field is redundant on MQTT, but harmless to keep.
+- **Publish status on change, not every second.** A 1 Hz countdown is a broker write every second, all day. Publish on a state or preset change, plus an `endsAt` field (epoch ms, from SNTP time) so subscribers can count down themselves. Fall back to `remainingMs` when time isn't synced.
+- **Buffer size:** PubSubClient's default maximum message is **256 bytes**. The `presets` message is already ~340 bytes and would be silently dropped. Call `mqttClient.setBufferSize(1024)` (or larger) in `setupMqtt()`.
+- **Later, optional:** Home Assistant MQTT discovery, so the timer appears in HA as entities without manual YAML.
 
 **Image redo** — `scripts/gen_assets.py` already handles the source → C header pipeline. The blocker is sourcing or redrawing the original artwork, which is a design task independent of the code.
 
