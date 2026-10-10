@@ -1,9 +1,42 @@
 # Caturday Prep — Web control, live countdown, preset graphics
 
-Prep notes so Saturday starts with coding, not digging. Nothing in `src/` or `html/` has been changed.
+Prep notes written before Caturday (2026-10-08), then kept up to date as the work happened.
 
-**Baseline (checked 2026-10-08):** `pio run -e esp32dev` builds clean with the current WIP.
-RAM 30.7%, **Flash 83.6% (~336 KB free)**. CI now enforces this, see [§6](#6-cicd--size-budget-added-2026-10-08).
+**Flash:** 83.6% (~336 KB free) at the 2026-10-08 baseline → **64.6% (724 KB free)** after Caturday (2026-10-10), with the WebSocket control, status screens and web pages added. CI enforces the budget, see [§6](#6-cicd--size-budget-added-2026-10-08).
+
+## Status (updated 2026-10-10)
+
+| § | Item | Status |
+| --- | --- | --- |
+| 0 | Before Saturday | ✅ Done |
+| 1 | Backend: WebSocket commands | ✅ Done (PR #1) |
+| 2 | Frontend: controls and countdown | ✅ Done (PR #1) |
+| 3 | Preset graphics / Workshop | 🟡 Workshop icon done (PR #2); **its running message still says "Unknown preset"** |
+| 4 | Decisions | ✅ All recorded |
+| 5 | Suggested order | 🟡 5 of 7 steps done, 1 dropped (the long press); the Workshop message remains |
+| 6 | CI size budget | ✅ Done; runs on every PR |
+| 7 | Long press | ❌ Dropped (2026-10-10): Settings is now on the selection screen |
+| 8 | Status screen | ✅ Done (PR #3); some checks still to test, see below |
+| 9 | LPE switch + SVG icons | ✅ Done (PR #2), plus the drawn running screen (PR #4) |
+| 10 | MQTT direction | 📋 Later (`roadmap.MD`); the `endsAt` part is done |
+| 11 | Splash + selection menu | ✅ Done (PR #4, #5); two decisions pinned |
+
+**Still to do**
+
+1. **Workshop running message** (§3): add a message entry to `src/i18n/{en,af,de}.h` and to the name-based lookup in `Timer::getRunningMessage()`.
+2. **Pinned decision** (§11): break screen decorations.
+3. **Later** (`roadmap.MD`): MQTT publishing, the QR code on the status screen, fully removing LPE, tests (Phase 2).
+
+**Still to test**
+
+- [ ] The "time for a break" screen, after a work interval actually runs out (device and web page)
+- [ ] A real dropped WebSocket connection: the web countdown keeps running and resyncs on reconnect
+- [ ] A real WiFi save from `settings.html`: the page shows "Saved" before the device restarts
+- [ ] Boot with WiFi unavailable (wrong SSID): Status says not connected, with no hang (§8)
+- [ ] Status with WiFi connecting after boot: "Connecting..." changes to the IP without a button press (§8)
+- [ ] MQTT shown as connected, which needs a broker (§8)
+- [ ] A new commit recompiles only `version.cpp` (§8)
+- [ ] The af/de translations, which are English placeholders for now (§8)
 
 ---
 
@@ -70,11 +103,13 @@ Today it sends `{state, presetName, remainingMs}`. For a good countdown UI, add:
 
 ### Tasks
 
-- [ ] Build the mode tabs from the server's `presets` list. Clicking a tab sends `select` only; the Start button sends `start` (the confirm). Lock the tabs while a timer runs.
-- [ ] Render `remainingMs` from the WS message. Between the 1 s broadcasts, either show the last value or interpolate locally and re-sync on each message.
-- [ ] Map `state` to button labels: Start / Pause / Resume / Skip break / Stop.
-- [ ] Add a "disconnected" visual state while the WS is reconnecting.
-- [ ] Use `session-count` for `cycles`.
+All done in PR #1. The countdown ended up running locally from `endsAt` (see §10), rather than from `remainingMs`.
+
+- [x] Build the mode tabs from the server's `presets` list. Clicking a tab sends `select` only; the Start button sends `start` (the confirm). Lock the tabs while a timer runs.
+- [x] Render `remainingMs` from the WS message. Between the 1 s broadcasts, either show the last value or interpolate locally and re-sync on each message.
+- [x] Map `state` to button labels: Start / Pause / Resume / Skip break / Stop.
+- [x] Add a "disconnected" visual state while the WS is reconnecting.
+- [x] Use `session-count` for `cycles`.
 
 ### Workflow reminder
 
@@ -129,8 +164,8 @@ Presets are matched **by name string** in three places, and none of them knows a
 | Commands over WebSocket or REST? | **WebSocket**, so no new REST endpoints |
 | Clicking a preset tab | **Select only**, then confirm with Start |
 | Restart | **Keep the cycle count** |
-| Long-press time | **3 s** (`LONG_PRESS_MS 3000`) |
-| Long-press behaviour | **`ESP.restart()`** back to the start/settings screen |
+| Long-press time | ~~**3 s** (`LONG_PRESS_MS 3000`)~~ superseded: long press dropped |
+| Long-press behaviour | ~~**`ESP.restart()`** back to the start/settings screen~~ superseded: long press dropped |
 | Short presses | **Act on release**, and only if held for less than `LONG_PRESS_MS` |
 | Status screen contents | **All items** from §8; sizing and layout reviewed during development |
 | Status screen exit | **Press** → back to the start screen |
@@ -138,19 +173,20 @@ Presets are matched **by name string** in three places, and none of them knows a
 | LPE / meme assets | **Drop eventually.** For now, a build switch `INCLUDE_MEME_ASSETS`, **off by default** (see §9) |
 | Neutral screens | **Drawn in code** (shapes + Bootstrap icons), not stored as bitmaps |
 | Start screen | **"Pomodoro" + Bootstrap `stopwatch` icon**, drawn in code |
+| Long press (§7) | **Dropped** (2026-10-10): Settings is on the preset selection screen now |
 | Status screen QR code | **Future feature**, revisit once the images are redone and the flash budget is known |
 
 ---
 
 ## 5. Suggested Saturday order
 
-1. Fix Workshop wiring (or move to config-driven presets). Small, and it unblocks the graphics work.
-2. Status JSON additions + `presets` on connect. Check with the browser console, since `console.log` is already there.
-3. Command queue + `select` / `start` / `stop` only, end-to-end with minimal frontend buttons.
-4. The rest of the commands + full frontend render.
-5. Graphics swap, within the flash budget.
-6. Long-press → back to the splash/settings screen ([§7](#7-long-press-encoder--back-to-the-startsettings-screen-added-2026-10-08)). It's independent of the web work, so it can also be the warm-up.
-7. Status screen on the start screen ([§8](#8-status-screen-on-the-start-screen-added-2026-10-08)). Once §7 is done, a long press gets you straight to it.
+1. 🟡 Fix Workshop wiring (or move to config-driven presets). Small, and it unblocks the graphics work.
+2. ✅ Status JSON additions + `presets` on connect. Check with the browser console, since `console.log` is already there.
+3. ✅ Command queue + `select` / `start` / `stop` only, end-to-end with minimal frontend buttons.
+4. ✅ The rest of the commands + full frontend render.
+5. ✅ Graphics swap, within the flash budget.
+6. ❌ *(dropped, see §7)* Long-press → back to the splash/settings screen ([§7](#7-long-press-encoder--back-to-the-startsettings-screen-added-2026-10-08)). It's independent of the web work, so it can also be the warm-up.
+7. ✅ Status screen on the start screen ([§8](#8-status-screen-on-the-start-screen-added-2026-10-08)). Once §7 is done, a long press gets you straight to it.
 
 ---
 
@@ -174,6 +210,8 @@ Expect Saturday's web code plus any new images to set off the flash warning. Tha
 ---
 
 ## 7. Long-press encoder → back to the start/settings screen (added 2026-10-08)
+
+> **Dropped (2026-10-10).** Its purpose was reaching Settings without a power cycle, and Settings is now on the preset selection screen (§11). The plan below is kept for reference only.
 
 **Goal:** holding the encoder button for more than *X* seconds, from any state, stops everything and returns to the boot "Start / Settings" screen. Today the only way back to it is a power cycle.
 
@@ -208,14 +246,14 @@ Settings already restart the device, so a restart is what "go back to the start 
 6. **Clean shutdown before the restart (optional):** `timer.stop()`, then a short `delay()` so any in-flight web response finishes.
 7. **Web freebie:** the same function can back a `{"cmd":"menu"}` WebSocket command (see §1), so the web UI can send the device back to the start screen too.
 
-### Test checklist
+### Test checklist (not applicable: dropped)
 
-- [ ] Long-press in each state: SelectingPreset, Running, paused, RunningBreak, WaitingConfirm*, display blanked
-- [ ] A short press still works normally in each state, and acts on release
-- [ ] A long press does **not** also trigger the short-press action (e.g. no extra cycle counted on "Break now")
-- [ ] Fast double presses aren't lost now that the debounce is shorter, and contact bounce doesn't register as two presses
-- [ ] A hold just under `LONG_PRESS_MS` does *not* restart
-- [ ] After the restart, the splash screen appears, and Settings is reachable and saves
+- Long-press in each state: SelectingPreset, Running, paused, RunningBreak, WaitingConfirm*, display blanked
+- A short press still works normally in each state, and acts on release
+- A long press does **not** also trigger the short-press action (e.g. no extra cycle counted on "Break now")
+- Fast double presses aren't lost now that the debounce is shorter, and contact bounce doesn't register as two presses
+- A hold just under `LONG_PRESS_MS` does *not* restart
+- After the restart, the splash screen appears, and Settings is reachable and saves
 
 ---
 
@@ -286,13 +324,13 @@ Settings already restart the device, so a restart is what "go back to the start 
 
 ### Test checklist
 
-- [ ] Boot with WiFi available: "Connecting..." changes to the IP without any button input
-- [ ] Boot with WiFi unavailable (wrong SSID): the screen still works and says not connected, with no hang
-- [ ] MQTT shows the correct state (enabled/connected, or disabled when `MQTT_BROKER_ADDRESS` is empty)
-- [ ] The firmware version matches `git describe` after a fresh commit, and only `version.cpp` recompiles, and shows `-dirty` with uncommitted changes
-- [ ] Every item is readable (no clipping or overlap), on every page if paged
-- [ ] A press returns to the start screen, and Start and Settings still work after visiting Status
-- [ ] Menu text fits in en/af/de
+- [ ] Boot with WiFi available: "Connecting..." changes to the IP without any button input *(still to test)*
+- [ ] Boot with WiFi unavailable (wrong SSID): the screen still works and says not connected, with no hang *(still to test)*
+- [x] MQTT shows the correct state when disabled (`MQTT_BROKER_ADDRESS` empty). *Connected: still to test.*
+- [x] The firmware version matches `git describe` and shows `-dirty` with uncommitted changes. *Only `version.cpp` recompiling: still to test.*
+- [x] Every item is readable (no clipping or overlap), on every page
+- [x] A press returns to the menu, and everything still works after visiting Status (since §11: back to preset selection)
+- [ ] Menu text fits in en/af/de *(still to test; af/de are English placeholders)*
 
 ---
 
@@ -449,4 +487,4 @@ It's a small addition to `buildStatusJson()`, but decide before building the cou
 **Pinned (decide later):**
 
 - **Break screen decorations.** Breaks are already fully drawn in code (statistics box, header, menu). The idea on the table: a large Bootstrap icon in the free space left of the statistics box, e.g. `cup-hot` for short breaks and `moon-stars` for long ones, ~2 KB each at 128 px.
-- **The long press (§7).** Its purpose was reaching Settings without a power cycle, and Settings is now on the selection screen. Options: drop it, keep it as "return to preset selection from anywhere", or keep the original restart.
+- ~~**The long press (§7).**~~ **Decided: dropped.** Its purpose was reaching Settings without a power cycle, and Settings is now on the selection screen.
