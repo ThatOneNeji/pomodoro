@@ -103,7 +103,7 @@ Sent **only to the client that sent the bad message**, when it can't be parsed o
 | `invalid JSON` | The message isn't valid JSON |
 | `unknown cmd` | `cmd` is missing or not one of the [commands](#client--device) |
 | `select needs a preset index` | `select` was sent without a `preset` field |
-| `not ready` | The device is still on the start/settings screen and isn't accepting commands yet |
+| `not ready` | The device is still showing its boot splash screen (the first few seconds after starting) and isn't accepting commands yet |
 | `busy` | The command queue (8 entries) is full |
 | `unsupported frame` | Binary, fragmented or multi-frame message |
 
@@ -142,7 +142,7 @@ A command that isn't valid in the current state is **ignored, not answered with 
 
 ### Timing
 
-Commands are queued and applied by the main loop. They usually take effect within **1–2.5 s**, because an e-paper redraw blocks the loop while it runs. If the display was blanked, the command wakes it first, which takes a few seconds more.
+Commands are queued and applied by the main loop. They usually take effect within **1–2.5 s**, because an e-paper redraw blocks the loop while it runs. If the display was blanked, the command wakes it first, which takes a few seconds more. While the device shows its Status or Settings screen, commands wait in the queue and are applied once you leave it.
 
 ---
 

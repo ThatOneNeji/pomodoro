@@ -264,8 +264,8 @@
                     } else if (pending) {
                         text = 'Waiting for the device…';
                     } else if (!status) {
-                        // The device only sends status once its start screen has been dismissed.
-                        text = 'Connected. If the device is on its start screen, press Start on it.';
+                        // The device only sends status once it's past its boot splash screen.
+                        text = 'Connected. Waiting for the device to finish starting up…';
                     }
                     connectionStatus.textContent = text;
                     connectionStatus.classList.toggle('is-warning', !connected || text === notice && notice !== '');
@@ -307,7 +307,7 @@
                     } else if (message.type === 'error') {
                         clearTimeout(pending && pending.timer);
                         pending = null;
-                        notice = message.error === 'not ready' ? 'The device is on its start screen. Press Start on the device first.' : 'Device error: ' + message.error;
+                        notice = message.error === 'not ready' ? 'The device is still starting up. Try again in a few seconds.' : 'Device error: ' + message.error;
                     }
                     render();
                 }
