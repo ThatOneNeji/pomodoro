@@ -20,6 +20,9 @@ The project has a solid foundation: a state machine in `src/timer.cpp`, an i18n 
 | Drop LPE entirely | 🟡 Step 1 of 2 | `INCLUDE_MEME_ASSETS` switch done; removal pending |
 | mDNS hostname | ✅ Done | `http://pomodoro.local/` (PR #14) |
 | Refresh trivia facts | 📋 Undecided | Options A/B/C below |
+| Battery power | ❌ Not started | Measure first; the power path decides the case (added 2026-10-10) |
+| Case changes | ❌ Not started | Needs part choices, sizes and an editable model |
+| Branding | ❌ Not started | Name in `config.h`; nice to have: language stub script, web colour theme |
 
 Flash: 83.6% at the start of 2026-10-10 → **56.4%** (~892 KB free) after it. See `caturday.md` for the day's details.
 
@@ -129,6 +132,7 @@ With tests passing and Doxygen comments in place, automation is straightforward.
 **MQTT publish/subscribe** — ❌ not started. The client already connects (`src/mqtt_manager.cpp`) but publishes and subscribes to nothing. Plan:
 
 - **Reuse the WebSocket payloads** documented in `websocket.md`. First move `buildStatusJson()` / `buildPresetsJson()` out of `src/web_server.cpp` into a shared file (e.g. `src/status_json.cpp`), so both transports always send identical JSON.
+- **One "state changed" notification for both transports.** Today the status push is wired to the WebSocket. Before adding MQTT, give the timer a single point that says "state changed" and let the WebSocket and MQTT both publish from it, rather than calling each transport from the timer code. This is the logic rework expected for MQTT; do it once host tests (2.1) cover the timer.
 - **Reuse the command path.** Incoming commands use the same JSON (`{"cmd": "start"}`) and go through the same parser and queue into `Timer::handleCommand()`. The command parsing in `web_server.cpp` moves to the shared file too. The rules about which commands are valid in which state then stay identical.
 - **Topics** (`<id>` = a per-device ID, e.g. derived from the MAC address, so several units can share one broker):
 
@@ -165,6 +169,42 @@ Whatever the option, the script must: convert or skip characters outside 7-bit A
 
 ---
 
+**Battery power** — ❌ not started. Run the timer from a LiPo, through a switch and a voltage booster.
+
+- **Measure before changing anything.** Power numbers come from a USB power meter (on USB now) or an INA219 inline with the battery, not from unit tests. Measure:
+  - on USB, as a baseline, before the battery hardware goes in;
+  - with WiFi connected;
+  - with WiFi off or not configured;
+  - a long session, e.g. a 24-hour preset.
+- **Expect the 24-hour run to fail as things stand.** An ESP32 with WiFi on averages roughly 80–120 mA; a 1000 mAh LiPo would last about 10 hours, a 2000 mAh one about 20. The e-paper uses almost nothing between refreshes, so the radio and CPU are the cost. Firmware options, in order of effort: WiFi modem sleep, light sleep between screen updates, a setting to turn WiFi off.
+- **The timer copes with 24 hours.** 86.4 M ms is well inside `millis()` (wraps after ~49 days); check the settings allow entering a preset that long.
+- **Choose the power path before designing the case around it.** LiPo (3.7 V) → booster (5 V) → the board's regulator (3.3 V) converts twice and wastes power both times. A 3.3 V low-dropout or buck-boost regulator straight from the LiPo usually lasts noticeably longer. Settle this before adding mounting points for the booster.
+- **Battery level.** A voltage divider to an **ADC1** pin (ADC2 doesn't work while WiFi is on) lets the Status screen and status page show the charge. Cheap to wire in now, awkward to add after the case is printed.
+- **Charging.** If the LiPo charges over USB, the charger board needs a place in the case too.
+
+**Case changes** — ❌ not started. The case exists only as STL files, which are triangle meshes, not editable CAD models. Ways to edit them, best first:
+
+1. **Find the original source.** Printables and Thingiverse projects often include STEP or Fusion files, which are properly editable.
+2. **OpenSCAD.** It imports the STL as-is and adds or subtracts shapes from it, which covers every change below. It's code-based, so the files can be written and adjusted in the repo; the hands-on part is measuring parts and checking the result in the viewer.
+3. **FreeCAD's mesh-to-solid conversion.** Works, but fiddly.
+
+Changes, each needing the part's sizes (calipers) and product page or datasheet:
+
+- [ ] Change the USB cut-out.
+- [ ] Add a cut-out for a power switch.
+- [ ] Double the thickness of the bottom.
+- [ ] Mounting points for the voltage booster (or the regulator that replaces it, see "Battery power").
+- [ ] Mounting for the LiPo battery.
+- [ ] A place for the charger board, if there is one.
+
+**Branding** — ❌ not started.
+
+- **The device name in `config.h`**, so a rebuilt unit doesn't have to say "Pomodoro". Two values: a display name (splash, web page titles, the WiFi setup network name) and a hostname (lowercase, no spaces; `MDNS_HOSTNAME` already exists). Cheap.
+- *Nice to have:* **a language stub script** that creates a new `src/i18n/<lang>.h` from `en.h` when it doesn't exist yet. More useful still if it also lists which strings in each language are still identical to English: the build's `allPopulated` check only catches empty strings, not untranslated ones.
+- *Nice to have:* **a colour theme for the web pages**: CSS variables, plus automatic dark mode via `prefers-color-scheme`. Tiny flash cost, as the pages are gzipped.
+
+---
+
 ## What happened, and what's next
 
 The original plan was Phases 1 → 2 → 4a → 3 → 4b. In practice (prep on 2026-10-08, the work on 2026-10-10):
@@ -178,7 +218,10 @@ Future   (images, mDNS)            ─── done
 
 **Suggested next, by value:**
 
-1. **Tests (2.1).** The biggest gap; see the note there for first candidates.
-2. **`lint.yml` (4.2).** Cheap: CI repeats the clang-format check every PR already gets locally.
-3. **MQTT publish/subscribe.** The larger feature; the plan above is ready.
-4. **Translations (1.1)**, **dropping LPE**, and **refreshing the facts**, as and when wanted.
+1. **Measure power on USB.** A quick baseline before any battery hardware goes in.
+2. **Choose the power path**: booster or a 3.3 V regulator, plus the battery-level divider. This decides the case changes.
+3. **Tests (2.1).** The biggest gap, and the safety net for the MQTT rework; see the note there for first candidates.
+4. **`lint.yml` (4.2).** Cheap: CI repeats the clang-format check every PR already gets locally.
+5. **The shared "state changed" notification, then MQTT.** The larger feature; the plan above is ready.
+6. **Case changes**, once the parts are chosen.
+7. **Branding**, **translations (1.1)**, **dropping LPE**, and **refreshing the facts**, as and when wanted.
