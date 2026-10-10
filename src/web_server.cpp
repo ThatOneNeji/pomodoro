@@ -57,6 +57,68 @@ static std::atomic<bool> welcomePending{false};
 /// Restarts the device shortly after POST /wifi has replied (see handleSaveWifi()).
 static Ticker restartTicker;
 
+/// @return true if @p origin is a page served from this machine's loopback address on any port
+/// (e.g. VS Code Live Server's http://127.0.0.1:5500), i.e. local frontend development.
+static bool isLocalDevOrigin(const String &origin) {
+    String rest;
+    if (origin.startsWith("http://localhost")) {
+        rest = origin.substring(strlen("http://localhost"));
+    } else if (origin.startsWith("http://127.0.0.1")) {
+        rest = origin.substring(strlen("http://127.0.0.1"));
+    } else {
+        return false;
+    }
+
+    // Nothing more, or ":<port>" with digits only, so e.g. "http://localhost.evil.example" fails.
+    if (rest.length() == 0) {
+        return true;
+    }
+    if (rest[0] != ':' || rest.length() == 1) {
+        return false;
+    }
+    for (unsigned int i = 1; i < rest.length(); i++) {
+        if (!isDigit(rest[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief CORS for local frontend development only.
+ *
+ * html/ pages opened from a local dev server call /wifi and /system on the device cross-origin,
+ * which browsers block unless the device allows it. Only loopback origins are allowed: a blanket
+ * `*` would let any website the user visits read the config and POST new WiFi credentials. The
+ * pages served by the device itself are same-origin and unaffected. (/ws needs none of this:
+ * WebSockets aren't subject to CORS.)
+ */
+static void localDevCorsMiddleware(AsyncWebServerRequest *request, ArMiddlewareNext next) {
+    if (!request->hasHeader("Origin") || !isLocalDevOrigin(request->header("Origin"))) {
+        next();
+        return;
+    }
+    const String origin = request->header("Origin");
+
+    if (request->method() == HTTP_OPTIONS) {
+        // Preflight, sent before e.g. the JSON POST /wifi.
+        AsyncWebServerResponse *response = request->beginResponse(204);
+        response->addHeader("Access-Control-Allow-Origin", origin);
+        response->addHeader("Access-Control-Allow-Methods", "GET, POST");
+        response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+        response->addHeader("Vary", "Origin");
+        request->send(response);
+        return;
+    }
+
+    next();
+    AsyncWebServerResponse *response = request->getResponse();
+    if (response) {
+        response->addHeader("Access-Control-Allow-Origin", origin);
+        response->addHeader("Vary", "Origin");
+    }
+}
+
 /// @return A human-readable name for a TimerState, for JSON responses.
 static const char *timerStateName(TimerState state) {
     switch (state) {
@@ -295,6 +357,8 @@ static void startServer() {
     if (serverStarted) {
         return;
     }
+
+    server.addMiddleware(localDevCorsMiddleware);
 
     ws.onEvent(onWsEvent);
     server.addHandler(&ws);
