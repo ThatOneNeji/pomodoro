@@ -32,7 +32,7 @@ void setupLed();
  */
 void ledSetupEncoder(volatile int *encoderCount);
 
-/// Stop and delete the LED animation task.
+/// Stop and delete the LED animation task, and switch the LED off.
 void stopLed();
 
 /// Create and start the LED animation task (see ::ledTaskHandle).

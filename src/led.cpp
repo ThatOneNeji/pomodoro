@@ -257,6 +257,9 @@ void stopLed() {
         vTaskDelete(ledTaskHandle);
         ledTaskHandle = NULL;
     }
+    // A WS2812 keeps its last colour for as long as it has power, which includes deep sleep.
+    strip.ClearTo(RgbColor(0));
+    strip.Show();
 }
 
 void startLedTask() {

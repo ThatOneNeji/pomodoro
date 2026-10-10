@@ -31,8 +31,13 @@ class SettingsScreen {
         Checkbox(nullptr, Msgs::RSTDEVICE, "reset"),
     };
 
-    /// 0..checkboxes.size()-1 selects a checkbox; checkboxes.size() is the Back row.
+    /// 0..checkboxes.size()-1 selects a checkbox, then backIndex() and shutDownIndex().
     unsigned int selectedIndex = 0;
+
+    /// @return The ::selectedIndex of the Back button (last row, left).
+    unsigned int backIndex() const { return checkboxes.size(); }
+    /// @return The ::selectedIndex of the Shut down button (last row, right).
+    unsigned int shutDownIndex() const { return checkboxes.size() + 1; }
 
     /// Draw every row, with the selected one highlighted, into the display buffer.
     void draw();
@@ -43,7 +48,7 @@ class SettingsScreen {
 
     /**
      * @brief Show Settings until Back is chosen. Toggling an option or resetting restarts the
-     * device instead, so those never return.
+     * device, and Shut down switches it off (see power.h), so those never return.
      * @param encoderCount Pointer to the shared, debounced encoder count.
      */
     void run(volatile const int *encoderCount);

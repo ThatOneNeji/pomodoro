@@ -26,9 +26,10 @@ struct Msgs {
     static constexpr const char *SKIPBREAK = "Skip Break";   ///< "Skip the current break" menu item.
     static constexpr const char *TOSELECT = "To Select";     ///< "Back to preset selection" menu item.
 
-    static constexpr const char *SETTINGS = "Settings";  ///< Preset selection screen "Settings" menu item.
-    static constexpr const char *STATUS = "Status";      ///< Preset selection screen "Status" menu item.
-    static constexpr const char *BACK = "Back";          ///< Settings screen "Back" row.
+    static constexpr const char *SETTINGS = "Settings";   ///< Preset selection screen "Settings" menu item.
+    static constexpr const char *STATUS = "Status";       ///< Preset selection screen "Status" menu item.
+    static constexpr const char *BACK = "Back";           ///< Settings screen "Back" row.
+    static constexpr const char *SHUTDOWN = "Shut down";  ///< Settings screen "Shut down" button.
     static constexpr const char *MISCMSG =
         "Distracting news";                                   ///< Checkbox label for the random-facts/messages setting.
     static constexpr const char *MODE = "LPE Mode";           ///< Checkbox label for the alternate icon/message theme.

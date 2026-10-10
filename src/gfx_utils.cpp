@@ -266,3 +266,11 @@ std::vector<std::string> wrapText(DISPLAY_CLASS &display, const char *text, cons
     }
     return lines;
 }
+
+void clearPanel(DISPLAY_CLASS &display) {
+    display.fillScreen(GxEPD_BLACK);
+    display.display(false);
+    display.fillScreen(GxEPD_WHITE);
+    display.display(false);
+    display.hibernate();
+}

@@ -107,6 +107,16 @@ Sent **only to the client that sent the bad message**, when it can't be parsed o
 | `busy` | The command queue (8 entries) is full |
 | `unsupported frame` | Binary, fragmented or multi-frame message |
 
+### `shutdown`
+
+Sent **to every client** when the device is about to switch off (Settings → Shut down on the device). No other fields.
+
+```json
+{ "type": "shutdown" }
+```
+
+After it, the device clears its screen, closes every connection and goes into deep sleep. Pressing the knob switches it back on, which restarts it from the beginning, so a client should treat the next connection like a fresh one: `presets`, then `status`. The web page shows "switched off" and keeps trying to reconnect.
+
 ---
 
 ## Client → device

@@ -162,6 +162,16 @@ Bounds drawCenteredText(DISPLAY_CLASS &display, const char *text, int16_t x, int
 void drawSpeechBubble(DISPLAY_CLASS &display, int16_t x, int16_t y, int16_t w, int16_t h);
 
 /**
+ * @brief Clear the e-paper panel to white, then put the panel controller to sleep.
+ *
+ * E-paper is bistable: cutting power alone leaves the last image visible. A single full refresh
+ * can also leave ghosting from earlier partial updates, so this flashes black, then white. Takes
+ * a few seconds. Waking the panel afterwards needs `display.init()` again.
+ * @param display Target display.
+ */
+void clearPanel(DISPLAY_CLASS &display);
+
+/**
  * @brief Word-wrap @p text into lines no wider than @p maxWidth pixels in @p font.
  *
  * Breaks between words; '\n' in the text forces a break (for deliberate line breaks). A single

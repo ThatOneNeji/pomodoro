@@ -10,6 +10,7 @@
  *       - `status`: `{state, presetIndex, presetName, remainingMs, durationMs, isLongBreak, cycles}`,
  *         on connect, immediately on any state/preset change, and otherwise once a second.
  *       - `error`: `{error}`, in reply to a malformed or unknown command.
+ *       - `shutdown`: `{}`, when the device is about to switch off (Settings → Shut down).
  *     Client → server: `{"cmd": "select", "preset": <index>}`, or `{"cmd": "<name>"}` for
  *     start/pause/resume/restart/stop/break (see TimerCommand). Commands are queued and applied
  *     from loop(); a command that isn't valid in the current state is logged and ignored.
@@ -59,5 +60,16 @@ void webServerLoop();
  * @return true if a command was dequeued, false if the queue is empty.
  */
 bool webServerNextCommand(TimerCommand &command, int &arg);
+
+/**
+ * @brief Tell every WebSocket client that the device is switching off (a `shutdown` message).
+ *
+ * Only queues the message: give the network a moment to send it (e.g. while the panel clears)
+ * before calling webServerDisconnectClients(). Does nothing if the server isn't running.
+ */
+void webServerAnnounceShutdown();
+
+/// Close every WebSocket connection cleanly, so clients notice straight away rather than after a timeout.
+void webServerDisconnectClients();
 
 #endif

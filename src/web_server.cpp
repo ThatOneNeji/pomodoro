@@ -418,6 +418,18 @@ void webServerLoop() {
     ws.textAll(buildStatusJson());
 }
 
+void webServerAnnounceShutdown() {
+    if (serverStarted) {
+        ws.textAll("{\"type\":\"shutdown\"}");
+    }
+}
+
+void webServerDisconnectClients() {
+    if (serverStarted) {
+        ws.closeAll();
+    }
+}
+
 /// Start announcing ::MDNS_HOSTNAME and the web server via mDNS. Only takes effect once: the
 /// responder keeps running (and re-announces) across WiFi reconnects by itself.
 static void startMdns() {

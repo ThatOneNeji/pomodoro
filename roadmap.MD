@@ -147,6 +147,7 @@ With tests passing and Doxygen comments in place, automation is straightforward.
   | `pomodoro/<id>/error` | device → broker | no | `error` JSON (MQTT has no reply channel) |
 
   The topic says what a message is, so the `type` field is redundant on MQTT, but harmless to keep.
+- **Publish `offline` before a shutdown.** Settings → Shut down (since 2026-10-10, `src/power.cpp`) already sends a WebSocket `shutdown` message and marks the spot for MQTT. The broker only sends the last will when a connection drops unexpectedly, so a clean shutdown must publish `offline` to the availability topic itself, then disconnect.
 - **Publish status on change, not every second.** A 1 Hz countdown is a broker write every second, all day. Publish on a state or preset change, plus an `endsAt` field (epoch ms, from SNTP time) so subscribers can count down themselves. Fall back to `remainingMs` when time isn't synced.
 - **Buffer size:** PubSubClient's default maximum message is **256 bytes**. The `presets` message is already ~340 bytes and would be silently dropped. Call `mqttClient.setBufferSize(1024)` (or larger) in `setupMqtt()`.
 - **Later, optional:** Home Assistant MQTT discovery, so the timer appears in HA as entities without manual YAML.
