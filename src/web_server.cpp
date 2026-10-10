@@ -9,6 +9,7 @@
 #include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
+#include <Ticker.h>
 #include "wifi_manager.h"
 #include "sntp_manager.h"
 #include "mqtt_manager.h"
@@ -52,6 +53,9 @@ static std::atomic<bool> commandsEnabled{false};
 /// Sending from loop() rather than the connect callback avoids reading Timer from the network
 /// task, including during setup() while presets are still being added.
 static std::atomic<bool> welcomePending{false};
+
+/// Restarts the device shortly after POST /wifi has replied (see handleSaveWifi()).
+static Ticker restartTicker;
 
 /// @return A human-readable name for a TimerState, for JSON responses.
 static const char *timerStateName(TimerState state) {
@@ -262,9 +266,10 @@ static void handleGetSystem(AsyncWebServerRequest *request) {
  * Body: `{"ssid": "...", "password": "..."}`. `password` may be omitted (or empty) to keep the
  * currently saved password unchanged, so the settings page never has to know/display it. `ssid`
  * is required and rejected with 400 if blank, to avoid saving a configuration that can never
- * reconnect. On success, responds first and only then restarts (mirrors the same
- * save-then-ESP.restart() pattern SplashScreen::loopSettings() already uses on-device), giving
- * the response time to actually reach the browser before the connection drops.
+ * reconnect. On success, responds first and restarts a second later via ::restartTicker. The
+ * restart can't happen in this handler: send() only queues the response, which goes out after
+ * the handler returns, so restarting here would drop it. A Ticker (rather than loop()) still
+ * fires while the blocking splash screen is up.
  */
 static void handleSaveWifi(AsyncWebServerRequest *request, const JsonVariant &json) {
     String ssid = json["ssid"] | "";
@@ -282,8 +287,7 @@ static void handleSaveWifi(AsyncWebServerRequest *request, const JsonVariant &js
     ESP_LOGI(TAG, "Saved new WiFi credentials for SSID \"%s\"; restarting", ssid.c_str());
 
     request->send(200, "application/json", "{\"ok\":true}");
-    delay(1000);
-    ESP.restart();
+    restartTicker.once_ms(1000, []() { ESP.restart(); });
 }
 
 /// Register routes and start listening. Safe to call more than once (e.g. on WiFi reconnect); only takes effect once.
