@@ -4,7 +4,7 @@
  * UserInitiatedBreakPause screen.
  */
 #include "../timer.h"
-#include "../strings.h"
+#include "../messages.h"
 #include <stdint.h>
 
 void Timer::handleRunningBreak(volatile const int *encoderCount) {

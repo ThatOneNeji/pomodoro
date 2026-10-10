@@ -9,7 +9,7 @@
 #include <vector>
 #include "config.h"
 #include "checkbox.h"
-#include "strings.h"
+#include "messages.h"
 
 /**
  * @brief Lists the persisted Checkbox options; the knob moves between rows and a press acts.

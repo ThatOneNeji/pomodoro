@@ -1,6 +1,6 @@
 /// @file timer.cpp
 #include "timer.h"
-#include "strings.h"
+#include "messages.h"
 #include "icon_provider.h"
 #include "led.h"
 #include "preferences_manager.h"

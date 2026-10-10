@@ -1,5 +1,5 @@
-/// @file strings.cpp
-#include "strings.h"
+/// @file messages.cpp
+#include "messages.h"
 #include <type_traits>
 
 MessageCache messageCache;

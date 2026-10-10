@@ -3,7 +3,7 @@
  * @brief Timer::handleRunning() / Timer::drawRunning(): the TimerState::Running / UserInitiatedPause screen.
  */
 #include "../timer.h"
-#include "../strings.h"
+#include "../messages.h"
 #include "../config.h"
 
 void Timer::handleRunning(volatile const int *encoderCount) {

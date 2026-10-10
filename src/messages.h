@@ -1,5 +1,5 @@
 /**
- * @file strings.h
+ * @file messages.h
  * @brief Resolves ::Messages keys to localized display strings, selecting the active language at compile time.
  *
  * The active language is chosen by which header under i18n/ is included below, controlled by the
@@ -7,8 +7,8 @@
  * the same `Msgs` struct API (see i18n/en.h); ::MessageCache::getMessage() maps a ::Messages key
  * onto the right `Msgs` value (and, for messages with several variants, picks one at random).
  */
-#ifndef STRINGS_H
-#define STRINGS_H
+#ifndef MESSAGES_H
+#define MESSAGES_H
 
 #include <Arduino.h>
 #include <math.h>     // for float_t, double_t
