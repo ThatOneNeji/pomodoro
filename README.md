@@ -209,3 +209,11 @@ anything yet.
 | PIN | #   |
 | --- | --- |
 | DIN | 25  |
+
+## License
+
+GPL-3.0: see [`LICENSE`](LICENSE).
+
+This repository is a modified fork of [Rukenshia/pomodoro](https://github.com/Rukenshia/pomodoro), which is licensed under the GPL-3.0 (since 2026-11-08). The changes made here since the fork, by ThatOneNeji in 2026, are also released under the GPL-3.0; the git history records them in detail. If you share a build or a modified version, the GPL-3.0 applies to it too, including making its source available.
+
+Libraries, fonts, icons and images from elsewhere keep their own licenses: see [`THIRD_PARTY.md`](THIRD_PARTY.md). In particular, the optional meme art isn't covered by the GPL.
