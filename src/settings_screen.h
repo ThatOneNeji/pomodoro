@@ -10,6 +10,7 @@
 #include "config.h"
 #include "checkbox.h"
 #include "messages.h"
+#include "wifi_manager.h"
 
 /**
  * @brief Lists the persisted Checkbox options; the knob moves between rows and a press acts.
@@ -27,6 +28,7 @@ class SettingsScreen {
 #if INCLUDE_MEME_ASSETS
         Checkbox(&icon_lpehacker, Msgs::MODE, "lpe", false),
 #endif
+        Checkbox(&icon_wifi, Msgs::WIFI, WIFI_ENABLED_KEY, true),
         Checkbox(&icon_messages, Msgs::MISCMSG, "msgs", true),
         Checkbox(nullptr, Msgs::RSTDEVICE, "reset"),
     };

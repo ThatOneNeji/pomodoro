@@ -19,6 +19,7 @@
         "moon": { "svg": "moon-stars-fill", "sizes": [128], "doc": "Long break screen decoration." },
         "back": { "svg": "arrow-left", "sizes": [64], "doc": "Settings: the Back row." },
         "power": { "svg": "power", "sizes": [64], "doc": "Settings: the Shut down button." },
+        "wifi": { "svg": "wifi", "sizes": [64], "doc": "Settings: the WiFi checkbox." },
         "person": { "svg": "person-fill", "sizes": [128], "doc": "Running screen: the speaker next to the speech bubble." },
         "lpehacker": { "png": "icons/lpehacker.png", "sizes": [128, 64], "meme": true, "doc": "LPE mode: Coding preset icon, and the LPE Mode checkbox." },
         "lpethink": { "png": "icons/lpethink.png", "sizes": [128], "meme": true, "doc": "LPE mode: Focus preset icon." },

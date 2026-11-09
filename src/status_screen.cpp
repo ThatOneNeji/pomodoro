@@ -30,7 +30,9 @@ std::vector<Row> rowsFor(unsigned int page, const SystemStatus &s) {
     switch (page) {
         case 0:
             return {
-                {"WiFi", s.wifiConnected ? String("Connected") : "Connecting to " + s.ssid + "..."},
+                {"WiFi", !s.wifiEnabled    ? String("Off (Settings to switch on)")
+                         : s.wifiConnected ? String("Connected")
+                                           : "Connecting to " + s.ssid + "..."},
                 {"IP address", s.wifiConnected ? s.ip : String("-")},
                 // The mDNS name keeps working when the IP changes; the IP has its own row above.
                 {"Web page", !s.wifiConnected      ? String("-")

@@ -13,11 +13,17 @@
 SystemStatus collectSystemStatus() {
     SystemStatus s;
 
+    s.wifiEnabled = isWifiEnabled();
     s.wifiConnected = WiFi.status() == WL_CONNECTED;
     s.ssid = getWifiSSID();
     s.ip = s.wifiConnected ? WiFi.localIP().toString() : String();
     s.rssi = s.wifiConnected ? WiFi.RSSI() : 0;
-    s.mac = WiFi.macAddress();
+    // Read from the chip, not the WiFi driver, which doesn't know it while WiFi is switched off.
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    char macText[18];
+    snprintf(macText, sizeof(macText), "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    s.mac = macText;
     s.hostname = strlen(MDNS_HOSTNAME) > 0 ? String(MDNS_HOSTNAME) + ".local" : String();
 
     s.timeSynced = isTimeSynced();
@@ -55,6 +61,7 @@ SystemStatus collectSystemStatus() {
 }
 
 void systemStatusToJson(const SystemStatus &s, JsonDocument &doc) {
+    doc["wifiEnabled"] = s.wifiEnabled;
     doc["wifiConnected"] = s.wifiConnected;
     doc["ssid"] = s.ssid;
     doc["ip"] = s.ip;

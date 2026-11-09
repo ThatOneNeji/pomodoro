@@ -30,6 +30,7 @@ struct Msgs {
     static constexpr const char *STATUS = "Status";       ///< Preset selection screen "Status" menu item.
     static constexpr const char *BACK = "Back";           ///< Settings screen "Back" row.
     static constexpr const char *SHUTDOWN = "Shut down";  ///< Settings screen "Shut down" button.
+    static constexpr const char *WIFI = "WiFi";           ///< Checkbox label for switching WiFi on or off.
     static constexpr const char *MISCMSG =
         "Distracting news";                                   ///< Checkbox label for the random-facts/messages setting.
     static constexpr const char *MODE = "LPE Mode";           ///< Checkbox label for the alternate icon/message theme.

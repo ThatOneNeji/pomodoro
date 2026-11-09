@@ -324,6 +324,28 @@ button:disabled {
     font-weight: 700;
 }
 
+/* A second part of a settings card, divided from the first. */
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+/* A text button with less weight than .btn-primary, for actions taken less often. */
+.btn-outline {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    align-self: flex-start; /* sized to its label, like .btn-primary */
+}
+
 .form-group {
     display: flex;
     flex-direction: column;

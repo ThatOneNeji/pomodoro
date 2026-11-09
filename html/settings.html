@@ -44,6 +44,12 @@
                 <button id="save-btn" class="btn-primary" type="submit">Save &amp; Restart</button>
                 <p id="form-status" class="form-status" role="status"></p>
             </form>
+            <section class="settings-section">
+                <h2 class="settings-title">Switch WiFi off</h2>
+                <p class="form-hint">For using the timer without a network. It also saves power. This page stops working until WiFi is back on, which only the device can do: Settings, then WiFi.</p>
+                <button id="wifi-off-btn" class="btn-outline" type="button">Switch off &amp; Restart</button>
+                <p id="wifi-off-status" class="form-status" role="status"></p>
+            </section>
         </main>
 
         <footer class="app-footer">
@@ -118,6 +124,30 @@
                     .catch(function () {
                         setStatus("Couldn't load current settings.", "error");
                     });
+
+                var wifiOffBtn = document.getElementById("wifi-off-btn");
+                var wifiOffStatus = document.getElementById("wifi-off-status");
+                wifiOffBtn.addEventListener("click", function () {
+                    if (!confirm("Switch WiFi off? This page will stop working. To switch it back on, use the device: Settings, then WiFi.")) {
+                        return;
+                    }
+                    wifiOffBtn.disabled = true;
+                    fetch(apiBase + "/wifi", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ enabled: false }),
+                    })
+                        .then(function (res) {
+                            if (!res.ok) throw new Error("Couldn't switch WiFi off.");
+                            wifiOffStatus.textContent = "WiFi is off. The device is restarting without it.";
+                            wifiOffStatus.className = "form-status success";
+                        })
+                        .catch(function (err) {
+                            wifiOffBtn.disabled = false;
+                            wifiOffStatus.textContent = err.message;
+                            wifiOffStatus.className = "form-status error";
+                        });
+                });
 
                 form.addEventListener("submit", function (event) {
                     event.preventDefault();
