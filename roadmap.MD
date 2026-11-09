@@ -207,6 +207,24 @@ Changes, each needing the part's sizes (calipers) and product page or datasheet:
 
 ---
 
+**Upgrade to platform 8 / Arduino core 3** — ⏸️ blocked (checked 2026-11-09). `platformio.ini` pins `espressif32 @ 7.0.1` (Arduino core 2.0.17 on ESP-IDF 4.4.7). Platform 8.0.0 moves to Arduino core 3.3.12 on ESP-IDF 5.5.5, with GCC 14.2 and esptool 5.4. Every 7.x release ships the same Arduino core, so moving within 7.x gains nothing.
+
+- **Why upgrade at all:** maintenance. 2.0.17 is the last Arduino core 2 release and ESP-IDF 4.4 is out of support, so future WiFi, TLS and network-stack fixes only come on core 3. That matters more once MQTT or HTTPS (fact fetching, option C) is added.
+- **What it doesn't bring:** battery life. Neither core's build turns on automatic light sleep (`CONFIG_PM_ENABLE`), so the power levers under "Battery power" (a lower CPU clock, light sleep called by us) work the same on both.
+- **Blocker: NeoPixelBus.** 2.8.4 (May 2025) is still its newest release, and it doesn't link on core 3 (`undefined reference to dmaItemInit`, the CI failure on PR 23). Unblocked by either a NeoPixelBus release that supports core 3, or rewriting `src/led.cpp` for another LED library or the core's own `rgbLedWrite()` (the current code uses NeoPixelBus's fade animations). Do it then, or the next time the LED code is reworked anyway.
+- **Checklist, on its own branch:**
+  - [ ] Change the pin to `espressif32 @ 8.x` and update the comment above it.
+  - [ ] LED: a NeoPixelBus release that links, or the rewrite above.
+  - [ ] ESP32Encoder: from `^0.12` to the current major version (5.x); check its API changes.
+  - [ ] Check ESPAsyncWebServer, AsyncTCP and GxEPD2 build on core 3 (they claim support).
+  - [ ] Fix the core 3 API changes as the build finds them (e.g. `esp_read_mac()` needs `<esp_mac.h>`).
+  - [ ] Compare flash use with the size budget; ESP-IDF 5 builds tend to be bigger (56.8% now).
+  - [ ] `npm test` (host tests and cppcheck) passes.
+  - [ ] On the device: WiFi and the setup portal, mDNS, the web pages and WebSocket, the display, the encoder, the LED, idle blanking, Shut down and waking from deep sleep.
+  - [ ] Power: repeat PWR-01 and PWR-05 to check nothing got worse.
+
+---
+
 ## What happened, and what's next
 
 The original plan was Phases 1 → 2 → 4a → 3 → 4b. In practice (prep on 2026-10-08, the work on 2026-10-10):
@@ -227,3 +245,4 @@ Future   (images, mDNS)            ─── done
 5. **Measure power** (PWR-01 to PWR-05 in `test/README.md`), once there's a USB power meter or an INA219 to measure with.
 6. **Case changes**, once the parts are chosen.
 7. **Branding**, **translations (1.1)**, **dropping LPE**, and **refreshing the facts**, as and when wanted.
+8. **Platform 8 / Arduino core 3**, once NeoPixelBus supports it or the LED code gets reworked.
